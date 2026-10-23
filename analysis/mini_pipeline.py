@@ -677,9 +677,11 @@ class ThroughputView:
         self.target, self.seconds, self.width = target, seconds, width
         self.block = LiveBlock()
 
-    def frame(self, elapsed, total, windows):
-        """windows: (estimates, seconds) of every finished window of about one second."""
-        if windows:
+    def frame(self, elapsed, total, windows, rate=None):
+        """windows: (estimates, seconds) of every finished window of about one second; rate: current speed, if known."""
+        if rate is not None:
+            pass
+        elif windows:
             rate = windows[-1][0] / windows[-1][1]
         else:
             rate = total / elapsed if elapsed > 0 else 0
@@ -706,8 +708,8 @@ class ThroughputView:
             + ST.paint(ST.grey, f"  {elapsed:4.1f} / {self.seconds:.0f} s · odhadů celkem {fmt_int(total)}"),
         ]
 
-    def draw(self, elapsed, total, windows):
-        self.block.draw(self.frame(elapsed, total, windows))
+    def draw(self, elapsed, total, windows, rate=None):
+        self.block.draw(self.frame(elapsed, total, windows, rate))
 
 
 # ----------------------------------------------------------------------------- the demo
@@ -797,7 +799,7 @@ def run_demo(args, live, width):
         print("     čas | odhadů celkem | odhadů za poslední sekundu | chyba osy R")
     total = last = 0
     t_start = t_tick = t_draw = time.perf_counter()
-    batch_times, windows = [], []
+    batch_times, windows, recent = [], [], []
     while (now := time.perf_counter()) - t_start < args.seconds:
         for b in batches:
             t0 = time.perf_counter()
@@ -810,7 +812,11 @@ def run_demo(args, live, width):
                 print(f"{now - t_start:6.1f} s | {fmt_int(total):>13} | {fmt_int(total - last):>22}     | {err_r:6.3f} mm")
             last, t_tick = total, now
         if live and now - t_draw >= 0.2:
-            tview.draw(now - t_start, total, windows)
+            recent.append((now, total))
+            while now - recent[0][0] > 1:         # gauge = speed over the last second, refreshed every redraw
+                recent.pop(0)
+            span = now - recent[0][0]
+            tview.draw(now - t_start, total, windows, (total - recent[0][1]) / span if span > 0.1 else None)
             t_draw = now
     elapsed = time.perf_counter() - t_start
     rate = total / elapsed
