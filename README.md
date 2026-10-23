@@ -90,7 +90,8 @@ step. Wall times on a Ryzen 5 7535HS laptop CPU:
 | five notebooks | `notebooks/*.ipynb` | 2 min |
 
 Without `--quick` the whole run takes a little over an hour (`ipp1_inputs.py` alone about 13 minutes per fold), with it 6 to 7 minutes (383 s measured from a fresh clone). **Known problem:** since `e4d4fa7` notebook `04` stops with `KeyError: 'is_limited'` (`docs/PLAN.md`, IMPL-8); `make_all.py` stops there, so run notebook `05` by hand until it is fixed. `--missing` skips steps whose outputs
-already exist. Aggregate results and their interpretation are in `results/` and the notebooks.
+already exist. `--viewer` also builds the plasma shape viewer (`ipp1_oof_full.py` about 3 min, then `viewer/data.js` and the
+single file `viewer/dist/index.html`, both gitignored because they hold IPP data); open it by double click. Aggregate results and their interpretation are in `results/` and the notebooks.
 
 Notes from the second-machine check (`docs/PLAN.md`, RP-1 to RP-14):
 - On Linux `uv pip install torch` downloads the CUDA build, about 3 GB (a 5.7 GB venv). The scripts use only the CPU, so

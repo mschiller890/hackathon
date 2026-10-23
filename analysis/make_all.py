@@ -2,6 +2,7 @@
 """Regenerate every file the notebooks read, in dependency order, then optionally execute the notebooks.
 
     HACKATHON_HOME=<hackathon folder> ~/.venvs/hackathon/bin/python -I analysis/make_all.py [--quick] [--missing] [--notebooks]
+        [--viewer]
 
 Runs the existing analysis scripts unchanged with this interpreter and writes to $HACKATHON_HOME/out. Stops at the first
 failing step.
@@ -9,6 +10,8 @@ failing step.
            recomputing it (today only ipp1_inputs.py, about an hour since it trains the control subsets).
 --missing  skip a step whose outputs all exist.
 --notebooks then execute notebooks/*.ipynb into out/notebooks/, so the committed notebooks are not rewritten.
+--viewer   then build the plasma shape viewer: all-31-target predictions for the outline, viewer/data.js and the single
+           file viewer/dist/index.html. Both viewer files hold IPP data and are gitignored (CON-001).
 """
 import argparse
 import os
@@ -34,6 +37,11 @@ STEPS = [
 ]
 SLOW = {"ipp1_inputs.py"}  # over 10 minutes: --quick copies results/<output> instead
 # Executing the five notebooks afterwards takes about 2 minutes.
+VIEWER_STEPS = [
+    ("analysis/ipp1_oof_full.py", ["ipp1-predictions-full.csv"]),  # needs ipp1-predictions-noise.csv from STEPS
+    ("analysis/export_viewer_data.py", []),                          # writes viewer/data.js, not out/
+    ("viewer/build.py", []),                                         # writes viewer/dist/index.html
+]
 
 
 def run(cmd, env):
@@ -50,6 +58,7 @@ def main():
     ap.add_argument("--quick", action="store_true", help="copy results/ for steps over 10 minutes instead of rerunning")
     ap.add_argument("--missing", action="store_true", help="skip steps whose outputs already exist")
     ap.add_argument("--notebooks", action="store_true", help="execute the notebooks into out/notebooks afterwards")
+    ap.add_argument("--viewer", action="store_true", help="build viewer/dist/index.html afterwards")
     args = ap.parse_args()
 
     home = os.environ.get("HACKATHON_HOME")
@@ -73,6 +82,13 @@ def main():
             print(f"quick: copied results/{', results/'.join(outputs)} instead of running {script}")
             continue
         run([sys.executable, "-I", f"analysis/{script}"], env)
+
+    if args.viewer:
+        for script, outputs in VIEWER_STEPS:
+            if args.missing and outputs and all((out / o).exists() for o in outputs):
+                print(f"skip {script}: {', '.join(outputs)} present")
+                continue
+            run([sys.executable, "-I", script], env)
 
     if args.notebooks:
         nb_out = out / "notebooks"
