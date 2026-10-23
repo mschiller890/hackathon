@@ -1,161 +1,98 @@
-# Hackathon: plasma shape from magnetic measurements (CVUT ML Hackathon 2026)
+# Plasma shape from magnetic measurements (COMPASS, IPP task 1)
 
-Solution of **IPP task 1** (tokamak COMPASS): determine the shape and position of the plasma from
-magnetic measurements, and optionally from fast camera images, fast enough to be considered for
-real-time control. The classical reconstruction takes minutes; the network computation takes a small
-fraction of a millisecond (median 0.0145 ms per sample for the baseline network, 0.015 to 0.027 ms for the shipped
-model, one core of an Apple M5 on a shared machine; see the real-time caveats below).
+CVUT ML Hackathon 2026. Team: DOPLNIT (owner). Repository state: see the last commit; the numbers below come from `results/`. Documents index: [`docs/README.md`](docs/README.md); script index: [`analysis/README.md`](analysis/README.md).
 
-**Current status (Fri 23 Oct 2026, after the independent review and the audit):** baseline, shipped model, required
-analyses and the camera model measured; notebooks in progress. Requirements and their status:
-[`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md); task board: [`docs/PLAN.md`](docs/PLAN.md). No result is
-claimed here until it is measured and recorded.
+1. **Task.** From 24 magnetic signals (16 coils, 8 flux loops) of the COMPASS tokamak estimate 16 plasma quantities (magnetic axis, X point, strike points, limiter point, current, elongation, triangularity) fast enough for control. The classical reconstruction takes minutes.
+2. **Data.** 42,972 rows from 149 discharges, provided by the Institute of Plasma Physics (IPP). The labels are the institute's reference reconstruction, so every error is **agreement with that reconstruction**, not physical accuracy. The data are confidential and are not in this repository.
+3. **Method.** A small neural network (the "basic network"). The **shipped model** adds 22 differences of neighbouring coils, a ridge regression for the plasma current and a separate network for the limiter point. For the provided noisy inputs we ship another network, trained with noise.
+4. **Main result.** Radial magnetic axis error **0.133 mm** (mean absolute error, pooled over rows) on **30 discharges set aside** before the final model choice and scored once; the basic network gives 0.307 mm on the same 30. Plasma current 0.035 kA against 1.20 kA. Source: [`results/ipp1-final.md`](results/ipp1-final.md).
+5. **Other protocols for the same number.** 0.23 mm in 5-fold cross validation on the other 119 discharges; 0.397 mm when trained on the 60 lowest discharge ids and tested on the 59 highest (ids look chronological, not confirmed). The recipe was chosen by cross validation over all 149 discharges, so the 30 are "set aside", not "unseen by the idea".
+6. **Speed.** One sample takes a median 0.015 ms (diverted) to 0.027 ms (limited), p99 0.06 to 0.09 ms, one core of an Apple M5 on a shared machine (`results/ipp1-latency-shipped.md`). Only the network computation was timed. Real-time verdict: conditional.
+7. **Noise.** A model trained on clean data fails on the provided noisy file (radial axis 9.16 mm for the basic network on the 30); the noise-trained network gives 2.38 mm.
+8. **Also done.** Fewer inputs, stability over time, error distribution and unusual shapes, amount of data, time context, a closed test on simulated plasmas, and a small camera network (axis 1.7 to 1.8 mm, worse than magnetics).
+9. **Talk and one-page summary.** [`docs/HANDOUT.md`](docs/HANDOUT.md) (English; Czech: [`docs/HANDOUT.cs.md`](docs/HANDOUT.cs.md)); the deck is [`presentation/deck/slides.pdf`](presentation/deck/slides.pdf) (Czech) and the 7 minute talk is in Czech, see Files.
+10. **Not shown.** See Limits.
 
-**Shipped model and headline number.** For clean inputs the shipped model is `candidate` of
-[`results/ipp1-final.md`](results/ipp1-final.md): the network on the 24 inputs plus 22 neighbouring-coil differences,
-a ridge for the plasma current and a network for the limiter point gated by the predicted `is_limited`. Its radial axis
-error is **0.133 mm on 30 discharges set aside before the final models were trained and scored once** (baseline network
-0.307 mm on the same 30; pooled mean absolute error). The recipe itself was chosen earlier by cross validation over all
-149 discharges, so these 30 are not "never seen". The same model gives 0.23 mm in 5-fold cross validation on the 119
-development discharges and 0.397 mm when trained on the 60 lowest discharge ids and tested on the 59 highest (the baseline
-network 0.448 mm on random folds of those 59 and 1.23 mm blocked). Plasma current on the 30: 0.035 kA against 1.20 kA.
-For the provided noisy inputs a different model is shipped (baseline network trained with noise and drift): 2.38 mm on
-the axis on the same 30. A model trained on clean data fails on them (the plain baseline gives 9.16 mm).
+## How to read this repository
 
-**How to read the numbers** (details and sources in [`results/`](results/) and
-[`docs/internal/review-findings.md`](docs/internal/review-findings.md)). The figures below are for the **baseline network** and 5 folds over
-all 149 discharges unless a protocol is named:
+Start with the handout (2 minutes), then the notebooks. Every notebook has its outputs stored, so you can read it on GitHub without running anything. Order:
 
-- Accuracy is measured with folds split by whole discharge, so it is the accuracy on *randomly chosen new
-  discharges*. The discharge ids are chronological (`results/ipp1-final.md`; not confirmed with the organizers); on
-  contiguous blocks of ids the clean-input error of the baseline network is 1.5 to 2.9 times larger (radial axis 1.23
-  against 0.448 mm).
-- The headline errors are means: the baseline radial axis error is 0.38 mm on average, the median is 0.15 mm, 99 % of rows
-  are under 3.74 mm, and the worst rows are tens of millimetres (the end of a discharge). Limited plasmas are about
-  2.3 times worse than divertor ones (`results/ipp1-distribution.md`).
-- Plasma current: the linear (ridge) model gives 0.0346 kA, the baseline network 1.49 kA; the shipped model uses the ridge
-  for it.
-- Real-time verdict: conditional. The network computation is not an obstacle: baseline network median 0.0145 ms, p99
-  0.0209 ms for one sample; 0.0140 ms median and 0.0503 ms p99 end to end with numpy in and out
-  (`results/ipp1-latency.md`); shipped model 0.0154 ms (diverted) and 0.0274 ms (limited) median, p99 0.057 and 0.093 ms
-  end to end (`results/ipp1-latency-shipped.md`). All on one core of an Apple M5 on a shared machine (load average 5.7
-  and 7.0, not a clean benchmark). On a general-purpose system tails reach milliseconds (an earlier loaded run gave p99
-  0.65 ms and max 21 ms for the baseline network); budget 1 to 10 ms. Not verified: acquisition and integration of the coil
-  signals, the worst case on a real-time system, and accuracy on really noisy signals (see the noisy-input model above).
-- The provided `equil_data_noisy.csv` has white noise and no measurable drift; all drift results are synthetic.
+| # | Notebook | Answers | Needs the data to re-run |
+|---|---|---|---|
+| 1 | `notebooks/01_data_exploration.ipynb` | what the data look like, why folds must be whole discharges | yes |
+| 2 | `notebooks/02_baseline_models.ipynb` | ridge against the basic network, 5 folds | yes |
+| 3 | `notebooks/09_final_model_locked_test.ipynb` | **the main result**: shipped model on the 30 set-aside discharges | yes |
+| 4 | `notebooks/03_inputs_and_importance.ipynb` | which of the 24 inputs matter | yes |
+| 5 | `notebooks/04_stability_over_time.ipynb` | error and smoothness during a discharge | yes |
+| 6 | `notebooks/05_realtime_latency.ipynb` | speed of one prediction | yes |
+| 7 | `notebooks/07_distribution_and_unusual_shapes.ipynb` | where the error sits, unseen shape families | no |
+| 8 | `notebooks/08_robustness_and_data_amount.ipynb` | noise, drift, amount of data, time context | no |
+| 9 | `notebooks/06_camera_models.ipynb` | bonus: camera network | no |
+| 10 | `notebooks/10_synthetic_validation.ipynb` | closed test on simulated plasmas (not COMPASS data) | no data at all; trains small networks |
 
-**Agents and contributors:** read [`CLAUDE.md`](CLAUDE.md) (Claude Code) or [`AGENTS.md`](AGENTS.md) and then
-[`docs/internal/WORKERS.md`](docs/internal/WORKERS.md); it assigns the lanes and says what each one does first.
+Numbers in the notebooks come from the aggregate files in [`results/`](results/); the main one is `results/ipp1-final.md`.
 
-## Data (not in this repository)
+## Run it
 
-The data come from Ústav fyziky plazmatu AV ČR and may be used only for this hackathon; they must not be
-published or shared outside the participants. They live in a folder outside the repository, and every script finds
-them through `HACKATHON_HOME`:
+**The data are not in the repository** (confidential, for this hackathon only). They are the file `uloha_1-magneticka_data.zip` from the organisers' shared folder (participants only; the link is not published here). Unzip it so that this file exists, and point `HACKATHON_HOME` at the folder that holds `data/`:
 
 ```
-$HACKATHON_HOME/
-├── data/raw/ipp1-magnetic/uloha_1-magneticka_data/   equil_data.csv, equil_data_noisy.csv
-├── data/raw/ipp1-photron-zip/                        camera archive (optional)
-└── out/                                              everything the scripts write (created on the first run)
+$HACKATHON_HOME/data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.csv   (and equil_data_noisy.csv)
 ```
 
-Any folder works. On the owner's Mac it is the `hackathon/` folder that also holds this clone as `repo/`; on a plain
-`git clone` pick a sibling folder, for example `~/GitHub/hackathon-home`. Download `uloha_1-magneticka_data.zip` from the
-organizers' Drive (participants only; 37,368,783 bytes). The sha256 recorded earlier (`0b2b3dd1aaaeb51b4a6dacbdaf63222f14ea055a82b54e6cf9da2923781381`)
-has only 62 of 64 hex digits, so `sha256sum -c` cannot use it: check the size and that the hash starts with `0b2b3dd1`.
-Unzip it into `$HACKATHON_HOME/data/raw/ipp1-magnetic/` and check that this file exists (every script stops without it):
-
-```bash
-ls "$HACKATHON_HOME/data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.csv"
-```
-
-If the two csv files landed directly in `ipp1-magnetic/`, move them into a new folder `uloha_1-magneticka_data/` there.
-
-The vacuum wall outline for the shape viewer is one public file of the organisers' repository. Fetch only that file with
-`HACKATHON_HOME=<hackathon folder> python -I analysis/fetch_wall.py` (prints size and sha256, refuses any other URL).
-Without it `make_all.py --viewer` still builds the viewer and says so in one line; limiter frames then touch nothing on screen.
-
-## Repository structure
-
-| Path | Purpose |
-|---|---|
-| `AGENTS.md`, `CLAUDE.md` | Engineering workflow and the start-here notes for Claude Code sessions. |
-| `docs/PLAN.md` | The single task tracker. |
-| `docs/REQUIREMENTS.md` | Requirements, constraints, assumptions, open questions, status and evidence. |
-| `docs/DECISIONS.md` | Significant technical decisions and why. |
-| `docs/` (other files) | Reviews, audit (`audit.md`), claims corrections, submission checklist, timeline, worker lanes. |
-| `analysis/` | Scripts: data profiling, exploratory analysis, models, latency, robustness, the submission builder. |
-| `notebooks/` | Five Jupyter notebooks with stored outputs (data, baseline, inputs, stability over time, latency). |
-| `results/` | Committed aggregate results (`.md`, `.json`, `.png`); no raw data. |
-| `presentation/` | Outline, pitch script, glossary and the deck (`deck/slides.pptx`). |
-| `viewer/` | Single-file browser viewer of true and predicted shapes; needs the data to build (`viewer/README.md`). |
-| `cloud/` | Briefs for the two cloud sessions (camera model, hyperparameter search). |
-
-## Setup and run
-
-Python 3.12 through [`uv`](https://docs.astral.sh/uv/) (`python3 -m pip install --user uv` if it is missing; `uv` downloads
-Python 3.12 itself). From the root of your clone:
+Setup (Python 3.12 with [`uv`](https://docs.astral.sh/uv/)):
 
 ```bash
 uv venv ~/.venvs/hackathon --python 3.12
-# Linux: install the CPU build of torch first (see the notes below), otherwise the next line pulls about 3 GB of CUDA wheels
-uv pip install --python ~/.venvs/hackathon/bin/python pandas pyarrow openpyxl matplotlib scikit-learn scipy torch \
-    charset-normalizer nbconvert ipykernel
-~/.venvs/hackathon/bin/python -m ipykernel install --user --name hackathon   # the notebooks ask for this kernel
-export HACKATHON_HOME=~/GitHub/hackathon-home                                # your data folder, see above
-~/.venvs/hackathon/bin/python -I analysis/make_all.py --quick --notebooks
+uv pip install --python ~/.venvs/hackathon/bin/python pandas pyarrow openpyxl matplotlib scikit-learn scipy torch charset-normalizer nbconvert ipykernel
+~/.venvs/hackathon/bin/python -m ipykernel install --user --name hackathon   # notebooks 01 to 05 and 09 ask for this kernel
 ```
 
-Install the packages into the venv, not with `pip install --user`: `python -I` ignores user site packages.
+On Linux install the CPU build of torch first (`uv pip install torch --index-url https://download.pytorch.org/whl/cpu`), otherwise about 3 GB of CUDA wheels come in.
 
-Extra packages for the delivery tools only (not needed for the analysis or for `analysis/make_submission.py`, which uses
-only the standard library): `uv pip install --python ~/.venvs/hackathon/bin/python python-pptx markdown`.
-`python-pptx` is for `presentation/deck/build_deck.py`; `analysis/make_pdf.py` and `viewer/record.py` also need headless
-Chrome, ffmpeg and `websocket-client` (none of these were tested on a clean checkout).
+- **Without the data** (5 to 9 seconds each, run inside a `git clone`: they check their inputs against `git ls-files`): `~/.venvs/hackathon/bin/python -m jupyter nbconvert --to notebook --execute notebooks/07_distribution_and_unusual_shapes.ipynb --output-dir /tmp/nb` (same for `06` and `08`). They read only the committed `results/`.
+- **With the data**: `export HACKATHON_HOME=<your folder>` and `~/.venvs/hackathon/bin/python -I analysis/make_all.py --quick --notebooks` (6 to 7 minutes; without `--quick` about an hour). Output goes to `out/`; the committed notebooks are not rewritten.
+- **Shipped model without torch.** `python -I analysis/export_model.py` (needs the data, about 30 s) writes the weights to `out/model/`, then `python analysis/predict.py input.csv` estimates the 16 quantities from a CSV with the columns `IPR01` to `IPR16` and `FL01` to `FL08`, numpy only. The weights come from confidential data and never go into git; `analysis/check_predict.py` compares the command line with the cached predictions of the 30.
+- **Demo.** `viewer/index.html` is only a template: without `viewer/data.js` it shows one error line, because the page embeds IPP data and is never committed. Without the data look at the stills `presentation/assets/viewer-*.png` and `failure-*.png`. With the data: `python -I analysis/make_all.py --quick --missing --viewer` (about 11 minutes), then open `viewer/dist/index.html` in Chrome (the page is in Czech). The wall outline comes from one public file, `analysis/fetch_wall.py`. Details: [`viewer/README.md`](viewer/README.md).
 
-Commands that run without data: `python -I analysis/make_submission.py --out <path that does not exist yet>` builds the
-submission package and checks it, deck and viewer page included (`docs/SUBMISSION.md`). Every other script and the five notebooks need the data and stop
-with an error without it (even `ipp1_latency.py`, which does not use the data, audit R-1). Not for a first run: `analysis/check_claims.py` rewrites the tracked file
-`docs/internal/claims-audit.md` (restore it with `git restore docs/internal/claims-audit.md`), `analysis/profile_data.py` needs a data path
-argument, and `viewer/build.py` needs `viewer/data.js`, which is made from the data and is not in git.
+## Limits
 
-`analysis/make_all.py` creates `out/`, runs the analysis scripts in the order their outputs depend on each other and then
-executes the five notebooks into `out/notebooks/` (the committed notebooks are not rewritten). It stops at the first failing
-step. Wall times on a Ryzen 5 7535HS laptop CPU:
+- Agreement with the institute's reconstruction, not physical accuracy; no independent measurement.
+- Errors are means. The radial axis median is 0.15 mm against a mean of 0.38 mm for the basic network; limited plasmas are about 2.3 times worse; the last tenth of a discharge is the worst.
+- Random folds by discharge are optimistic: on later discharge ids the error is 1.5 to 2.9 times larger (basic network).
+- 30 set-aside discharges, one seed per model, only 2 of the 30 with positive plasma current.
+- The shipped model gives 16 numbers, not the plasma boundary. Unusual shape families were 1.0 to 3.0 times worse when held out.
+- The model trained on clean data does not work on noisy inputs; two models are shipped and the caller must know which input it has. The provided noisy file has white noise and no measurable drift; the drift results are synthetic.
+- Real time: only the network computation was timed (one core, shared machine). Signal acquisition and the worst case on a real-time system were not measured; budget 1 to 10 ms.
+- The camera network is small (48x64 pixels, 811 thousand parameters) and worse than magnetics (axis 1.7 to 1.8 mm against 0.38 mm); it is a bonus, not a result.
 
-| Step | Writes (in `out/`) | Time |
-|---|---|---|
-| `ipp1_eda.py` | `ipp1-eda.json`, figures | 2 s |
-| `ipp1_baseline.py` | `ipp1-baseline.json` | 1 min |
-| `ipp1_oof.py` | `ipp1-predictions.csv` | 45 s |
-| `ipp1_oof_noise.py` | `ipp1-predictions-noise.csv` | 1.5 min |
-| `ipp1_time.py` | `ipp1-time.json` | 3 s |
-| `ipp1_inputs.py` | `ipp1-inputs.json` | about 1 h; `--quick` copies `results/ipp1-inputs.json` instead |
-| `ipp1_latency.py` | `ipp1-latency.json` | 10 s |
-| five notebooks | `notebooks/*.ipynb` | 2 min |
+## Files
 
-Without `--quick` the whole run takes about an hour (58 min measured; `ipp1_inputs.py` alone 53 min, partly on a shared CPU), with it 6 to 7 minutes (383 s measured from a fresh clone). Notebook `04` stopped with `KeyError: 'is_limited'` on a fresh clone; fixed in `b7f5011`, not yet re-run end to end on a second machine (`docs/PLAN.md`, IMPL-8). `--missing` skips steps whose outputs
-already exist. `--viewer` also builds the plasma shape viewer (`ipp1_oof_full.py` about 3 min, then `viewer/data.js` and the
-single file `viewer/dist/index.html`, both gitignored because they hold IPP data); open it by double click. Aggregate results and their interpretation are in `results/` and the notebooks.
+| Path | What |
+|---|---|
+| `notebooks/` | ten notebooks with stored outputs (order above) |
+| `results/` | aggregate numbers and figures (`.md`, `.json`, `.png`); no raw data. Start with `ipp1-final.md` |
+| `analysis/` | the scripts the notebooks use; `make_all.py` runs the pipeline in order; index in [`analysis/README.md`](analysis/README.md) |
+| `docs/HANDOUT.md`, `docs/HANDOUT.cs.md` | one-page summary (English, Czech) |
+| `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, `docs/PLAN.md` | what the task asked for and where it is answered; why we chose what we chose; the task board |
+| `docs/SUBMISSION.md`, `docs/claims-corrections.md`, `docs/hackathon-rules.md`, `docs/related-work.md` | hand-in checklist; sentences not to say; the organisers' rules; related work (index: [`docs/README.md`](docs/README.md)) |
+| `docs/internal/` | working notes of the team and its assistants (plans, reviews, audits, rehearsal); not needed to understand the result |
+| `presentation/` | `deck/slides.pptx` (14 slides, Czech) and `deck/slides.pdf` (12 pages, the two hidden slides left out, see `deck/PDF-NOTES.md`), `outline.md` and `pitch-script.md` (the 7 minute talk, Czech), speaker material (`CHEAT-SHEET.md`, `REHEARSAL.md`, `demo-facts.md`) |
+| `viewer/` | offline shape viewer, built from the data; see Run it |
+| `AGENTS.md`, `CLAUDE.md` | instructions for the coding assistants that worked on this repository |
 
-Notes from the second-machine check (`docs/PLAN.md`, RP-1 to RP-14):
-- On Linux `uv pip install torch` downloads the CUDA build, about 3 GB (a 5.7 GB venv). The scripts use only the CPU, so
-  install the CPU build first and the rest afterwards (tested: `torch 2.14.1+cpu` in 110 s, a 1.3 GB venv, and
-  `ipp1_baseline.py` gave all 16 MAE and R2 values of `results/ipp1-baseline.md` unchanged):
-  `uv pip install --python ~/.venvs/hackathon/bin/python torch --index-url https://download.pytorch.org/whl/cpu`, then the
-  `uv pip install` line above.
-- Versions that reproduced `results/ipp1-baseline.md` on the second machine: Python 3.12.15, torch 2.14.1, numpy 2.5.4,
-  pandas 3.1.0, scikit-learn 1.9.1, scipy 1.18.1, nbconvert 7.17.2. Latency figures depend on the processor.
+## Repository tree
 
-## Try the model
-
-The shipped model (recipe `cand`, `results/ipp1-final.md`) runs without torch or pandas, from the 24 magnetic measurements to 16 estimates of the institute's reference reconstruction.
-1. `python -I analysis/export_model.py` trains it on the 119 development discharges (about 30 s, needs the data) and writes `out/model/ipp1-selected.npz` (0.9 MB). **The weights come from the confidential data**: `out/` is git-ignored and the file goes only into the submission package.
-2. `python analysis/predict.py input.csv` reads a CSV with the columns `IPR01` to `IPR16` and `FL01` to `FL08` (one row per time instant) and prints the 16 estimates (mm, kA) and `is_limited_flag`; `--out file.csv` writes every row, `--all` keeps the cells that do not apply to the configuration. Only numpy is needed. Rows are independent: the "neighboring coil" differences are between adjacent coils inside a row, not between time steps.
-3. `python -I analysis/check_predict.py` shows that `predict.py` reproduces the cached predictions for the 30 set-aside discharges (largest difference 0.0006 mm, about 5 microseconds per row for a whole file on one core), as a library and as a command line.
-
-## Engineering approach
-
-Development follows [`AGENTS.md`](AGENTS.md): requirements-driven work, claims backed by evidence, small
-Conventional Commits, regular pushes.
+```
+.
+├── README.md, AGENTS.md, CLAUDE.md
+├── analysis/        scripts: pipeline, experiments, tools (README.md lists them)
+├── notebooks/       10 notebooks with stored outputs
+├── results/         aggregate numbers and figures
+├── presentation/    talk (outline, pitch script), speaker material
+│   ├── deck/        slides.pptx, slides.pdf, build_deck.py
+│   └── assets/      images for the deck and the failure gallery
+├── viewer/          offline shape viewer (data.js is git-ignored)
+└── docs/            handout, requirements, decisions, plan, submission checklist
+    └── internal/    working notes: reviews, audits, briefs, timeline
+```

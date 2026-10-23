@@ -18,7 +18,7 @@ the same time, so follow this order before you touch anything:
 
 ## Lane K, the colleague's Claude: your first steps
 
-1. Set up Python 3.12 and the packages in `README.md` ("Setup and run"). Ask your user for the link to the organizers'
+1. Set up Python 3.12 and the packages in `README.md` ("Run it"). Ask your user for the link to the organizers'
    Google Drive folder of IPP task 1 and download `uloha_1-magneticka_data.zip` (37 MB) yourself. Unzip it into its own
    new folder so the layout is `hackathon/data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.csv`.
    Set `HACKATHON_HOME` to the `hackathon/` folder that holds `data/` and `repo/`.
