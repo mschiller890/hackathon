@@ -107,6 +107,20 @@ prepare the script and the shot list in `presentation/video-plan.md` using only 
 deck exported to PDF in `presentation/deck/`. Never include raw IPP data rows. Paths: `presentation/video-plan.md`, `presentation/video/`
 (large files outside git), `presentation/deck/*.pdf`.
 
+### Work for the local lanes (Fri 19:10): the cloud lanes are busy, these are idle
+Use your own budget (GPT and the colleague's Claude have separate limits; the fork shares the Lead's weekly limit, so the fork only does the light items).
+**R (GPT), in this order, stop the local camera training now (the cloud session is the camera lane):**
+1. REQ-007 table, `analysis/ipp1_distribution.py`, `results/ipp1-distribution.md`: error by configuration (limited against divertor), by current polarity (16 of 149 discharges are positive),
+   by value quantile of each main target and by first 2 percent, middle and last 2 percent of the discharge; pooled over the out-of-fold predictions of `analysis/ipp1_oof.py`.
+2. Unusual shapes (REQ-B08), `analysis/ipp1_unusual_shapes.py`: leave one cluster of shapes out (cluster discharges on elongation and triangularity), train without it, measure the error on it.
+3. Uncertainty, `analysis/ipp1_uncertainty.py`: five networks, does their disagreement predict the real error (correlation, error of the most uncertain 10 percent).
+4. A drop-column or backward-elimination ranking for REQ-004 on training discharges only, written to `results/ipp1-inputs-ranking.md`.
+**K (colleague's Claude):** (1) the delivery risk before CP3: from a clean clone, run the five notebooks top to bottom on your machine and fix every path or missing-`out/` problem by adding a
+`analysis/make_all.sh` (or `.py`) that regenerates every file the notebooks read, in the right order, and document it in `README.md`; (2) apply `docs/claims-corrections.md` to the deck and the outline and check that every number on a slide appears in `results/`;
+(3) answer RP-8 with the Linux test of `viewer/dist/index.html` once it exists.
+**V (third Claude):** the video plan and the PDF of the deck as described above; first read `docs/claims-corrections.md`.
+**U (fork), light items only:** finish the viewer blockers (wall, predicted outline from `out/ipp1-predictions-full.csv` when it exists), then stop.
+
 ### Cloud environment (two Claude cloud sessions, started by the owner Fri 16:47)
 Repository: private mirror `BLADED-K/hackathon-cloud` (the local remote `cloud` of `hackathon/repo`). It holds code, docs and aggregate
 results only, never data; the sessions download the data themselves with gdown from the organizers' Drive and keep it in their sandbox.
