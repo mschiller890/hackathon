@@ -165,3 +165,8 @@ Qualifiers added after the independent review (`docs/review-findings.md`):
 - No validation split exists, so epochs and hyperparameters were not chosen inside the training data; every
   training result is one seed per fold (seed noise 8 to 19 % per the review), so differences under about 10 to 15 %
   are noise.
+
+## D-RP6: a single real discharge may be shown in the talk (owner, 23 Oct 2026 19:35)
+- The owner decided: one real discharge (its trace and its true and predicted shape) may be shown in the talk, because the jury are people from IPP. Nothing of it goes into a public repository.
+- Consequences: `results/ipp1-time.png` and the viewer stills `presentation/assets/viewer-*.png` may be used on slides and in the backup clip. The repository stays private; no public push, no public mirror, no upload of the deck to a public place. The submission package goes only to the organizers through the channel the owner uses (OQ-002 still open: the owner names the channel and the time). No more than one real discharge per slide; no table of raw rows anywhere.
+- Open for the owner (OQ-002): submission time, video limit, how to submit.
