@@ -192,5 +192,32 @@ for t in MAIN:
                  f"{r['share_of_sq_error']:.1%} |")
     L += [""]
 
+cfg, pol, pos = result["configuration"], result["polarity"], result["position in discharge"]
+qa = quantiles["R_mag_axis"]
+L += ["## Limits (state these in the talk)", "",
+      f"- The headline MAE is an average over two very different regimes. The limited rows are "
+      f"{cfg['limited']['R_mag_axis']['share_of_rows']:.1%} of the rows and carry "
+      f"{cfg['limited']['R_mag_axis']['share_of_sq_error']:.1%} of the squared error of the radial axis "
+      f"({cfg['limited']['R_mag_axis']['mae']:.3g} against {cfg['diverted']['R_mag_axis']['mae']:.3g} mm diverted).",
+      f"- The {meta['positive_current_discharges']} discharges with positive plasma current are "
+      f"{pol['positive current']['R_mag_axis']['share_of_rows']:.1%} of the rows and carry "
+      f"{pol['positive current']['R_mag_axis']['share_of_sq_error']:.1%} of it "
+      f"({pol['positive current']['R_mag_axis']['mae']:.3g} against "
+      f"{pol['negative current']['R_mag_axis']['mae']:.3g} mm). A shape absent from training is not handled.",
+      f"- The worst localised weakness is the limiter point at the START of a discharge: `R_limiter` is "
+      f"{pos['first 2 %']['R_limiter']['mae']:.3g} mm in the first 2 % against "
+      f"{pos['middle 96 %']['R_limiter']['mae']:.3g} mm in the middle, which is "
+      f"{pos['first 2 %']['R_limiter']['share_of_sq_error']:.1%} of its squared error on "
+      f"{pos['first 2 %']['R_limiter']['share_of_rows']:.1%} of its rows.",
+      f"- The end of a discharge is the other edge: `Z_mag_axis` puts "
+      f"{pos['last 2 %']['Z_mag_axis']['share_of_sq_error']:.1%} of its squared error into the last 2 % of the "
+      f"rows, and `R_mag_axis` {pos['last 2 %']['R_mag_axis']['share_of_sq_error']:.1%}.",
+      f"- Rare target values are predicted worse at BOTH edges, not just one: the outer quintiles of "
+      f"`R_mag_axis` are {qa['Q1']['mae']:.3g} and {qa['Q5']['mae']:.3g} mm against {qa['Q4']['mae']:.3g} mm "
+      f"in the best quintile.",
+      "- These are out-of-fold rows of randomly held-out discharges. This file says nothing about a new "
+      "campaign or regime; the discharge ids are chronological, so GroupKFold is the optimistic protocol.",
+      "- This file MEASURES the uneven distribution. It does not respond to it: no stratified folds and no "
+      "reweighting were applied here.", ""]
 (OUT / "ipp1-distribution.md").write_text("\n".join(L) + "\n", encoding="utf-8")
 print("\n".join(L))

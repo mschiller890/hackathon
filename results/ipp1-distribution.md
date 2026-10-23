@@ -198,3 +198,13 @@ Quintiles of the TRUE value of each target, over the rows where that target exis
 | Q4 | 1.886e-08 to 7.333 | 4,213 | 4.81 | 2.52 | 16.2 | 31.6 | 139 | 22.2% | 1.3% |
 | Q5 | 7.333 to 327.9 | 4,792 | 30.6 | 13.3 | 115 | 245 | 512 | 25.2% | 47.3% |
 
+## Limits (state these in the talk)
+
+- The headline MAE is an average over two very different regimes. The limited rows are 44.2% of the rows and carry 91.9% of the squared error of the radial axis (0.553 against 0.237 mm diverted).
+- The 16 discharges with positive plasma current are 7.4% of the rows and carry 77.8% of it (1.73 against 0.269 mm). A shape absent from training is not handled.
+- The worst localised weakness is the limiter point at the START of a discharge: `R_limiter` is 52.6 mm in the first 2 % against 8.28 mm in the middle, which is 40.5% of its squared error on 4.9% of its rows.
+- The end of a discharge is the other edge: `Z_mag_axis` puts 77.9% of its squared error into the last 2 % of the rows, and `R_mag_axis` 26.9%.
+- Rare target values are predicted worse at BOTH edges, not just one: the outer quintiles of `R_mag_axis` are 0.455 and 0.604 mm against 0.228 mm in the best quintile.
+- These are out-of-fold rows of randomly held-out discharges. This file says nothing about a new campaign or regime; the discharge ids are chronological, so GroupKFold is the optimistic protocol.
+- This file MEASURES the uneven distribution. It does not respond to it: no stratified folds and no reweighting were applied here.
+
