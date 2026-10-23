@@ -58,12 +58,11 @@ Věta: Na 30 odložených výbojích určí vybraný model osu s chybou 0,13 mm 
 
 ## Živá ukázka mezi snímkem 4 a 5 (88 s)
 
-Věta: V prohlížeči vidíte skutečný a odhadnutý tvar plazmatu vedle sebe a chybu v čase, jednu typickou a jednu špatnou ukázku; v ukázce je základní síť, ne vybraný model.
+Věta: V prohlížeči vidíte na výbojích odložených před výběrem skutečné a odhadnuté body plazmatu (osa, bod X, dotykové body) a jejich chybu v čase; v ukázce je vybraný model.
 
-* Posuvník času, skutečná a odhadnutá hranice, tabulka chyb. Podrobný scénář je v souboru pitch script.
-* Prohlížeč přehrává předpovědi základní sítě mimo učení (validační skupina 1 z 5); výboje 123, 0, 4 a 11 nepatří mezi odložených 30. Dlaždice latence v prohlížeči má říkat základní síť, 0,0145 ms.
-* Před ukázkou se nahlas řekne, že vybraný model je na odložených výbojích u osy asi dvakrát přesnější.
-* Čísla z prohlížeče (chyba osy výboje 0, tvar chyby výboje 123) se zapíšou den předem po přehrání; do té doby jsou `[[chyba osy výboje 0]]`.
+* Posuvník času, stěna komory, skutečné a odhadnuté body, tabulka chyb. Vybraný model nepředpovídá celý obrys plazmatu, jen body; legenda v prohlížeči to říká. Podrobný scénář je v souboru pitch script.
+* Prohlížeč přehrává předpovědi vybraného modelu na 30 odložených výbojích; seznam výbojů je v nabídce na prvním místě. Které výboje ukázka použije a jaká je jejich chyba osy, určí vedoucí v pitch scriptu (KQ 18); do té doby `[[chyba osy výboje 0]]`.
+* Čísla z prohlížeče se zapíšou den předem po přehrání a ověří proti složce results.
 * Podíl výbojů: 128 ze 149 (85,9 %) má průměrnou chybu osy pod 1 mm, 3 přes 5 mm (základní síť, pět dělení).
 
 ## Snímek 5: Verdikt pro řízení v reálném čase (37 s)
