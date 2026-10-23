@@ -9,6 +9,9 @@ milliseconds.
 [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md); task board: [`docs/PLAN.md`](docs/PLAN.md). No result is
 claimed here until it is measured and recorded.
 
+**Agents and contributors:** read [`CLAUDE.md`](CLAUDE.md) (Claude Code) or [`AGENTS.md`](AGENTS.md) and then
+[`docs/WORKERS.md`](docs/WORKERS.md); it assigns the lanes and says what each one does first.
+
 ## Data (not in this repository)
 
 The data come from Ústav fyziky plazmatu AV ČR and may be used only for this hackathon; they must not be
