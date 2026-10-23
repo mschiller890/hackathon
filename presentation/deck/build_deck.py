@@ -222,7 +222,7 @@ def build():
     keys = [("R_mag_axis", "osa R"), ("Z_mag_axis", "osa Z"), ("R_x_point", "bod X R"), ("Z_x_point", "bod X Z"),
             ("R_strike_point_1", "dotyk 1 R"), ("Z_strike_point_1", "dotyk 1 Z")]
     rv, mv = [ridge[k]["mae"] for k, _ in keys], [mlp[k]["mae"] for k, _ in keys]
-    text(s, 4.6, 2.15, 8.1, 0.4, "Průměrná chyba v mm na neviděných výbojích", size=14, color=MUTED)
+    text(s, 4.6, 2.15, 8.1, 0.4, "Průměrná chyba v mm na náhodně vybraných výbojích, které model neviděl", size=14, color=MUTED)
     c = chart(s, 4.5, 2.45, 8.3, 4.4, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
               [("lineární model", rv), ("neuronová síť", mv)], [MUTED, ORANGE])
     style_chart(c)
@@ -235,16 +235,18 @@ def build():
     one = lat["cpu_1_thread_single_sample"]
     s = frame(prs, 5, "Verdikt pro řízení v reálném čase", "Jeden odhad trvá setiny milisekundy", notes)
     tile(s, 0.6, 2.3, 5.9, 2.3, f"{cz(one['median_ms'], 4)} ms", "medián jednoho odhadu na procesoru", ORANGE, 60)
-    tile(s, 6.85, 2.3, 5.9, 2.3, f"{cz(one['max_ms'], 3)} ms", "nejhorší naměřený odhad, stále pod 1 ms", BLUE, 60)
+    # p99, not the maximum: 5000 calls on an ordinary OS bound nothing (docs/review-findings.md, latency finding)
+    tile(s, 6.85, 2.3, 5.9, 2.3, f"{cz(one['p99_ms'], 3)} ms", "99 % odhadů je rychlejších", BLUE, 60)
     text(s, 0.6, 5.0, 12.1, 1.8, [
-        [("Rezerva: ", 20, ORANGE, True), (f"i nejhorší případ je {cz(1 / one['max_ms'], 0)}krát kratší než "
-                                           "jedna milisekunda; zadání připouští jednotky až desítky.", 20, TEXT, False)],
+        [("Výpočet sítě není překážkou: ", 20, ORANGE, True),
+         ("zadání dává jednotky až desítky milisekund. Neověřeno: sběr signálů z čidel a běh na systému "
+          "reálného času.", 20, TEXT, False)],
         [("Grafická karta nepomůže: ", 20, ORANGE, True),
          (f"pro tak malou síť je pomalejší ({cz(lat['mps_single_sample']['median_ms'], 2)} ms).", 20, TEXT, False)],
-        [("Měřeno na počítači Mac vedoucího týmu; na druhém počítači vyšlo 0,032 ms.", 14, MUTED, False)]])
+        [("Měřeno na nezatíženém počítači Mac vedoucího týmu; na druhém počítači vyšel medián 0,032 ms.", 14, MUTED, False)]])
 
     # 6 Limits
-    s = frame(prs, 6, "Meze", "Nejslabší je bod u limiteru a začátek a konec výboje", notes)
+    s = frame(prs, 6, "Meze", "Nejslabší je bod u limiteru a konec výboje", notes)
     tile(s, 0.6, 2.2, 3.6, 2.0, f"{cz(mlp['R_limiter']['mae'], 1)} mm", "chyba bodu u limiteru, radiálně", ORANGE, 40)
     tile(s, 0.6, 4.4, 3.6, 2.0, f"{cz(mlp['Z_limiter']['mae'], 1)} mm", "chyba bodu u limiteru, svisle", ORANGE, 40)
     dec = tm["mae_by_time_decile"]["R_mag_axis"]
@@ -259,8 +261,9 @@ def build():
         pt.format.fill.fore_color.rgb = ORANGE
     label_points(c.plots[0].series[0], dec, 2, TEXT, 11)
     c.value_axis.visible = False
-    text(s, 4.6, 6.45, 8.1, 0.4, f"Výstup nekolísá víc než skutečnost: poměr kolísání "
-         f"{cz(tm['jitter_ratio']['R_mag_axis'], 2)} pro osu.", size=13, color=MUTED)
+    jr = tm["jitter_ratio"].values()  # all targets in the file, not the most favourable one (review finding)
+    text(s, 4.6, 6.45, 8.1, 0.4, f"Na čistých vstupech kolísá výstup podobně jako skutečnost: poměr {cz(min(jr), 2)} "
+         f"až {cz(max(jr), 2)} u {len(jr)} veličin.", size=13, color=MUTED)
 
     # 7 What the model cannot do
     s = frame(prs, 7, "Co model neumí", "Zná jen tvary z dat a šum v měření mu vadí nejvíc", notes)
@@ -275,7 +278,7 @@ def build():
     label_points(c.plots[0].series[0], [v for _, v in nz], 2, TEXT, 11)
     c.value_axis.visible = False
     cv = j["curve"]
-    text(s, 7.2, 2.15, 5.6, 0.4, "Chyba osy (mm) podle počtu učících výbojů", size=14, color=MUTED)
+    text(s, 7.2, 2.15, 5.6, 0.4, "Chyba osy (mm) podle počtu učících výbojů, vždy 60 epoch", size=14, color=MUTED)
     c = chart(s, 7.1, 2.45, 5.8, 3.6, XL_CHART_TYPE.LINE_MARKERS, [str(n) for n, _ in cv],
               [("osa", [v for _, v in cv])], [ORANGE])
     style_chart(c, legend=False, size=11)
