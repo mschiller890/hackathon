@@ -57,6 +57,17 @@ Fresh clone at `~/GitHub/hackathon`. Each row is a point where `README.md` alone
 | RP-13 | Viewer from a fresh checkout has no predicted outline. `analysis/export_viewer_data.py` draws the predicted boundary from `out/ipp1-predictions-full.csv` (all 31 targets incl. `R_top`…`squareness_*`), but no committed script writes that file, so it falls back to `ipp1-predictions.csv` (16 targets). Run here, Fri 18:13: `ipp1_oof.py` 50 s, `ipp1_oof_noise.py` 92 s (clean-trained on noisy R axis 10.2 mm, hardened 2.77 mm, matching lane R and the Lead), `export_viewer_data.py` "149 discharges, 14370 rows, 9.4 MB, noise: yes, wall: no", `viewer/build.py` 9.5 MB; screenshot shows only the black true boundary although the caption says "červeně = předpověď sítě" | Recorded; `viewer/data.js` and `viewer/dist/` stay gitignored (`git status` clean) | Lane U: commit the script that writes `ipp1-predictions-full.csv` (or make `ipp1_oof.py` write all 31 targets) and list the build order in the README |
 | RP-14 | Portable viewer on Linux (RP-8): `viewer/dist/index.html` opens from `file://` in Firefox (headless, 1920x1080) with no network request (no external src, href, font or fetch in `viewer/index.html`); picker, tiles, magnifiers, table and error chart render. The time slider shows no track in Firefox: it is styled only with `::-webkit-slider-*` | Recorded; Chrome and Safari are unaffected | Lane U: add `::-moz-range-track` and `::-moz-range-thumb` rules if Firefox matters; the presentation Mac is unaffected |
 
+**Questions from lane K to the Lead (Fri 18:25, asked by K-Outline-Sonnet, written here by K-Repro-Opus):**
+
+| ID | Question | Why it matters |
+|---|---|---|
+| KQ-1 | `docs/claims-corrections.md` is named twice in WORKERS.md (lane K item 2, lane V) but is not in the repository. Is it coming, or does `docs/review-findings.md` take its place? | Lane K item 2 says to apply it to the deck and the outline |
+| KQ-2 | The data facts on slide 2 (42 972 rows, 149 discharges, 24 inputs, 16 targets) and slide 1a (discharge 150 to 200 ms) are not in `results/`. Keep them on the slides, or add a data summary to `results/` (for example from `ipp1-eda.json`)? | Lane K item 2: "every number on a slide appears in `results/`" |
+| KQ-3 | Which file will hold the camera result and the unusual-shape result (lane R item 2), and by when? | Outline and deck slides 3 and 7 keep `DOPLNIT` until then |
+| KQ-4 | RP-12: who edits `presentation/pitch-script.md` lines 4:55 and 5:04, the Lead or lane K? | The deck's speaker notes are read from that file |
+
+RP-8 is answered by RP-14 (Linux test done, lane K item 3).
+
 **Result of the check (Fri 17:10).** Both scripts run end to end from a fresh clone once RP-1 to RP-4 are worked
 around: `HACKATHON_HOME=~/GitHub/hackathon-home ~/.venvs/hackathon/bin/python -I analysis/ipp1_eda.py` (2.9 s) and
 `.../ipp1_baseline.py` (54 s wall, 5 folds, 60 epochs, CPU). EDA matches IMPL-1 and DEC-003: 42,972 rows, 57 columns,
