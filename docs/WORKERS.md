@@ -71,6 +71,15 @@ verdict, the limits, what the model cannot do. Use plain Czech without English w
 that do not exist yet stay marked `DOPLNIT`. (3) Later: material for the motion reel; the owner starts it after the
 results exist (not before Sat 08:00).
 
+### R next after the camera (Fri 17:40): two gaps found by the Lead's review
+1. **Unusual shapes (REQ-B08).** Hold out whole families of shapes instead of random discharges: for example train without the rare high triangularity
+   discharges, or without the least elongated ones (cluster the discharges on elongation and triangularity, leave one cluster out), and measure how the
+   error grows. This answers the assignment's question about a new unique shape and is the honest limit to state in the pitch. `analysis/ipp1_unusual_shapes.py`,
+   `out/ipp1-unusual_shapes.*`, summary in `results/ipp1-unusual-shapes.md`.
+2. **Knowing when it is wrong.** Train an ensemble of 5 networks and test whether their disagreement predicts the real error on held-out discharges
+   (correlation, and the error of the most uncertain 10 % of the rows against the rest). A real-time system needs a warning signal.
+   `analysis/ipp1_uncertainty.py`, `results/ipp1-uncertainty.md`.
+
 ### U next (Fri 17:30): the viewer becomes the demo and the evidence
 Order of work, each a small commit, check every result with a browser screenshot:
 1. **Noise demo.** Write `analysis/ipp1_oof_noise.py` (uses `ipp1_common`): for every fold train on the training discharges only (a) the plain
