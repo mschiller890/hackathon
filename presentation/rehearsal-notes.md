@@ -1,56 +1,27 @@
 # Poznámky ke zkoušce (předběžné)
 
-Stav: odhad podle počtu slov, NE měření na stopkách. Přednášku zatím nikdo nečetl nahlas. Po přečtení nahlas čísla přepsat skutečnými.
+Stav: odhad podle počtu slov, NE měření na stopkách. Přednášku zatím nikdo nečetl nahlas (nález M7 kritika 2). Po přečtení nahlas čísla přepsat skutečnými.
 
 ## Odhad délky podle snímků
 
-Platí časy ze souboru pitch script (rozhodnutí vedoucího, RP 11). Počty mluvených slov a slova za sekundu jsou z jeho tabulky, ne moje měření.
+Platí časy ze souboru pitch script po přepsání z 23. října večer. Slova se počítají dělením na mezery, číslice a značky `[[...]]` se počítají za dvě slova, protože čísla se čtou déle. Tabulka s oběma počty je v části Lead notes souboru pitch script.
 
-* Snímek 1: 96 slov v 50 s, 1,92 slova za sekundu.
-* Snímek 2: 59 slov ve 30 s, 1,97.
-* Snímek 3: 48 slov ve 25 s, 1,92.
-* Snímek 4: 88 slov ve 45 s, 1,96.
-* Živá ukázka: 165 slov v 95 s, 1,74.
-* Snímek 5: 67 slov ve 35 s, 1,91.
-* Snímek 6: 52 slov ve 30 s, 1,73.
-* Snímek 7: 115 slov v 60 s, 1,92.
-* Snímek 8: 80 slov v 50 s, 1,60.
-* Celkem 770 slov ve 420 s, 1,83 slova za sekundu.
+* Snímek 1: 38 s, snímek 2: 28 s, snímek 3: 24 s, snímek 4: 54 s.
+* Živá ukázka: 88 s, z toho 13 s ticho.
+* Snímek 5: 37 s, snímek 6: 31 s, snímek 7: 76 s, snímek 8: 44 s.
+* Celkem 420 s při 1,68 slova za sekundu (čísla dvakrát), 1,55 podle prostého počtu.
 
-Tempo kolem 2 slov za sekundu je rychlé, zvlášť u čísel, která se čtou pomaleji. Nejtěsnější jsou snímky 2, 4 a 7. DOPLNIT: skutečný čas po přečtení se stopkami (maximum 7:00).
+Nejtěsnější je snímek 5 (1,73) a snímek 1 a 6 (1,71). Kamerový snímek je skrytá záloha bez času. Pokud je tempo při zkoušce horší, škrtá se v tomto pořadí: věta o rychlosti ukázky, věta Zbývá napojení, kamera, poslední věta snímku 7. Řádky o grafické kartě a druhém počítači už v textu nejsou.
+
+DOPLNIT: skutečný čas po přečtení se stopkami (maximum 7:00) a zapsat sem po snímcích.
 
 ## Kde je text těžký na sledování
 
-* Snímek 4 má nejvíc čísel (osa, bod X, dotykové body, proud, protažení, vstupy). Říct nahlas jen tři: osa 0,38 mm, bod X 0,20 mm, proud plazmatem 0,035 kA z lineárního modelu. Zbytek nechat na obrazovce.
-* Snímek 7 míchá šum, množství dat a meze. Mluvit ve třech větách, v tomto pořadí.
+* Snímek 4 má tři protokoly za sebou (30 odložených výbojů, křížová validace, novější čísla). Říct je pomalu, s krátkou pauzou po každém.
+* Snímek 7 míchá šum, množství dat a neobvyklé tvary. Mluvit ve třech blocích, v tomto pořadí; u každého čísla říct protokol (pět dělení, 30 odložených výbojů).
 * Slova IPR a FL (snímek 2) nejsou pro posluchače srozumitelná. Říkat "cívky" a "smyčky toku", viz slovníček.
+* Slova základní síť a vybraný model nezaměňovat. Rychlost 0,0145 ms patří vždy základní síti.
 
-## Otázky poroty (naše odhady, ne deset otázek ze skriptu)
+## Otázky poroty
 
-Deset otázek poroty s odpověďmi je v souboru pitch script. Zde jsou moje doplňující odpovědi, všechny z osnovy a z results:
-
-* Proč síť, a ne klasická rekonstrukce? Výpočet sítě trvá 0,0145 ms na procesoru Apple M5 proti minutám; průměrná chyba je pod půl milimetru u většiny veličin, ale 99 % řádků osy je pod 3,74 mm a nejhorší řádky mají desítky mm.
-* Co když čidla mají šum? Na čistých datech učený model je křehký (osa 0,38 mm na 10,15 mm). Učení na šumu to srazí na 2,64 mm za cenu horších čistých dat (2,22 mm).
-* Jak víte, že to funguje na nových výbojích? Dělili jsme po celých výbojích, pětkrát jinak.
-* Je 149 výbojů dost? Od 30 výbojů se chyba osy s každým zdvojením zhruba půlí ale učili jsme vždy 60 epoch, takže část zlepšení tvoří víc kroků učení; víc dat by zřejmě pomohlo.
-* Kde model selhává? Bod u limiteru (10,7 a 22,2 mm) a začátek a konec výboje.
-  * Záloha: zkusili jsme zvláštní model pro bod u limiteru. Na čistých datech chybu půlí (10,7 na 5,7 mm radiálně, 22,2 na 11,7 mm svisle), ale na zašuměných datech selže úplně, proto ho zatím nepoužíváme. Platí, dokud vedoucí nerozhodne, který model se v talku ukáže (RP 9); osnova zůstává na základním modelu.
-* Dá se to nasadit do řízení? Výpočet sítě je rychlý; sběr signálů, systém reálného času a skutečně zašuměné signály jsme neověřovali.
-* Co neobvyklý tvar? Když vynecháme celou rodinu tvarů, chyba je 1,0 až 3,0krát větší bez zhroucení; u nejodlišnějších tvarů je osa 1,6 mm místo 0,7 mm. Neobvyklých je jen 18 výbojů a nikdy nebyly vynechány samostatně, rozdíly 1,1 až 1,3krát jsou v šumu a o tvarech mimo rozsah dat výsledek nic neříká.
-* Co kamera? Je to bonus. Na pěti dělení po výbojích je 3 až 13krát horší než cívky (nejblíž u bodu u limiteru, 1,3krát; nejdál u proudu plazmatu, 13krát). Černobílý snímek nic nezmění.
-
-## Rozpory pitch skriptu s tím, co je dnes ve složce results (pro vedoucího, soubor mu patří)
-
-Čteno z aktuální verze `presentation/pitch-script.md`. Já ho neupravuji. Řádky jsou podle času ve skriptu.
-
-* 5:52 a otázka 2: "neobvyklý tvar jsme neměřili". Dnes je změřený (`ipp1-unusual-shapes.md`): chyba 1,0 až 3,0krát větší, bez zhroucení, s mezemi souboru.
-* Otázka 10: "nemáme odhad nejistoty". Dnes je změřený (`ipp1-uncertainty.md`): pět sítí se nejvíc rozchází na 10 % řádků, které nesou 47 % chyby.
-* Otázka 6: "silnější modely se teprve zkoušejí". Dnes jsou v `ipp1-improve.md` a `ipp1-final.md`.
-* Otázka 4: "v číslech, která ukazujeme, použit není". Podle odpovědí vedoucího se vede vybraným modelem, který lineární model pro proud používá.
-* 4:13 a 4:20 a 4:26: p99 0,0288 ms, 0,032 ms na druhém počítači a 0,24 ms pro grafickou kartu. Dnešní `ipp1-latency.md` dává p99 0,0209 ms a 0,27 ms a 0,032 ms v results není.
-* 3:16 a hlavní věta snímku 6: "roste na začátku a na konci". Opravená formulace: hlavně na konci, na začátku jen u polohy osy.
-* 1:54 až 2:22: mluví o základní síti a lineárním modelu, na obrazovce je vybraný model proti základní síti na 30 výbojích.
-* Otázka 5: věta "architekturu jsme zvolili předem a podle testu neladili" je podle opravné dokumentace jen tehdy, když je pravdivá. Potvrdit s majitelem, jinak ji nahradit větou o chybějící ověřovací části.
-* Snímek 5, otázka 8: čas 0,0145 ms je základní síť. Vybraný model je asi 0,18 ms.
-* Otázka 8: "mezi dvěma řádky dat uplyne asi 0,6 milisekundy" jsem ve složce results nenašel, ověřit.
-* Kamerová obrazovka nemá ve skriptu žádné sekundy a skript o kameře nemluví.
+Deset zlých otázek a třináct dalších od kritika 2 s upřímnými odpověďmi je v souboru pitch script (část Deset zlých otázek a Příloha). Starší zde psané odpovědi byly zrušeny, protože se rozcházely s finálním hodnocením (jedna rychlost, osa 0,38 mm bez protokolu, "od 30 výbojů se chyba půlí" bez poznámky o epochách).
