@@ -318,6 +318,10 @@ Otázka: Proč věřit shodě 99,3 procenta pro limitované a divertorové plazm
 
 Odpovídá B: Základní síť má 0,993 v pěti dělení, vybraný model 0,9916 a základní síť 0,9892 na odložených výbojích. Chyby základní sítě v pěti dělení se dělí zhruba rovným dílem mezi obě konfigurace, 49 a 51 procent čtverce chyby. Příznak je tvrdé rozhodnutí na spojitém přechodu, takže chyby čekáme právě tam, ale na přechodu jsme je zvlášť nevyhodnotili. Chyby bodu X a dotykových bodů jsme počítali jen na řádcích, kde tyto body podle rekonstrukce jsou; v provozu by je řídil odhadnutý příznak a jeho chyby na přechodu jsme nezměřili.
 
+### N14. Porotce nebo organizátor: Kdo to dělal a jak jste používali nástroje s umělou inteligencí?
+
+Odpovídá B: Pracovali jsme ve dvou. Kód, analýzy a texty jsme psali s pomocí nástrojů s umělou inteligencí, hlavně modelů Claude a GPT, které pracovaly jako pomocníci. Zadání, rozhodnutí a kontrolu každého čísla v repozitáři jsme dělali my. U každého výsledku je zapsán protokol a soubor, aby se dal ověřit. *(Znění potvrdí majitel před vystoupením; otázku na pravidla ke používání AI mají organizátoři v seznamu otázek, číslo 12. Nikdy neříkat, že AI nebyla použita.)*
+
 ## Příloha: deset nejtěžších fyzikálních otázek
 
 Zdroj: `docs/review-physics.md`, část 5 (otázky F1 až F10). Sedm z nich je totéž co otázky výše, proto jsou sloučené a odpověď je tam; tři nové (F2, F4, F5) jsou níže. Čísla jsou jen ze složky `results/`, kde odpověď neví, řekne Neměřili jsme.
