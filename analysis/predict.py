@@ -21,7 +21,9 @@ from pathlib import Path
 
 import numpy as np
 
-DEFAULT_MODEL = Path(__file__).resolve().parents[2] / "out" / "model" / "ipp1-selected.npz"   # hackathon/out/model next to the repository
+_ROOT = Path(__file__).resolve().parents[1]
+# in the submission package the model sits in model/ next to analysis/; in the repository it is hackathon/out/model next to the repository folder
+DEFAULT_MODEL = next((p for p in (_ROOT / "model" / "ipp1-selected.npz", _ROOT.parent / "out" / "model" / "ipp1-selected.npz") if p.exists()), _ROOT / "model" / "ipp1-selected.npz")
 DIVERTOR_ONLY = ("R_x_point", "Z_x_point", "R_strike_point_1", "Z_strike_point_1", "R_strike_point_2", "Z_strike_point_2")
 LIMITED_ONLY = ("R_limiter", "Z_limiter")
 
@@ -92,7 +94,7 @@ def read_csv(path, inputs):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("input", help="CSV with the columns IPR01..IPR16 and FL01..FL08")
-    ap.add_argument("--model", default=str(DEFAULT_MODEL), help="the exported model (default: out/model/ipp1-selected.npz next to the repository)")
+    ap.add_argument("--model", default=str(DEFAULT_MODEL), help="the exported model (default: model/ipp1-selected.npz next to analysis/, else out/model/ipp1-selected.npz next to the repository)")
     ap.add_argument("--out", help="write the estimates to this CSV instead of printing the first rows")
     ap.add_argument("--all", action="store_true", help="write all 16 numbers for every row (default: leave the cells that do not apply to the configuration empty)")
     args = ap.parse_args()

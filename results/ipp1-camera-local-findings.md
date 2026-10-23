@@ -3,7 +3,7 @@
 The camera lane is the cloud session (`docs/WORKERS.md`, Fri 18:00); this is an independent local run kept as a cross check.
 Evidence for REQ-B01, REQ-B03, REQ-B05. Figure: `ipp1-camera-local.png`.
 
-Commands (with `HACKATHON_HOME=/Users/bladed/Documents/AIprogramy/hackathon`, `~/.venvs/hackathon/bin/python -I`):
+Commands (with `HACKATHON_HOME=<your hackathon folder>`, `~/.venvs/hackathon/bin/python -I`):
 `analysis/ipp1_camera_prepare.py`, then `analysis/ipp1_camera_model.py --epochs 8 --folds 5 --run-folds 2` (about 1 h 20 min on the Apple GPU).
 
 ## Data and setup

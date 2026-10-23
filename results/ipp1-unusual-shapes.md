@@ -3,7 +3,7 @@
 Question: how much worse is the network on a family of shapes that was not in training? Full tables: `out/ipp1-unusual_shapes.{json,md}` (not in git);
 figure `ipp1-unusual_shapes.png`.
 
-Command (`HACKATHON_HOME=/Users/bladed/Documents/AIprogramy/hackathon`): `~/.venvs/hackathon/bin/python -I analysis/ipp1_unusual_shapes.py`
+Command (`HACKATHON_HOME=<your hackathon folder>`): `~/.venvs/hackathon/bin/python -I analysis/ipp1_unusual_shapes.py`
 (1.5 minutes; shared MLP, 60 epochs, 2 threads).
 
 ## Design

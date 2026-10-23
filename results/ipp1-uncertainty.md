@@ -3,7 +3,7 @@
 Five networks with different seeds are trained on the same data; the spread (SD) of their predictions is the uncertainty, the error is that of their
 mean. Held-out rows only, the usual 5 folds by discharge. Full tables: `out/ipp1-uncertainty.{json,md}` (not in git); figure `ipp1-uncertainty.png`.
 
-Command (`HACKATHON_HOME=/Users/bladed/Documents/AIprogramy/hackathon`): `~/.venvs/hackathon/bin/python -I analysis/ipp1_uncertainty.py`
+Command (`HACKATHON_HOME=<your hackathon folder>`): `~/.venvs/hackathon/bin/python -I analysis/ipp1_uncertainty.py`
 (3 minutes; shared MLP, 60 epochs, 25 trainings, 2 threads).
 
 | Target | Spearman | MAE of the 10 % most uncertain rows | MAE of the other 90 % | Ratio | Share of all error in the top 10 % | Ensemble MAE | Single net MAE |

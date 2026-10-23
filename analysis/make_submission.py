@@ -5,7 +5,8 @@
         [--deck-pdf PATH] [--video PATH] [--zip]
 
 Package layout mirrors the repository, so the notebooks still find analysis/ipp1_common.py:
-README.md, notebooks/, analysis/, results/, presentation/slides.pptx (+ slides.pdf), video/ (if given), MANIFEST.txt.
+README.md, PACKAGE-README.md, notebooks/, analysis/, results/, presentation/slides.pptx (+ slides.pdf), video/ (if given), model/ (the exported shipped model, if
+hackathon/out/model exists: see --model-dir), MANIFEST.txt.
 Exit code 0 = package built and every check passed (missing optional items are listed but do not fail the run),
 1 = a check failed (data or secret found, notebook with an error, placeholder or data-sized table in the deck).
 Needs no data and no packages beyond the standard library. Nothing is uploaded or sent anywhere.
@@ -30,6 +31,9 @@ FORBIDDEN_EXT = {".csv", ".tsv", ".npy", ".npz", ".zip", ".jpg", ".jpeg", ".parq
 SECRET_RE = re.compile(r"sk-ant-[\w-]{10,}|ghp_[A-Za-z0-9]{20,}|github_pat_\w{20,}|AKIA[0-9A-Z]{16}|"
                        r"-----BEGIN [A-Z ]*PRIVATE KEY-----|(?i:(api[_-]?key|secret|token|passwd|password))\s*[=:]\s*['\"]?[\w\-]{16,}")
 NUMBER_ROW_RE = re.compile(r"(?:-?\d+\.\d+(?:e[+-]?\d+)?\s*,\s*){19,}-?\d+")  # 20+ comma-separated numbers = a data row
+# The one derived binary that is allowed: the weights of the shipped model (model/ipp1-selected.npz), for the organizers only. Exactly this path, at most 2 MB.
+ALLOWED_BINARIES = {"model/ipp1-selected.npz": 2 * 2**20}
+MODEL_FILES = ("ipp1-selected.npz", "ipp1-selected.json")
 MAX_FILE_MB = 25
 MAX_TOTAL_MB = 100
 TEXT_EXT = {".md", ".py", ".txt", ".json", ".ipynb", ".html", ".js", ".css", ".svg", ".xml"}
@@ -39,7 +43,7 @@ MAX_CHART_POINTS = 200
 SCAN_IN_PLACE = [REPO / "viewer/index.html"]
 # Figures that show individual discharges and that no script can recognise (audit H-1); the owner decides with ÚFP.
 FIGURES_TO_CONFIRM = [
-    "presentation/assets/viewer-*.png and the deck images that equal them: true and predicted values of discharge 123 or 4",
+    "presentation/assets/viewer-*.png and the deck images that equal them: reference and estimated values of one set-aside discharge (85, its worst end 147)",
     "results/ipp1-time.png, middle and right panels: the error trace of one discharge",
     "results/ipp1-unusual-shapes.png, left panel: one dot per discharge (median elongation and triangularity)",
     "notebooks/01_data_exploration.ipynb cell 14: six true signals of one discharge; notebooks/04 cell 11: true traces of two discharges",
@@ -140,7 +144,7 @@ def scan(pkg: Path):
         size = p.stat().st_size
         total += size
         ext = p.suffix.lower()
-        if ext in FORBIDDEN_EXT:
+        if ext in FORBIDDEN_EXT and not (rel.as_posix() in ALLOWED_BINARIES and size <= ALLOWED_BINARIES[rel.as_posix()]):
             fails.append(f"forbidden file type: {rel}")
         if ext in {".png"} and rel.parts[0] != "results":
             warns.append(f"png outside results/: {rel}")
@@ -152,7 +156,7 @@ def scan(pkg: Path):
                 fails.append(f"possible secret: {rel}")
             if NUMBER_ROW_RE.search(text):
                 fails.append(f"looks like a raw data row (20+ comma-separated numbers): {rel}")
-            if "/Users/" in text and rel.name != "make_submission.py":  # that file holds the string as a check
+            if "/Users/" in text and rel.name not in ("make_submission.py", "check_notebooks.py"):  # these files hold the string as a check
                 warns.append(f"absolute /Users/ path (audit H-3): {rel}")
             if ext == ".ipynb" and re.search(r'"(?:equil_data|camera_data)[^"]*\.csv"', text) and "image/png" not in text:
                 warns.append(f"notebook mentions a data file but stores no figures: {rel}")
@@ -183,6 +187,7 @@ def main():
     ap.add_argument("--deck-pdf", help="PDF exported by hand from PowerPoint or Keynote (used when LibreOffice is absent)")
     ap.add_argument("--video", help="the presentation video file; copied into video/ only if given")
     ap.add_argument("--zip", action="store_true", help="also write <out>.zip next to the folder")
+    ap.add_argument("--model-dir", default=str(REPO.parent / "out" / "model"), help="the folder with ipp1-selected.npz and .json made by analysis/export_model.py (default: ../out/model next to the repository)")
     a = ap.parse_args()
 
     out = Path(a.out)
@@ -203,6 +208,22 @@ def main():
     for ext in ("*.md", "*.png", "*.json", "*.txt"):
         for f in sorted((REPO / "results").glob(ext)):
             copy(f, out / "results" / f.name, log)
+
+    model_dir, have_model = Path(a.model_dir), False
+    if all((model_dir / f).exists() for f in MODEL_FILES):
+        for f in MODEL_FILES:
+            copy(model_dir / f, out / "model" / f, log)
+        have_model = True
+        size = sum((out / "model" / f).stat().st_size for f in MODEL_FILES)
+        (out / "PACKAGE-README.md").write_text(
+            "# Package note: the model files\n\n"
+            f"`model/ipp1-selected.npz` and `model/ipp1-selected.json` ({size / 1e6:.2f} MB) are the weights of the shipped model, trained on the 119 development discharges (`analysis/export_model.py`). "
+            "**They are derived from the confidential IPP data and are included for the organizers only; they must not be published.** "
+            "The package contains **no data rows and no sample CSV**: the organizers have the data, and `analysis/predict.py` (numpy only) reads any CSV with the columns IPR01..IPR16 and FL01..FL08, e.g. "
+            "`python analysis/predict.py input.csv` (it finds `model/ipp1-selected.npz` next to `analysis/`; `--model` names another file). "
+            "`analysis/check_predict.py` and notebook 09 need the raw data and write their own temporary CSV from it; they are not meant to run inside this package without the data.\n")
+    else:
+        missing.append(f"model files ({model_dir}: run analysis/export_model.py)")
 
     deck = Path(a.deck)
     if deck.exists():

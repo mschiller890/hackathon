@@ -24,7 +24,7 @@ No agent submits, uploads, posts or sends anything; the owner does every step in
 | Short results README | `README.md` (project front page) and `results/*.md` + figures | repository | present; `README.md` still says "in progress", refresh after the freeze |
 | Repository link | `https://github.com/mschiller890/hackathon` | git | **private**, so a link will not open logged out (see OQ-S2) |
 
-The package holds no data: no csv, npy, zip, jpg, no camera frames. Figures are png in `results/` only. The 11 MB offline
+The package holds no data: no csv, npy, zip, jpg, no camera frames. The one exception is `model/ipp1-selected.npz` (+ `.json`, 0.92 MB, the weights of the shipped model; derived from the confidential data, for the organizers only), added by `make_submission.py` from `hackathon/out/model` and described in `PACKAGE-README.md`. Figures are png in `results/` only. The 11 MB offline
 viewer (`viewer/dist/index.html`) embeds data and is **not** in the package.
 
 ## 3. The build
