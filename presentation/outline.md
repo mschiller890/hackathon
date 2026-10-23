@@ -72,7 +72,7 @@ Věta: Výpočet sítě rychlosti nebrání: základní síť 0,0145 ms na proce
 
 * Základní síť, procesor Apple M5, jeden vzorek: medián 0,0145 ms, 99 % měření pod 0,0209 ms. Stroj byl sdílený a vytížený, takže čas závisí na zatížení; na jiném procesoru (AMD Ryzen 5 7535HS) vyšlo 0,032 ms.
 * Celý odhad základní sítě od surových čísel na vstupu po čísla na výstupu: medián 0,0140 ms, 99 % měření pod 0,0503 ms. Nejvyšší hodnoty se na systému bez reálného času ojediněle objeví až v milisekundách, to není horní mez.
-* Vybraný model (síť s rozdíly cívek, lineární model pro proud a síť pro bod u limiteru) trvá jeden odhad medián 0,0154 ms, když je plazma divertorové (stačí jedna síť), a 0,0274 ms, když je limitované (obě sítě); 99 % měření pod 0,057 a 0,093 ms. Je to asi dvakrát víc než základní síť v limitovaném případě, ne dvanáctkrát. Stroj nebyl klidný (zatížení asi 7), takže chvosty nejsou horní mez. Dřívější odhad 0,1775 ms se nepodařilo zopakovat.
+* Vybraný model (síť s rozdíly cívek, lineární model pro proud a síť pro bod u limiteru) trvá jeden odhad medián 0,0154 ms, když je plazma divertorové (stačí jedna síť), a 0,0274 ms, když je limitované (obě sítě); 99 % měření pod 0,057 a 0,093 ms. Je to asi dvakrát víc než základní síť v limitovaném případě, ne dvanáctkrát. Stroj nebyl klidný (zatížení asi 7), takže chvosty nejsou horní mez. Dřívější odhad 0,1775 ms se nepodařilo zopakovat, proto ho neříkáme.
 * Grafická karta a druhý počítač se nahlas neříkají (škrtnuto kvůli času): grafická karta 0,27 ms, s přenosem dat 0,49 ms, pomalejší než procesor, protože model je malý.
 * Neověřili jsme: sběr a integraci signálů z cívek, nejhorší dobu na systému reálného času a přesnost na skutečně zašuměných signálech. Přepínání mezi modelem pro čisté a pro zašuměné vstupy jsme netestovali.
 * U každého času říkáme, na jakém modelu a procesoru byl měřen.
@@ -101,13 +101,13 @@ Věta: Model je křehký vůči šumu, potřebuje dost výbojů, neobvyklé tvar
 
 ## Snímek 8: Závěr (44 s)
 
-Věta: Přesnost na čistých vstupech je desetiny milimetru, rychlost výpočtu desetiny milisekundy, ale model ještě není připraven pro řízení.
+Věta: Přesnost na čistých vstupech je desetiny milimetru, rychlost výpočtu setiny milisekundy, ale model ještě není připraven pro řízení.
 
 * Přesnost: osa 0,13 mm na 30 odložených výbojích, asi 0,2 mm v křížové validaci (0,40 mm na novějších číslech); na zašuměných vstupech jednotky milimetrů (2,38 mm).
 * Rychlost: základní síť 0,0145 ms (procesor Apple M5), vybraný model asi 0,03 ms; obojí hluboko pod rozpočtem 1 až 10 ms. Výpočet sítě, ne celý řídicí systém.
 * Upřímně: slabý bod u limiteru, neobvyklé tvary jsme samostatně neověřili a šum mu vadí, pokud se na něj neučí.
 * Sběr signálů a napojení na řídicí systém jsme nezkoušeli. Zbývá napojení na řídicí systém, víc výbojů a odolnost proti šumu.
-* Slogan: desetiny milimetru za desetiny milisekundy (do změření vybraného modelu; pak podle měření).
+* Slogan: desetiny milimetru za setiny milisekundy (vybraný model asi 0,03 ms, změřeno).
 
 ## Součet času
 
