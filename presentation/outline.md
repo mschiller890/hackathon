@@ -117,7 +117,9 @@ Podle rozhodnutí vedoucího (RP 11) platí časy ze souboru pitch script, přep
 
 ## Záloha: kamera (skrytý snímek, 20 s jen když je mezera)
 
-Věta: Malá kamerová síť (snímky 48 na 64 bodů) je 1,3 až 13krát horší než cívky; měřeno na dvou až pěti dělení, čísla ještě nepotvrdil vedoucí a po bráně v 22:00 se bez potvrzení vyřadí.
+Název: Malá kamerová síť (48x64) je asi 1,3 až 13krát horší než základní síť na cívkách. Podnázev: jiné řádky a dělení než u cívek; 78 výbojů s kamerou.
+
+Potvrzeno vedoucím s výhradami: jedno semeno, rozptyl mezi dělením 20 až 45 % chyby, poměr 1,3 až 13 srovnává jiné řádky a dělení (srovnání na stejných řádcích je v souboru cloud camera multimodal). Nahlas nejvýš jedna opatrná věta.
 
 * Pět dělení po výbojích, 78 výbojů, 12 epoch, každý osmý snímek (`results/cloud-camera-findings.md`). Radiální osa 1,79 mm (šedě 1,70 mm) proti 0,377 mm u cívek, srovnání je orientační, protože jsou to jiné řádky. Nejblíž je u bodu u limiteru (1,3krát horší v relativní chybě), nejdál u proudu plazmatem (13krát horší než základní síť; vůči lineárnímu modelu mnohem víc). Barva nepomáhá.
 * Říká to něco o této malé síti, ne o tom, že kamera nenese informaci.
