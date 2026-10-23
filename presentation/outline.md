@@ -21,14 +21,13 @@ Věta: Máme 42 972 řádků z 149 výbojů, na každém řádku 24 magnetickýc
 * Data jsou důvěrná, proto na snímku nejsou žádné surové hodnoty, jen souhrny.
 * Dělíme po celých výbojích, nikdy po řádcích, jinak by se model učil na tom, co testuje.
 
-## Snímek 3: Metoda (60 s)
+## Snímek 3: Metoda (50 s)
 
 Věta: Použili jsme malou neuronovou síť o 107 152 parametrech a porovnali ji s lineárním modelem.
 
 * Srovnání: lineární model (hřebenová regrese) proti malé neuronové síti.
 * Ověření: pětkrát jiné rozdělení výbojů na učení a test.
 * Dále: kolik vstupů opravdu potřebujeme, jak stabilní je výstup v čase, jak rychlá je odpověď.
-* Dále jsme zkoušeli šum a posun čidel, počet učících výbojů a vstup z několika po sobě jdoucích časů.
 * Kamerový model: DOPLNIT (zatím neměřeno).
 
 ## Snímek 4: Výsledky (80 s)
@@ -60,17 +59,14 @@ Věta: Nejhůř se odhaduje bod u limiteru, kde chyba dosahuje 10,7 mm a 22,2 mm
 * Výstup mezi sousedními časy nekolísá víc než pravda (poměr kolísání je okolo 1).
 * S menším počtem vstupů přesnost klesá: se 4 vstupy je souhrnná chyba 0,204.
 
-## Snímek 7: Co model neumí (50 s)
+## Snímek 7: Co model neumí (60 s)
 
-Věta: Model se naučil jen tvary, které jsou v datech, a o neobvyklém tvaru ani o poruše čidla nic neříká.
+Věta: Model je křehký vůči šumu, potřebuje dost výbojů a nezná neobvyklý tvar ani řízení plazmatu.
 
-* Ověřeno jen na jednom tokamaku a na výbojích z těchto dat.
+* Šum: osa má chybu 0,38 mm na čistých datech, ale 10,15 mm na datech s šumem; učení na zašuměných datech to srazí na 2,64 mm.
+* Množství dat: od 30 výbojů se chyba osy s každým zdvojením zhruba půlí (1,47; 0,83; 0,38 mm) a nepřestala klesat.
 * Neobvyklý tvar, který poruší vztahy mezi veličinami: DOPLNIT (zatím neměřeno).
-* Šum: model učený na čistých datech je křehký. Osa má chybu 0,38 mm na čistých datech, ale 10,15 mm na datech s šumem, tedy asi 27krát větší. Učení na zašuměných datech to srazí na 2,64 mm, ale na čistých datech pak chyba stoupne na 2,22 mm.
-* Pomalý posun čidel je náš vlastní model, ne měřený posun skutečných čidel.
-* Množství dat: při 6, 12, 30, 60 a 119 učících výbojích je chyba osy 7,3; 6,9; 1,47; 0,83 a 0,38 mm, od 30 výbojů se s každým zdvojením zhruba půlí a nepřestala klesat.
-* Tři po sobě jdoucí časy zlepšují zašuměný vstup (osa 2,64 na 2,33 mm), ale na čistém vstupu osu zhoršují (0,38 na 0,57 mm).
-* Odhaduje jen tvar. Řízení plazmatu samo nenahrazuje.
+* Ověřeno jen na jednom tokamaku. Model odhaduje jen tvar a řízení plazmatu samo nenahrazuje.
 
 ## Snímek 8: Ukázka a závěr (30 s)
 
@@ -81,10 +77,17 @@ Věta: V prohlížeči vidíte skutečný a odhadnutý tvar plazmatu vedle sebe 
 
 ## Součet času
 
-50 + 50 + 60 + 80 + 50 + 50 + 50 + 30 = 420 sekund, tedy 7 minut.
+50 + 50 + 50 + 80 + 50 + 50 + 60 + 30 = 420 sekund, tedy 7 minut.
 
 ## Chybějící čísla (DOPLNIT)
 
 * Výsledky kamerového modelu a srovnání s magnetickým.
 * Chování pro neobvyklý tvar.
 * Kdo potvrdí napojení na řídicí systém.
+
+## Do zálohy: dotazy poroty (neříká se nahlas)
+
+* Posun čidel je náš vlastní model, ne měřený posun skutečných čidel. Posun škodí méně než šum stejné velikosti.
+* Učení na zašuměných datech zhorší čistá data: chyba osy 2,22 mm místo 0,38 mm.
+* Tři po sobě jdoucí časy zlepšují zašuměný vstup (osa 2,64 na 2,33 mm), ale na čistém vstupu osu zhoršují (0,38 na 0,57 mm).
+* Naměřeno pro jednu inicializaci a jednu realizaci šumu na každé rozdělení, rozdíly pár procent nejsou prokázané.
