@@ -1,74 +1,53 @@
-# Hackathon Assignment
+# Hackathon: plasma shape from magnetic measurements (CVUT ML Hackathon 2026)
 
-This repository contains the implementation and supporting engineering work for a
-hackathon assignment.
+Solution of **IPP task 1** (tokamak COMPASS): determine the shape and position of the plasma from
+magnetic measurements, and optionally from fast camera images, fast enough to be considered for
+real-time control. The classical reconstruction takes minutes; the model should answer in
+milliseconds.
 
-The project will be developed against the official assignment specification, with an
-emphasis on correctness, maintainability, appropriate testing, clear technical reasoning,
-and reproducible results.
+**Current status:** data profiled, baseline models in progress. Requirements and their status:
+[`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md); task board: [`docs/PLAN.md`](docs/PLAN.md). No result is
+claimed here until it is measured and recorded.
 
-**Current status:** Awaiting the assignment specification.
+## Data (not in this repository)
 
-## Project Overview
+The data come from Ústav fyziky plazmatu AV ČR and may be used only for this hackathon; they must not be
+published or shared outside the participants. They live next to the repository, never inside it:
 
-The problem statement, solution approach, and deliverables will be documented here once
-the official specification is available.
+```
+hackathon/
+├── data/raw/ipp1-magnetic/uloha_1-magneticka_data/   equil_data.csv, equil_data_noisy.csv
+├── data/raw/ipp1-photron-zip/                        camera archive (optional)
+└── repo/                                             this repository
+```
 
-Implementation decisions, technology choices, and project structure will be based on the
-actual requirements rather than assumptions made in advance.
+Set `HACKATHON_HOME` to the `hackathon/` folder if you run the scripts from elsewhere.
 
-## Repository Structure
+## Repository structure
 
 | Path | Purpose |
 |---|---|
-| `AGENTS.md` | Engineering workflow, coding standards, testing expectations, and Git practices. |
-| `docs/PLAN.md` | Project milestones, tasks, dependencies, and progress. |
-| `docs/REQUIREMENTS.md` | Assignment requirements, acceptance criteria, and verification traceability. |
-| `docs/DECISIONS.md` | Significant technical decisions and their rationale. |
+| `AGENTS.md` | Engineering workflow, coding standards, Git practice. |
+| `docs/PLAN.md` | The single task tracker. |
+| `docs/REQUIREMENTS.md` | Requirements, constraints, assumptions, open questions. |
+| `docs/DECISIONS.md` | Significant technical decisions and why. |
+| `analysis/` | Scripts: data profiling, exploratory analysis, baseline models. |
 
-Additional source code, tests, and technical documentation will be organized according to
-the assignment's requirements and the chosen technology stack.
+## Setup and run
 
-## Getting Started
+Python 3.12. From the folder that holds `data/` and `repo/`:
 
-Setup, execution, and testing instructions will be added once the implementation and its
-tooling are established.
+```bash
+uv venv ~/.venvs/hackathon --python 3.12
+uv pip install --python ~/.venvs/hackathon/bin/python pandas pyarrow openpyxl matplotlib scikit-learn torch charset-normalizer
+~/.venvs/hackathon/bin/python -I repo/analysis/ipp1_eda.py
+~/.venvs/hackathon/bin/python -I repo/analysis/ipp1_baseline.py
+```
 
-When available, this section will cover:
+Outputs are written to `out/` (outside the repository). Results and their interpretation are documented
+in the notebooks once they exist.
 
-- Prerequisites and dependencies.
-- Installation and configuration.
-- How to run the solution.
-- How to execute the test suite.
-- Example inputs and expected outputs.
+## Engineering approach
 
-## Engineering Approach
-
-Development follows the repository instructions in [`AGENTS.md`](AGENTS.md).
-
-The workflow emphasizes:
-
-- Requirements-driven planning and implementation.
-- Clear, maintainable code and justified technical decisions.
-- Appropriate algorithm analysis and complexity evaluation.
-- Tests designed around acceptance criteria and likely failure modes.
-- Accurate documentation and reproducible verification.
-- Meaningful Git commits and regular pushes to the designated GitHub repository.
-
-## Documentation
-
-- [`AGENTS.md`](AGENTS.md) — Engineering instructions and working practices.
-- [`docs/PLAN.md`](docs/PLAN.md) — Task tracking and implementation progress.
-- [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md) — Requirements and acceptance criteria.
-- [`docs/DECISIONS.md`](docs/DECISIONS.md) — Significant technical decisions.
-
-Further documentation will be linked here as it becomes relevant.
-
-## Project Status and Verification
-
-The assignment specification has not yet been incorporated into the project. Consequently,
-the final functionality, architecture, technology stack, and acceptance criteria remain to
-be established.
-
-Build instructions, automated tests, and verification results will be documented when the
-corresponding implementation and tooling are available.
+Development follows [`AGENTS.md`](AGENTS.md): requirements-driven work, claims backed by evidence, small
+Conventional Commits, regular pushes.
