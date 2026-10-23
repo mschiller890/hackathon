@@ -1,6 +1,6 @@
 # Demo facts for the pitch (live viewer on the shipped model)
 
-Source: bladed-85, commit e50b1ee (IMPL-20), computed from `viewer/data.js` (every third row of each discharge, which is what the viewer shows). Nothing typed by hand. The viewer files stay out of git.
+Source: bladed-85, commit e50b1ee (IMPL-20), computed from `viewer/data.js` (every third row of each discharge, which is what the viewer shows). Nothing typed by hand. Regenerate and check every number with `analysis/ipp1_demo_facts.py`, which writes `results/ipp1-demo-facts.md` (all values above reproduced there, except the all-row mean 0.75 mm of discharge 147, which needs the raw data). The viewer files stay out of git.
 
 What the viewer plays: the shipped model (`cand`) on the 30 discharges set aside before the final model choice. It predicts 16 of 31 targets, so it draws predicted POINTS (axis, X point, strike points, limiter point) over the true outline, not a predicted outline. Say aloud: "V ukázce vidíte vybraný model na třiceti odložených výbojích; obrys nepředpovídá, ukazuje body."
 
