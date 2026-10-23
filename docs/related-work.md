@@ -1,0 +1,119 @@
+# Related work: fast and machine-learned equilibrium reconstruction from magnetic measurements
+
+Research agent, branch `cloud/research-context`, 23 Oct 2026. Purpose: give the talk an honest context for a jury with IPP physicists who know EFIT
+and real-time control. Nothing here changes a result; every number about our model is copied from `results/` (files named in section 4).
+
+**How "verified" was decided.** A reference is VERIFIED only if its page or PDF was opened in this session and the quoted metric was read in it. Four
+PDFs (Bishop, Joung, Lu, Urban) were downloaded and read as text; the other seven were read through a page fetch, and for the five arXiv ones the
+abstract was cross-checked against the arXiv API record. Everything I could not open is in the UNVERIFIED table and **none of its numbers is used**.
+Quotes are verbatim, in quotation marks, with the unit as the paper writes it. Where a paper gives a number only in a figure, the table says so
+instead of guessing it.
+
+## 1. References
+
+### 1.1 VERIFIED (opened)
+
+| ID | Title | Authors | Year, venue | URL opened | Device |
+|---|---|---|---|---|---|
+| R1 | Real-Time Control of a Tokamak Plasma Using Neural Networks | C. M. Bishop, P. S. Haynes, M. E. U. Smith, T. N. Todd, D. L. Trotman, C. G. Windsor | NIPS 7 (proceedings dated 1994, published 1995), pp. 1007 to 1014 | https://proceedings.nips.cc/paper_files/paper/1994/file/2387337ba1e0b0249ba90f55b2ba2521-Paper.pdf (full text read) | COMPASS (at Culham, per the paper) |
+| R2 | Real-time electronic neural networks for ITER-like multiparameter equilibrium reconstruction and control in COMPASS-D | C. G. Windsor, T. N. Todd, D. L. Trotman, M. E. U. Smith | journal and year are blank on the page; the PDF file name suggests Fusion Technology vol. 32, p. 416 (not confirmed) | https://scientific-publications.ukaea.uk/papers/real-time-electronic-neural-networks-for-iter-like-multiparameter-equilibrium-reconstructioncontrol-in-compass-d/ (abstract page only) | COMPASS-D |
+| R3 | Validation of equilibrium tools on the COMPASS tokamak | J. Urban, L. C. Appel, J.-F. Artaud, B. Faugeras, J. Havlicek, M. Komm, I. Lupelli, M. Peterka | arXiv:1412.1924v1, 5 Dec 2014 | https://arxiv.org/pdf/1412.1924 (full text read) | COMPASS, IPP Prague |
+| R4 | Deep neural network Grad-Shafranov solver constrained with measured magnetic signals | S. Joung et al. | Nuclear Fusion 60 (2020) 016034, arXiv:1911.02882 | https://arxiv.org/pdf/1911.02882 (full text read) | KSTAR |
+| R5 | Fast equilibrium reconstruction by deep learning on EAST tokamak | J. Lu, Y. Hu, N. Xiang, Y. Sun | AIP Advances 13, 075007 (2023), arXiv:2305.12098 | https://arxiv.org/pdf/2305.12098 (full text read) | EAST |
+| R6 | Reconstruction of Poloidal Magnetic Fluxes on EAST based on Neural Networks with Measured Signals | F. Long et al. (EAST Team) | arXiv:2403.10114, Mar 2024 (preprint) | https://arxiv.org/abs/2403.10114 (abstract only; arXiv API record also read) | EAST |
+| R7 | Real-time equilibrium reconstruction by neural network based on HL-3 tokamak (EFITNN) | G. H. Zheng et al. | arXiv:2405.11221v1, May 2024 (preprint) | https://arxiv.org/html/2405.11221v1 (full text via fetch; abstract re-read in the arXiv API record) | HL-3 |
+| R8 | EFIT-mini: An Embedded, Multi-task Neural Network-driven Equilibrium Inversion Algorithm | G. H. Zheng et al. | arXiv:2503.19467v1, Mar 2025 (preprint) | https://arxiv.org/html/2503.19467v1 (full text via fetch; abstract re-read in the arXiv API record) | EXL-50U |
+| R9 | CARONTE: a Physics-Informed Extreme Learning Machine-Based Algorithm for Plasma Boundary Reconstruction in Magnetically Confined Fusion Devices | F. Fiorenza, S. Dubbioso, G. De Tommasi, A. Pironti | arXiv:2512.16689v1, Dec 2025 (preprint; the page lists Engineering Applications of Artificial Intelligence) | https://arxiv.org/html/2512.16689v1 (first 100,000 of 114,388 characters read; abstract re-read in the arXiv API record) | RFX-mod2 and DTT, simulated equilibria |
+| R10 | Experimental validation of a fast control-oriented, physics-informed surrogate model for plasma equilibrium reconstruction in the TCV tokamak | M. Grandin et al. | arXiv:2606.09487 v2, Jun and Sep 2026 (preprint; page says accepted for the IEEE CDC 2026) | https://arxiv.org/abs/2606.09487 (abstract only; arXiv API record also read) | TCV |
+| R11 | Real time equilibrium reconstruction for control of the discharge in the DIII-D tokamak (rtEFIT) | J. R. Ferron, M. L. Walker, L. L. Lao, B. G. Penaflor, H. E. John, D. A. Humphreys, J. A. Leuer | 24th EPS Conference on Controlled Fusion and Plasma Physics, Berchtesgaden, 1997 | https://www.osti.gov/biblio/505400 (abstract page only) | DIII-D |
+
+### 1.2 VERIFIED: inputs, outputs, metrics, latency, protocol
+
+| ID | Inputs | Outputs | Accuracy or error, quoted | Latency or speed, quoted | Protocol |
+|---|---|---|---|---|---|
+| R1 | 16 magnetic signals chosen from the 120 available on COMPASS, divided by "a quantity proportional to the total plasma current" | Shape parameters R0, Z0, elongation (fitted boundary of an equilibrium) | "The smallest normalized test set error of 11.7 is obtained from the network having 16 hidden units. By comparison, the optimal linear mapping gave a normalized test set error of 18.3." In the closed-loop test: "The typical residual error is of order 0.07 on elongation values up to around 1.5. Part of this error is attributable to residual offset in the integrators used to extract magnetic field information from the pick-up coils" | Requirement stated, not a measurement: "fast (typically ≤ 50 µsec.)" shape determination; hardware "must have a bandwidth of ≥ 20 kHz". The 4-hidden-unit analogue network ran in the loop | Training data are "over 2,000 equilibria" from a free-boundary code, not measured discharges; "independent test set" of that database, split rule not given. One closed-loop shot (9576) |
+| R2 | "up to 48 selected magnetic inputs" for the primary network; a soft X-ray network with 16 vertical and 16 horizontal camera channels | Plasma position and shape control signals; the X-ray network gives core radius, vertical position and elongation | None numeric in the abstract. "accurately determine three output signals" | "controlled simultaneously with a 75- kHz bandwidth" (hard-wired network) | Not in the abstract |
+| R3 | EFIT++: Ip, PF circuit currents, "16 partial Rogowski coils and 4 flux loops". VacTH: magnetic probes and flux loops, best with 8 probes and 16 flux loops | LCFS, global parameters (EFIT++); plasma boundary only (VacTH) | "magnetic reconstruction EFIT++ with linear p′ and FF′ features a relatively good accuracy of 1 – 2 cm in the plasma shape reconstruction"; "cases with up to 3 cm errors in Zmin" for Thomson-scattering pressure profiles with n_p′ = 1. "Unfortunately, only 4 flux loops are currently available on COMPASS" | Abstract: "VacTH is suitable for real-time control". No time given | No training. Reconstruction of synthetic equilibria from the FREEBIE code with artificial noise (uniform on (−ε, ε), ε up to 0.06); 15 target equilibria from shots 4275 and 6962. "VacTH convergence rate drops significantly around 2 % input noise" |
+| R4 | Ip (Rogowski), 32 normal and 36 tangential fields (pick-up coils), 22 flux loops, plus (R, Z) of the query point; 93 inputs | ψ(R, Z) at the query point, and toroidal current density through the Grad-Shafranov operator | Figures of merit are R², PSNR and MSSIM; "The values of R² … are written in Figure 5" and are close to unity. The numeric values sit in figures and were not readable in the extracted text | "obtaining full flux surface information ψ(R, Z) on 22 × 13 or 65 × 65 spatial grids with our networks takes less than 1 msec on a typical personal computer" | Targets are off-line EFIT. 1,118 discharges (2017, 2018 campaigns), 90 % of samples train and 10 % validate (a split of samples); test on separate, "unseen" discharges: 163 randomly collected, with the benchmark on 88 (2017) and 75 (2018). Cross-campaign test: networks trained on one campaign "slightly worse results, but still good" on the other |
+| R5 | 84 inputs: 35 flux loops, 34 poloidal field probes, 14 PF coil currents, Ip | EFIT poloidal flux Ψ on a 129 × 129 grid (16,641 values) | r, R² and PSNR are shown in Fig. 8 (values not in the text I read). For one discharge: "the relative error between the NN and EFIT results is less than 2%" | "about 0.5ms per equilibrium on a desktop computer, using an 11th Gen Intel(R) Core(TM) i5-11500@2.70GHz CPU with a single thread"; excludes boundary tracing | 45,544 time slices from every 5th discharge of #114000 to #117000 (one campaign); "training set (81%), validation set (9%), and testing set (10%)"; the pool of equilibria is split, not the discharges: the paper does not say the split respects discharges, and describes its four example test slices as "randomly selected" from the 4555 and says they "may not necessarily come from the same discharge", so I read it as a split by time slice |
+| R6 | "Measured signals" (list not on the abstract page) | Poloidal flux distribution | "The similarities of the predicted X-point position and last closed magnetic surface are both 98%. The Pearson coherence of the predicted q profiles is 92%." ("similarity" is not defined in the abstract) | None | "partitioned randomly from the dataset … of the EAST experiments in 2016 and 2017 years" |
+| R7 | 68 channels: plasma current, loop voltage integral, 39 poloidal field probes, PF, TF and CS coil currents; 1159 discharges | 8 plasma parameters (a, κ, l_i, q95, r_C, z_C, δ_B, δ_T) and 129 × 129 maps of Ψ and J_P | "achieving average R^2 = 0.941, 0.997 and 0.959 for eight plasma parameters, Ψ_rz and J_P". Per-quantity r, R² and mean normalised absolute residual are dimensionless; no mm anywhere | "average computation time ranging from 0.08ms to 0.45ms" (A100 GPU with TensorRT, per the body text) | Split by shot number in chronological order: train #1248 to #3308 (70 %), validation #3309 to #4010 (20 %), test #4011 to #4186 (10 %); abstract claims handling of "shot numbers or plasma current intervals not previously encountered". No noise test reported |
+| R8 | Flux loops, probes, PF and CS coil currents, Ip, plus a least-squares solution | p′ and ff′ coefficients, coil currents, 8 geometric parameters; then Picard iterations | "The average overlap ratios for limiter and divertor configurations are 0.990 and 0.985, respectively"; abstract: "over 98% overlap in the last closed flux surface area with traditional methods" | "averaging less than 0.11ms" for the network, "approximately 0.36ms" for the full algorithm, at 129 × 129, on an A100 GPU | "Data is split into training (70%), validation (10%), and test (20%) sets by shot number"; 355 shots. Gaussian noise added in training; "offline EFIT" is a Python port (heq). No quantitative noise test |
+| R9 | 8 flux loops and 56 probes (RFX-mod2); 9 flux loops and 80 field values (DTT) | Poloidal flux ψ(r, z), LCFS, gaps | "RMSD vs. CREATE-L/NL equilibria: CARONTE 0.26 cm (PTL) and 0.48 cm (NTL)" on RFX-mod2; "The RMSD is below 1 cm in each case"; DTT gap RMSD 0.71, 0.55, 0.82 cm (three configurations) against 0.96, 1.42, 1.63 cm for an XLOC-like method | No measured latency; "each reduce to a single matrix multiplication per sampling period"; cites typical sampling times of "500 μs to 11 ms" for equilibrium codes | No training on experimental data; ground truth is simulated static equilibria; 500 noise realisations on DTT with σr = 0.003 and σa = 1.5 mT. The paper says tests with strong passive currents "remain future work" |
+| R10 | Magnetic measurements (list not in the abstract) | Flux map | "showing comparable accuracy" to liuqe-rt and lih; no number in the abstract | "inference times below 100 µs", "enabling 10 kHz shape control"; "compiled and deployed on the TCV real-time control system" | "trained on around 10,000 TCV discharges spanning the full operational range of plasma shapes"; split not in the abstract |
+| R11 | Not in the abstract | Not in the abstract (rtEFIT: shape and current profile) | None | "The algorithm is very close to that of EFIT and is executed on a time scale fast enough for control of the DIII-D tokamak." No number | Not a learned model. Reference point for "EFIT-RT" only |
+
+### 1.3 UNVERIFIED (could not open the page, so no number is used)
+
+| ID | What | Why unverified |
+|---|---|---|
+| U1 | DIII-D "EFIT-AI neural network surrogates for magnetic, MSE, and kinetic equilibrium reconstruction" (APS DPP 2023 abstract, IAEA FEC 2023 contribution 28987) and the 2022 and 2024 EFIT-AI abstracts | archive.aps.org returned 404, meetings-archive.aps.org and conferences.iaea.org returned 403. Only a search-engine summary was seen: it mentions real-time-EFIT-like inference speed and generalisation to unseen negative-triangularity shapes. **Do not quote that.** |
+| U2 | X. Sun et al., "Impact of various DIII-D diagnostics on the accuracy of neural network surrogates for kinetic EFIT reconstructions", Nucl. Fusion 64 (2024) 086065 | DOAJ page returned 403; seen only in a search listing |
+| U3 | S. Joung et al., KSTAR APS DPP 2017 poster on Bayesian drift preprocessing | archive.aps.org returned 404; a search summary claimed "at least 20% input errors" tolerated. Not used |
+| U4 | Y. Luo et al., SUNIST-2 physics-informed DeepONet reconstruction (IAEA FEC 2025) | conferences.iaea.org returned 403 |
+| U5 | Faugeras et al., VacTH, Plasma Phys. Control. Fusion 2014; Janky et al., real-time plasma position on COMPASS (MARTe), Fusion Eng. Des. 86 (2011) 1120; Moret et al., LIUQE, Fusion Eng. Des. 91 (2015); Carpanese et al., Nucl. Fusion 2020 (LIUQE with RAPTOR on TCV); Ferron et al., Nucl. Fusion 38 (1998) 1055 | HAL returned an access-denied page, the Czech ASEP record returned 503, the others were seen only as citations in R3 or in search listings |
+| U6 | Lao et al., Nucl. Fusion 25 (1985) 1611 (the original EFIT) | Appears only as a reference in R3; not opened |
+
+**Searches that found nothing.** I searched for COMPASS shape control with RAPTOR, SCoPE or ISTTOK-style controllers and for neural-network
+reconstruction on MAST, MAST-U, JET and ASDEX Upgrade. I found no paper of that kind; this is a statement about my searches, not about the
+literature. I make no claim about COMPASS-U or any IPP internal system: no page I opened says anything about them.
+
+## 2. Where our numbers sit, and what is not comparable
+
+Our numbers (all from `results/ipp1-final.md` and `results/ipp1-latency-shipped.md`, COMPASS data, 149 discharges, 24 inputs: 16 IPR coils and 8 flux loops):
+
+- Locked set, 30 whole discharges never used for training: magnetic axis R, mean absolute error (MAE) **0.133 mm**; Z axis 0.172 mm; plasma current 0.035 kA; limiter R **4.55 mm**, limiter Z 8.35 mm.
+- Cross-validated on the other 119 discharges (5 folds split by discharge): axis R 0.23 mm, plasma current 0.0332 kA, limiter R 4.62 mm.
+- Latency: about **0.03 ms per sample**, one CPU core (median 0.0154 ms diverted, 0.0274 ms limited, p99 0.057 and 0.093 ms).
+
+| Our claim | What the literature reports | Can a physicist compare them? |
+|---|---|---|
+| Axis error 0.133 mm (locked), 0.23 mm (cross-validated) | R4, R5, R7: R² close to 1 for the whole flux map or for 8 parameters, no millimetres. R8: LCFS overlap 0.990 and 0.985. R6: "98%" similarity. R9: RMSD "0.26 cm" and "0.48 cm" on simulated boundaries. R3: EFIT++ "1 – 2 cm" against synthetic equilibria | **No.** Different quantity (a point against a map, a boundary or a fraction), different device, and R9 and R3 compare against simulated truth. A millimetre number cannot be ranked against an R² or an overlap ratio. The only like-for-like pair is R1 (COMPASS, 1994), which reports a normalised error on a synthetic database |
+| The 0.133 mm is accuracy | R3 shows that on COMPASS even a full EFIT++ reconstruction is "1 – 2 cm" off synthetic truth when the profiles are simplified | Our number measures agreement with the reference values in the data file, on 30 unseen discharges. It is not accuracy against the true plasma. Say "agrees with the reference", never "is accurate to 0.13 mm" |
+| Split by whole discharges | R5 and R6 split a pool of equilibria randomly (R5 does not say the split respects discharges; see its protocol cell). R4 tests on separate discharges. R7 and R8 split by shot number, R7 chronologically | Ours is stricter than R5 and R6 and of the same kind as R4, R7 and R8. It is still optimistic: our own blocked-by-id check is worse (section 4, Q2) |
+| 0.03 ms per sample on one core | R10 "below 100 µs", R7 "0.08ms to 0.45ms" on a GPU, R8 "0.11ms" and "0.36ms" on a GPU, R5 "about 0.5ms" on one CPU thread, R4 "less than 1 msec" | **Partly.** All are inference times of different outputs: R5, R7, R8 and R10 produce 129 × 129 flux maps, we output 16 scalars. Our smaller output explains a large part of the difference. Ours is a laptop measurement on a busy machine, without real-time guarantees, and excludes signal acquisition |
+| Clean-input and noisy-input models | R9 and R3 add noise to synthetic data; R8 trains with noise but reports no test; R4 handles drift by preprocessing | Noise models differ (ours: Gaussian with a fraction of each input's standard deviation, plus a linear drift model of our own). No shared benchmark exists |
+
+Two further honest points. (1) The reference values of this task were produced by some reconstruction code that I was not told about; this document makes no
+statement about which. (2) Every learned model above, ours included, is a surrogate of a reference computation, so none of them can be more accurate than its labels.
+
+## 3. What the field says about our known weak points
+
+Only statements found in the opened papers are listed. Where the opened papers are silent, that is said.
+
+- **Reversed polarity.** None of R1 to R11 discusses reversed plasma current or polarity. R7 reports handling of "plasma current intervals not previously encountered" (abstract) but not the sign. The literature I could open gives no guidance; our own sign test (Q4) is the only evidence we have.
+- **Limiter configuration.** R8 is the only opened paper that scores limiter and divertor separately: overlap "0.990" for limiter and "0.985" for divertor configurations. R1 shows COMPASS was designed to run circular, elliptical, "O-shape" and "bean" cross-sections. The others do not separate the two cases. Our limiter point is the weakest target (R limiter MAE 4.55 mm against 0.133 mm for the axis).
+- **Noise and drift of integrated magnetic signals.** R1 attributes part of its closed-loop error to "residual offset in the integrators used to extract magnetic field information from the pick-up coils" on COMPASS in 1994, the same family of problem as our drift test. R4: calibration "does not guarantee to fully eliminate such drifts. Thus, we preprocess the signals to adjust the drifts", and an imputation scheme copes with up to nine missing probes. R3: VacTH "convergence rate drops significantly around 2 % input noise". R9 reports robustness to noise (σr = 0.003, σa = 1.5 mT) but on simulated equilibria. R8 adds Gaussian noise in training without a quantitative test.
+- **Generalisation to unseen shapes.** R4 trains on one campaign and tests on another: "slightly worse results, but still good". R7 splits chronologically and states success on a quasi-snowflake divertor configuration not in training (abstract). R5 and R6 use random or time-slice splits, which says little about new shapes. R10 trains on about 10,000 discharges "spanning the full operational range of plasma shapes". R9 needs no training data at all. (The DIII-D negative-triangularity claim is in U1 and is not used.)
+- **Real-time acquisition latency.** R4, R5, R7, R8 and R10 report inference time only. R10 states deployment on the TCV real-time control system but the abstract gives no end-to-end figure; I did not read its body. R1 is the one paper that built the signal path: analogue integrators and normalisation in hardware with a stated "bandwidth of ≥ 20 kHz". R9 notes real-time sampling periods of "500 μs to 11 ms" for equilibrium codes. No opened paper gives an acquisition latency we could compare with.
+
+## 4. Five likely questions and 15 second answers
+
+Numbers only from `results/ipp1-final.md` (F), `results/ipp1-latency-shipped.md` (L) and `results/ipp1-robustness-findings.md` (R).
+
+**Q1. "You compare with what? Your labels come from a reconstruction; is 0.13 mm accuracy?"** (prompted by R3, R5, R7)
+No. It is agreement with the reference values on 30 discharges the model never saw: magnetic axis R mean absolute error 0.133 mm, against 0.307 mm for the plain baseline network (F). We do not know the true position; a student model cannot be better than its reference.
+
+**Q2. "Is the test set really independent? Neighbouring discharges are similar."** (R5 and R6 split by slice, R7 chronologically)
+The 30 test discharges are whole discharges. But discharge ids are chronological, so neighbours are in training. When we train on the 60 oldest and test on the 59 newest, the baseline axis error is 1.23 against 0.448 mm in the random split, the shipped model 0.397 against 0.216 mm (F). A new campaign will look worse than 0.13 mm.
+
+**Q3. "Integrated coil signals drift and are noisy. What happens?"** (R1, R4)
+A model trained on clean data fails: the axis error goes from 0.38 to 10.2 mm on the noisy file provided with the task (R). Trained with noise and drift, the shipped noisy-input model has 2.38 mm axis error on the locked set (F). The drift is a model of ours, not measured; the provided file has white noise only (R).
+
+**Q4. "Reversed polarity and shapes you have not seen?"** (nothing found in the literature, so ask us)
+The locked set has only 2 positive-current discharges out of 30, so it says nothing reliable about them (F). Removing a whole family of shapes made the error 1.0 to 3.0 times larger, typically 1.2 to 2.4 times, with no collapse, but only 18 discharges are truly unusual (`results/ipp1-unusual-shapes.md`). Sign canonicalisation cut the error of reversed rows by 64 % and made the usual rows 20 % worse; it is not shipped (`results/ipp1-signcanon.md`; `docs/PLAN.md`, KQ-11).
+
+**Q5. "Is 0.03 ms a real-time number?"** (R10, R7, R8)
+It is the computation only: median 0.0154 ms for diverted and 0.0274 ms for limited plasmas, p99 0.057 and 0.093 ms on one core of a busy laptop without real-time guarantees (L). It excludes signal acquisition and integration, and it has not run on a real-time controller. A GPU was slower for one sample: 0.98 ms (L).
+
+## 5. Backup slide proposal (Czech)
+
+**Název:** Kde stojíme vedle publikovaných prací
+
+- Neuronové sítě, které z magnetických měření počítají tvar plazmatu, nejsou novinka: na COMPASS to zkoušeli už v roce 1994, dále se to dělá na KSTAR, EAST, HL 3 a TCV. Rychlost 0,03 ms na jednom jádru je řádově srovnatelná s publikovanými časy 0,1 až 0,5 ms, ale ty počítají celé mapy toku, my jen 16 čísel.
+- Naše chyba osy 0,133 mm je shoda s referenčními hodnotami na 30 nepoužitých výbojích, ne chyba oproti skutečné poloze. Jiné práce uvádějí R2, procenta překryvu nebo centimetry, proto čísla neřadíme za sebe.
+- Slabá místa jsme změřili sami: šum, posun integrátorů, obrácená polarita, tvary mimo data. V publikacích, které jsme otevřeli, o obrácené polaritě nic není.
+
+**Zdroje:** Bishop a spol., NIPS 7 (COMPASS); Urban a spol., arXiv 1412.1924 (COMPASS); Joung a spol., Nuclear Fusion 60 (2020) 016034 (KSTAR); Lu a spol., AIP Advances 13 (2023) 075007 (EAST); Zheng a spol., arXiv 2405.11221 (HL 3); Grandin a spol., arXiv 2606.09487 (TCV).
+
+Note for the editor of the slide: the first bullet's speed comparison is the weakest claim on the slide (section 2, row 4). If time is short, delete that last sentence.
