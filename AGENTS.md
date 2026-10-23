@@ -32,8 +32,8 @@ These override everything else. Violating one is a defect, not a style preferenc
   Written code is not a finished task.
 - **Never overbuild.** No abstractions for hypothetical futures, no dependencies without
   justification, no diagrams/docs/tests added just to look thorough.
-- **Never leave work unpushed** for long stretches. Push meaningful checkpoints
-  throughout, not a single mega-push at the end.
+- **Never accumulate a large body of unpushed work.** Push at each stable checkpoint
+  (§14.3), not as one mega-push at the end.
 
 If a rule here conflicts with an explicit instruction from the user, follow the user and
 note the deviation.
@@ -57,6 +57,12 @@ empty or unchanged.
 - [ ] Note unfinished work, known problems, and uncommitted changes. Preserve them.
 - [ ] Determine the working build / test / lint / run commands.
 - [ ] Confirm the target branch and remote before publishing.
+
+**Verified repository state (update this block when it changes):** the build, test, lint,
+and run commands live in `README.md` (usage) and `docs/TESTING.md` (verification) — they
+are **not** duplicated here. As of this commit the repository contains no source, no
+manifests, and no `TESTING.md`, so **no such commands exist yet**; they are recorded once
+the assignment's stack is chosen.
 
 If access to the repo, a service, or a credential is unavailable, **say so plainly**.
 Never claim to have read or changed something you could not reach.
@@ -83,7 +89,9 @@ Then classify every item as one of: **confirmed requirement**, **reasonable assu
 checklist where each significant requirement links to its implementation, its tests, and
 its verification evidence.
 
-Do not create `docs/requirements.md` until there is real content to put in it.
+Requirements are tracked in **`docs/REQUIREMENTS.md`** using stable IDs (`REQ-001`, …).
+Record a requirement there only once the specification supplies it — never a placeholder
+row for something invented.
 
 ---
 
@@ -91,9 +99,9 @@ Do not create `docs/requirements.md` until there is real content to put in it.
 
 One task board, one location. Do not scatter status across multiple files.
 
-Use a simple board with statuses: `TODO`, `IN PROGRESS`, `BLOCKED`, `DONE`. A single
-`docs/implementation-plan.md` (or a markdown table in the PR/README for small work) is
-enough. For each significant task capture: objective, dependencies, deliverable,
+Use a simple board with statuses: `TODO`, `IN PROGRESS`, `BLOCKED`, `DONE`. The
+authoritative tracker is **`docs/PLAN.md`** — there is exactly one, and no other file
+mirrors it. For each significant task capture: objective, dependencies, deliverable,
 acceptance criteria, verification method.
 
 Order work into milestones adapted to the assignment, for example:
@@ -169,24 +177,39 @@ measurements.**
 
 ## 7. Documentation Structure and Standards
 
-Create only the documents the actual scope warrants. Illustrative starting layout —
-**adapt it; do not create empty files to match it**:
+Each document has exactly one owner for its category. Do not duplicate authoritative
+content across files — link to it instead.
+
+| File | Owns (authoritative for) |
+|---|---|
+| `AGENTS.md` | *How* engineering work must be performed (process). |
+| `README.md` | *What* the project is and how a human uses it. |
+| `docs/PLAN.md` | *What work remains* — the single task tracker. |
+| `docs/REQUIREMENTS.md` | *What must be delivered* — requirement IDs + traceability. |
+| `docs/ARCHITECTURE.md` | *How the solution works* — modules, flow, algorithms. |
+| `docs/TESTING.md` | *How correctness is verified* — commands, strategy, evidence. |
+| `docs/DECISIONS.md` | *Why* significant technical choices were made. |
+
+Current tree:
 
 ```
 hackathon/
-├── AGENTS.md            # this file — process
-├── README.md            # practical entry point
-├── docs/
-│   ├── requirements.md
-│   ├── implementation-plan.md
-│   ├── architecture.md
-│   ├── algorithms.md
-│   ├── decisions.md
-│   ├── testing.md
-│   └── issues.md
-├── src/
-└── tests/
+├── AGENTS.md
+├── README.md
+└── docs/
+    ├── PLAN.md
+    ├── REQUIREMENTS.md
+    └── DECISIONS.md
 ```
+
+`ARCHITECTURE.md` and `TESTING.md` are **created only once there is real architecture to
+explain or real commands to document.** The remaining candidates in the table above are
+likewise deferred until the assignment justifies them.
+
+**Before adding any new document**, answer all five: What unique information will it
+hold? Who will read it? Why is it not better placed in an existing file? Who keeps it
+accurate? Does the assignment justify maintaining it? If any answer is weak, do not
+create the file.
 
 **README.md** is the front door for a reviewer/evaluator. Include, as applicable: project
 purpose and problem, main features and real implementation status, stack and deps, setup
@@ -194,10 +217,8 @@ and install, configuration, run commands, test/lint commands, usage examples wit
 expected output, links to deeper docs, and known limitations. **Never document a feature
 as complete unless it is implemented and verified.**
 
-**Supporting docs** (`docs/*.md`) only when the material justifies separation. Prefer
-linking to the authoritative explanation over duplicating it. Keep everything accurate,
-discoverable, and synchronized with the code, so a newcomer can understand the project
-without reading our chat history.
+Keep everything accurate, discoverable, and synchronized with the code, so a newcomer can
+understand the project without reading our chat history.
 
 ---
 
@@ -268,8 +289,8 @@ For algorithmic issues, state whether they affect correctness, asymptotic comple
 memory, scalability, numerical stability, or edge-case behavior. Distinguish **confirmed
 bugs** from **suspected issues**, **accepted limitations**, **environmental constraints**,
 and **optional improvements**. Never present an unconfirmed hypothesis as a root cause.
-A simple proportional markdown checklist (`docs/issues.md`) is enough for most
-assignments. Add a regression test when fixing a bug.
+If the `docs/PLAN.md` tracker is too coarse for the issue volume, promote a proportional
+checklist to `docs/ISSUES.md` — not before. Add a regression test when fixing a bug.
 
 ---
 
@@ -293,7 +314,7 @@ optimization trade-offs and evidence that correctness was preserved.
 Record decisions that materially affect architecture, algorithms, dependencies,
 correctness, performance, or maintainability. A lightweight entry captures: context,
 requirements/constraints, alternatives, chosen approach, reasons, accepted trade-offs,
-consequences/limitations, and supporting evidence. Keep a small log (`docs/decisions.md`);
+consequences/limitations, and supporting evidence. Keep the log in **`docs/DECISIONS.md`**;
 introduce full ADRs only if complexity warrants. Do not log trivial choices. When new
 evidence invalidates a decision, update the record and explain the change rather than
 leaving contradictions.
@@ -352,6 +373,10 @@ reconcile safely. Respect branch protection and others' work. If a push fails (a
 network, protection), **report it accurately**, preserve local work, and retry safely.
 Never claim a push succeeded unless Git confirms it.
 
+Pushing is conditional on available credentials, network, and branch permissions. When
+those are absent, say so and keep the work committed locally — do not describe an
+unpushed change as delivered.
+
 ### 14.4 Protect repository integrity
 Inspect the staged diff before committing. Never commit secrets, `.env` with real values,
 build artifacts, generated clutter, temp debug files, unrelated personal files, or
@@ -393,17 +418,18 @@ disguise incomplete work as finished.**
 
 ## 16. Final Verification and Delivery
 
-Before calling the assignment done:
+This runs **once, at whole-assignment scope**, on top of the per-task §15 checklist — it
+does not repeat it. Confirm the items that only apply to the finished deliverable:
 
-- [ ] Review the full spec and requirements checklist; verify each requirement against
-      the actual implementation.
-- [ ] Run all relevant tests and quality checks; verify build and run instructions.
-- [ ] Review algorithmic reasoning, complexity claims, and known limitations.
-- [ ] Confirm diagrams, experimental results, and docs are accurate.
-- [ ] Remove debug artifacts and unrelated files.
-- [ ] Review working tree, staged changes, and commit history.
-- [ ] Commit all intended changes permitted by the rules; push to the designated repo.
-- [ ] Verify the remote branch contains the intended work (when access permits).
+- [ ] Every requirement in `docs/REQUIREMENTS.md` is traced to real implementation,
+      tests, and evidence — none closed on the strength of code that merely looks right.
+- [ ] Build, run, and test instructions are executed as written and behave as documented.
+- [ ] Diagrams, experimental results, and documented complexity claims match what the
+      code and recorded data actually show.
+- [ ] Working tree, staged changes, and commit history reviewed; debug artifacts and
+      unrelated files removed (§14.4).
+- [ ] Intended work committed and pushed to the designated remote; the remote branch is
+      confirmed to contain it (§14.3).
 
 Then produce a concise **final report**: what was implemented; how requirements were met;
 key algorithms and architectural decisions; tests/quality checks run and their actual
@@ -441,17 +467,18 @@ write lengthy docs about functionality that has not been designed.
 
 ## 18. Working Agreement (summary)
 
-Understand before designing. Inspect before changing. Prefer evidence over assumptions.
-Keep requirements → implementation → tests → docs traceable. Analyze significant
-algorithms; document correctness, complexity, edge cases, limitations, trade-offs. Use
-diagrams when they clarify. Write clear, maintainable code with purposeful comments. Avoid
-overengineering, duplication, needless dependencies, and artificial abstractions. Test
-edge cases and hunt for failure modes. Separate verified facts from hypotheses. Keep docs
-accurate and synchronized. Log important problems and their resolutions. Commit often, push
-regularly. Preserve existing work; never overwrite blindly. Never fabricate results. Adapt
-this process to the assignment's real complexity. Give every document, diagram,
-abstraction, comment, and process step a clear purpose — and prune this file when it stops
-earning its keep.
+A quick index, not a second rulebook — the sections it points to are authoritative:
+
+- **Inspect before changing.** Establish ground truth first (§1).
+- **Understand before designing.** Requirements before architecture (§2).
+- **Prefer evidence over assumptions.** No claim without a verifiable source (§0).
+- **Keep requirements → implementation → tests → docs traceable** (§2, §7).
+- **Analyze what is non-trivial.** Correctness, complexity, edge cases, limits (§4–§6).
+- **Write code for the next reader.** Clear, simple, purposeful comments (§8).
+- **Verify, do not assert.** Test the failure modes, not just the happy path (§9).
+- **Commit often, push regularly.** Preserve work, never overwrite it blindly (§14).
+- **Match effort to the assignment's real complexity** — and prune this file when it
+  stops earning its keep.
 
 **The standard:** build the right solution, understand why it works, verify that it works,
 document what matters, preserve progress continuously, and never trade code quality for
