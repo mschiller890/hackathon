@@ -359,8 +359,7 @@ def build():
           "reálného času.", 20, TEXT, False)],
         [("Grafická karta nepomůže: ", 20, ORANGE, True),
          (f"pro tak malou síť je pomalejší ({cz(lat['mps_single_sample']['median_ms'], 2)} ms).", 20, TEXT, False)],
-        [("Měřeno na nezatíženém počítači Mac vedoucího týmu; na druhém počítači vyšel medián 0,032 ms.", 14, MUTED,
-          False)]])
+        [("Měřeno na nezatíženém počítači Mac vedoucího týmu; jiný procesor dává jiná čísla.", 14, MUTED, False)]])
 
     # 6 Limits
     s = frame(prs, 6, "Meze", "Nejslabší je bod u limiteru a konec výboje", notes_text(sc[6], "Snímek 6"))
