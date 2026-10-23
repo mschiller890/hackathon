@@ -332,7 +332,7 @@ Odpovídá B: Porovnali jsme SiLU s ReLU a GELU ve stejné síti na vývojových
 
 ### N17. Fyzik: Kamera je horší než cívky, zkoušeli jste to dotáhnout?
 
-Odpovídá B: Zkusili jsme větší síť na obrázcích (96 krát 128 bodů) a samotná velikost nepomohla, byla horší než malá síť. Pomohlo až učení s náhodným posunem do dvou bodů a otočením do dvou stupňů: osa 1,59 místo 1,7 milimetru, bod X 1,36 místo 1,5. Cívky jsou na stejných snímcích a dělení pořád čtyřikrát až osmkrát lepší (osa 0,41 milimetru). Posun snímku o bod nebo otočení o stupeň tuto síť nezhorší (poměr chyby 0,99 až 1,01), ale pohyby jsou uvnitř rozsahu, na který se učila. Mapa zakrytí ukazuje, že síť spoléhá hlavně na střed snímku. Jedno semínko na variantu. (`results/ipp1-camera-v2.md`)
+Odpovídá B: Zkusili jsme větší síť na obrázcích (96 krát 128 bodů) a samotná velikost nepomohla, byla horší než malá síť. Pomohlo až učení s náhodným posunem do dvou bodů a otočením do dvou stupňů: osa 1,59 místo 1,7 milimetru, bod X 1,36 místo 1,5. Cívky jsou na stejných snímcích a dělení u polohy a tvaru pořád dvakrát až osmkrát lepší (osa 0,41 milimetru), u bodu u limiteru jsou kamerová síť i cívky skoro stejné. Posun snímku o bod nebo otočení o stupeň tuto síť nezhorší (poměr chyby 0,99 až 1,01), ale pohyby jsou uvnitř rozsahu, na který se učila. Mapa zakrytí ukazuje, že síť spoléhá hlavně na střed snímku. Jedno semínko na variantu. (`results/ipp1-camera-v2.md`)
 
 ## Příloha: deset nejtěžších fyzikálních otázek
 
