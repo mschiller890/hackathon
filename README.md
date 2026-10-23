@@ -89,7 +89,7 @@ step. Wall times on a Ryzen 5 7535HS laptop CPU:
 | `ipp1_latency.py` | `ipp1-latency.json` | 10 s |
 | five notebooks | `notebooks/*.ipynb` | 2 min |
 
-Without `--quick` the whole run takes a little over an hour (`ipp1_inputs.py` alone about 13 minutes per fold), with it 6 to 7 minutes (383 s measured from a fresh clone). **Known problem:** since `e4d4fa7` notebook `04` stops with `KeyError: 'is_limited'` (`docs/PLAN.md`, IMPL-8); `make_all.py` stops there, so run notebook `05` by hand until it is fixed. `--missing` skips steps whose outputs
+Without `--quick` the whole run takes about an hour (58 min measured; `ipp1_inputs.py` alone 53 min, partly on a shared CPU), with it 6 to 7 minutes (383 s measured from a fresh clone). **Known problem:** since `e4d4fa7` notebook `04` stops with `KeyError: 'is_limited'` (`docs/PLAN.md`, IMPL-8); `make_all.py` stops there, so run notebook `05` by hand until it is fixed. `--missing` skips steps whose outputs
 already exist. `--viewer` also builds the plasma shape viewer (`ipp1_oof_full.py` about 3 min, then `viewer/data.js` and the
 single file `viewer/dist/index.html`, both gitignored because they hold IPP data); open it by double click. Aggregate results and their interpretation are in `results/` and the notebooks.
 
