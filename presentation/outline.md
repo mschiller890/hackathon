@@ -52,7 +52,7 @@ Věta: V prohlížeči vidíte skutečný a odhadnutý tvar plazmatu vedle sebe 
 
 Věta: Výpočet sítě trvá asi 0,0145 ms na procesoru, tedy mnohonásobně méně než jednotky milisekund, které zadání žádá, ale sběr signálů a běh na systému reálného času jsme neověřovali.
 
-* Procesor, jeden vzorek: medián 0,0145 ms, 99 % měření pod 0,0288 ms (měřeno na počítači vedoucího týmu; na druhém počítači při opakování vyšlo 0,032 ms, což je pořád hluboko pod jednou milisekundou).
+* Procesor, jeden vzorek: medián 0,0145 ms, 99 % měření pod 0,0288 ms (měřeno na počítači vedoucího týmu; na jiném procesoru vychází čas vyšší, proto u čísla vždy říkáme, na jakém počítači bylo měřeno).
 * Grafická karta Apple, jeden vzorek: medián 0,2405 ms, pomalejší než procesor, protože model je malý.
 * Verdikt: výpočet sítě není překážkou. Neověřeno: sběr signálů z čidel, běh na systému reálného času a přesnost na skutečně zašuměných signálech (síť učená na čistých datech na šumu selže, viz snímek 7).
 
