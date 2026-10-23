@@ -71,9 +71,9 @@ def load():
     # Same file, noisy inputs, 30 held-out discharges: the noise-trained baseline that is used there, and the selected
     # model, which collapses on noisy inputs.
     j["noisy_final"] = {"axis": 2.38, "current": 4.65, "limiter": (25.8, 38.9), "selected_axis": 190}
-    # results/ipp1-latency-shipped.md: selected model pair, numpy path, one core, Apple M5 on a busy machine (load about 7);
-    # limited case (both networks), the slower one. Wording from docs/PLAN.md KQ-13.
-    j["shipped_latency"] = {"median": 0.0274, "p99": 0.093}
+    # results/ipp1-latency-shipped.md, rows numpy_end_to_end_limited and _diverted: selected model pair, one core, Apple M5
+    # on a busy machine (load about 7), random weights of the trained shapes, so timing only.
+    j["shipped_latency"] = {"limited": 0.0274, "diverted": 0.0154, "p99": 0.093}
     # results/cloud-camera-findings.md, 5 folds, grey camera CNN MAE against the magnetic baseline; nRMSE ratio range.
     j["camera"] = {"R_mag_axis": (1.70, 0.377), "Z_mag_axis": (2.40, 0.391), "R_x_point": (1.50, 0.202),
                    "R_strike_point_1": (2.25, 0.265), "ratio": (1.3, 13), "colour_grey": (1.79, 1.70), "current": 14.0}
@@ -283,9 +283,8 @@ def build():
     one, e2e = lat["cpu_1_thread_single_sample"], lat["cpu_end_to_end_numpy"]
     fn, cm, us, nf = j["final"], j["camera"], j["unusual"], j["noisy_final"]
     sl = j["shipped_latency"]
-    shipped_txt = (f"asi {cz(sl['median'], 2)} ms", f"vybraný model: medián, 99 % pod {cz(0.1, 1)} ms "
-                   f"(Apple M5, vytížený počítač)")
-    assert sl["p99"] < 0.1  # the label promises p99 under 0,1 ms
+    shipped_txt = (f"{cz(sl['limited'], 3)} ms", "vybraný model, limitované plazma, procesor Apple M5, vytížený notebook")
+    assert sl["p99"] < 0.1  # the footnote promises p99 under 0,1 ms
     prs = Presentation()
     prs.slide_width, prs.slide_height = W, H
 
@@ -361,17 +360,17 @@ def build():
                               "Platí pro tuto malou síť, ne pro kameru jako takovou.")
     add_sources(s, ["results/cloud-camera-findings.md (5 dělení, šedá kamera)"])
 
-    # 4 Results, screen a (1:30 to 1:37): what we estimate
-    s = frame(prs, "Výsledky", "Co odhadujeme", notes_text(sc[4], "Snímek 4a", end="1:37"))
+    # 4 Results, screen a (1:26 to 1:33): what we estimate
+    s = frame(prs, "Výsledky", "Co odhadujeme", notes_text(sc[4], "Snímek 4a", end="1:33"))
     picture(s, "05-shape-schematic.png", 2.3, 1.9, 8.7)
     for (x, y, words) in [(0.6, 3.5, "osa plazmatu\nuprostřed"), (0.6, 5.5, "bod X\ndole"),
                           (10.9, 5.5, "dva dotykové body,\nkam dopadá okraj")]:
         text(s, x, y, 2.0, 0.9, words, size=16, color=TEXT, bold=True)
     caption(s, 2.3, 6.75, 8.7, "Schéma tvaru, ne skutečný výboj.")
 
-    # 4 Results, screen b (1:37 to 2:14): the selected model on the 30 held-out discharges (items 7.1 to 7.6)
+    # 4 Results, screen b (1:33 to 2:17): the selected model on the 30 held-out discharges (items 7.1 to 7.6)
     s = frame(prs, "Výsledky", f"Na 30 odložených výbojích: osa {cz(fn['R_mag_axis'][1], 2)} mm",
-              notes_text(sc[4], "Snímek 4b", start="1:37", end="2:14"))
+              notes_text(sc[4], "Snímek 4b", start="1:33", end="2:17"))
     text(s, 0.6, 1.72, 12.1, 0.4, f"v křížové validaci na 119 výbojích {cz(fn['cv_axis'], 2)} mm, na novějších číslech "
                                   f"výbojů {cz(fn['blocked_axis'], 2)} mm", size=16, color=MUTED)
     tile(s, 0.6, 2.25, 3.6, 1.4, f"{cz(fn['R_mag_axis'][1], 2)} mm", "průměrná chyba polohy osy, 30 odložených výbojů",
@@ -403,12 +402,12 @@ def build():
           "(30 odložených výbojů).", 11, MUTED, False)]])
     add_sources(s, ["results/ipp1-final.md (30 odložených výbojů, křížová validace, bloky, zašuměné vstupy)"])
 
-    # 4 Results, screen c (2:14 to 2:24): how many inputs are needed (items 8.1 to 8.3)
+    # 4 Results, screen c (2:17 to 2:29): how many inputs are needed (items 8.1 to 8.3)
     runs = inp["runs"]
     topk = sorted((int(k.split()[1]), v) for k, v in runs.items() if k.startswith("top"))
     topk.append((24, runs["all 24"]))
     ipr, fl, top8 = (runs[k]["summary_nrmse_mean"] for k in ("IPR only (16)", "FL only (8)", "top 8"))
-    s = frame(prs, "Výsledky", "Kolik vstupů stačí", notes_text(sc[4], "Snímek 4c", start="2:14"))
+    s = frame(prs, "Výsledky", "Kolik vstupů stačí", notes_text(sc[4], "Snímek 4c", start="2:17"))
     text(s, 0.6, 1.72, 12.1, 0.4, f"Samotné cívky stačí na skoro stejnou souhrnnou chybu ({cz(ipr, 3)} proti "
                                   f"{cz(runs['all 24']['summary_nrmse_mean'], 3)}); osm nejlepších už ne ({cz(top8, 3)}).",
          size=16, color=MUTED)
@@ -433,15 +432,16 @@ def build():
           "menší je lepší.", 10, MUTED, False)]])
     add_sources(s, ["results/ipp1-inputs.json", "results/ipp1-inputs.md"])
 
-    # Live demo divider (2:24 to 3:52); the presenter switches to the browser (items 9.1, 9.2)
+    # Live demo divider (2:29 to 3:49); the presenter switches to the browser (items 9.1, 9.2)
     s = frame(prs, "Živá ukázka", None,
-              notes_text(sc["demo"], "Živá ukázka") + "\nZáloha: klávesa H otevře skrytý snímek s uloženými obrázky.")
+              notes_text(sc["demo"], "Živá ukázka") + "\nZáloha: klávesa H otevře skrytý snímek s uloženými obrázky (jen PowerPoint; v Keynote a Google "
+              "Slides odkrýt snímek předem).")
     text(s, 0.6, 2.6, 12.1, 1.2, "Živá ukázka", size=60, bold=True, align=PP_ALIGN.CENTER)
     # Since e50b1ee the viewer shows the selected model on the 30 held-out discharges, which predicts the points but
     # not the outline (its legend: "obrys model nepředpovídá"); docs/PLAN.md KQ-18
     text(s, 0.6, 3.9, 12.1, 0.9, [[("Skutečný tvar plazmatu a odhadnuté body, chyba v čase", 24, MUTED, False)],
-                                  [("V ukázce je vybraný model na výbojích odložených před finálním výběrem. Odhaduje osu, "
-                                    "bod X a dotykové body, obrys ne.", 18, MUTED, False)]], align=PP_ALIGN.CENTER)
+                                  [("Výboj 85, odložený, vybraný model; obrys se nepředpovídá, ukazuje body (osa, bod X, "
+                                    "dotykové body).", 18, MUTED, False)]], align=PP_ALIGN.CENTER)
     text(s, 0.6, 5.4, 12.1, 0.6, "Prohlížeč tvaru běží bez připojení k internetu", size=16, color=BLUE,
          align=PP_ALIGN.CENTER)
 
@@ -455,7 +455,7 @@ def build():
         x = 0.6 + i * 4.1
         picture(s, name, x, 2.4, 3.9)
         text(s, x, 4.75, 3.9, 0.4, words, size=16, color=TEXT, bold=True, align=PP_ALIGN.CENTER)
-    caption(s, 0.6, 5.4, 12.1, "Vybraný model, odložený výboj mimo učení (číslo výboje je v obrázku). Obrázky z "
+    caption(s, 0.6, 5.4, 12.1, "Výboj 85, odložený, vybraný model; obrys se nepředpovídá, ukazuje body. Obrázky z "
                                "prohlížeče.")
 
     # 5 Real time verdict (items 11.1 to 11.4)
@@ -467,16 +467,17 @@ def build():
     tile(s, 4.72, 2.3, 3.85, 2.2, f"{cz(one['p99_ms'], 4)} ms", "99 % odhadů základní sítě je rychlejších", BLUE, 44)
     tile(s, 8.84, 2.3, 3.85, 2.2, shipped_txt[0], shipped_txt[1], MUTED, 44)
     text(s, 0.6, 4.8, 12.1, 2.0, [
-        [("Rozpočet je 1 až 10 ms. ", 18, ORANGE, True),
+        [("Zadání chce jednotky až desítky milisekund; náš rozpočet je 1 až 10 ms. ", 18, ORANGE, True),
          (f"Celý odhad základní sítě od čísel na vstupu po čísla na výstupu: medián {cz(e2e['median_ms'], 4)} ms.",
           18, TEXT, False)],
         [("Neověřeno: ", 18, ORANGE, True),
          ("sběr signálů z cívek, nejhorší doba na systému reálného času a přesnost na skutečně zašuměných "
           "signálech.", 18, TEXT, False)],
         [("p99: 99 % odhadů je rychlejších. Na systému bez reálného času se ojediněle objeví špičky. Vybraný model: "
-          "numpy, náhodné váhy stejného tvaru, měří se jen čas.", 13, MUTED, False)]])
+          f"numpy, náhodné váhy stejného tvaru, jen čas; divertorové plazma {cz(sl['diverted'], 3)} ms, p99 pod "
+          "0,1 ms.", 13, MUTED, False)]])
     add_sources(s, ["results/ipp1-latency.json (procesor, medián, p99, celý odhad)",
-                    "results/ipp1-latency-shipped.md (vybraný model, vytížený počítač)"])
+                    "results/ipp1-latency-shipped.md (vybraný model, numpy, 0,027 ms limitované, 0,015 ms divertorové)"])
 
     # 6 Limits (items 12.1 to 12.3)
     s = frame(prs, "Meze", "Nejslabší je bod u limiteru a konec výboje", notes_text(sc[6], "Snímek 6"))
@@ -563,12 +564,14 @@ def build():
     text(s, 0.6, 1.6, 6.8, 0.5, f"Jeden odhad základní sítě, procesor {lat['cpu']}", size=20, color=MUTED)
     text(s, 0.6, 2.1, 6.8, 1.6, f"{cz(one['median_ms'], 4)} ms", size=88, color=ORANGE, bold=True)
     text(s, 0.6, 3.7, 6.8, 0.6, [[(shipped_txt[0], 26, TEXT, True),
-                                  ("  vybraný model, 99 % pod 0,1 ms", 18, MUTED, False)]])
+                                  ("  vybraný model, limitované plazma", 18, MUTED, False)]])
     text(s, 0.6, 4.45, 6.8, 1.0, "Klasický výpočet trvá minuty. Zadání chce jednotky až desítky milisekund. Obojí je "
-                                 "pod rozpočtem 1 až 10 ms.", size=18, color=TEXT)
+                                 "pod naším rozpočtem 1 až 10 ms.", size=18, color=TEXT)
     for i, (head, body, col) in enumerate([
-            ("Přesnost", f"desetiny milimetru na čistých vstupech, jednotky milimetrů na zašuměných (osa "
-                         f"{cz(fn['R_mag_axis'][1], 2)} mm a {cz(nf['axis'], 2)} mm, 30 odložených výbojů)", BLUE),
+            ("Přesnost", f"čisté vstupy: osa, bod X a dotykové body desetiny milimetru (osa {cz(fn['R_mag_axis'][1], 2)} "
+                         f"mm), bod u limiteru {cz(fn['R_limiter'][1], 2)} a {cz(fn['Z_limiter'][1], 2)} mm. Zašuměné "
+                         f"vstupy: osa {cz(nf['axis'], 2)} mm, bod u limiteru {cz(nf['limiter'][0], 1)} a "
+                         f"{cz(nf['limiter'][1], 1)} mm, proud {cz(nf['current'], 2)} kA (30 odložených výbojů).", BLUE),
             ("Zbývá", "bod u limiteru, neobvyklé tvary (samostatně neověřeny), odolnost proti šumu, napojení na řízení",
              MUTED)]):
         y = 1.7 + i * 2.05
@@ -578,7 +581,7 @@ def build():
     text(s, 0.6, 6.0, 12.1, 0.6, "Desetiny milimetru za setiny milisekundy.", size=22, bold=True,
          align=PP_ALIGN.CENTER)
     caption(s, 11.6, 6.65, 1.2, "Ilustrace.")
-    add_sources(s, ["results/ipp1-latency.json (0,0145 ms, Apple M5)", "results/ipp1-latency-shipped.md (vybraný model)",
+    add_sources(s, ["results/ipp1-latency.json (0,0145 ms, Apple M5)", "results/ipp1-latency-shipped.md (0,027 ms)",
                     "results/ipp1-final.md (přesnost)"])
 
     prs.save(OUT)
