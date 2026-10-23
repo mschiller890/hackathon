@@ -128,6 +128,13 @@ Local Claude sessions "bladed-55" and "bladed-85" (both idle, ready) split the w
 Both use `analysis/ipp1_common.py`, split by whole discharges, write only their own files, report numbers with the command that made them in the matching row of `docs/PLAN.md`, small Conventional Commits, `git pull --rebase` before `git push`.
 GPT: stop the local camera training (the cloud session is the camera lane); take over only what the two terminals did not start.
 
+### K: the notebooks task in detail (Fri 18:45), the biggest delivery risk before CP3 (Sat 02:30)
+The five notebooks in `notebooks/` were executed on the Lead's Mac with files in `out/` (not in git). On a clean clone they must run top to bottom.
+1. Clone fresh, follow `README.md`, put the data where it says, set `HACKATHON_HOME`.
+2. Write `analysis/make_all.sh` (or `make_all.py`) that regenerates, in the right order and with timings in a comment, every file the notebooks read: `out/ipp1-predictions.csv` (`ipp1_oof.py`), `out/ipp1-inputs.json` (`ipp1_inputs.py`), `out/ipp1-time.json`, `out/ipp1-latency.json`, plus `ipp1_baseline.py`; list in the README how long each takes. If a step takes longer than 10 minutes, add a `--quick` option and say so.
+3. Run the five notebooks with nbclient from the clean clone, fix every path or missing-file problem in the notebook setup cells (keep the conclusions text generated from the outputs), commit the executed notebooks again, and record the result (which cell failed, what you changed) in the IMPL-8 row of `docs/PLAN.md`.
+4. Then apply `docs/claims-corrections.md` to the deck and check every number on a slide against `results/`.
+
 ### Cloud environment (two Claude cloud sessions, started by the owner Fri 16:47)
 Repository: private mirror `BLADED-K/hackathon-cloud` (the local remote `cloud` of `hackathon/repo`). It holds code, docs and aggregate
 results only, never data; the sessions download the data themselves with gdown from the organizers' Drive and keep it in their sandbox.
