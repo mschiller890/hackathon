@@ -48,7 +48,7 @@ Obrázek: 02-minutes-vs-ms.png (obrázek 04-wall-damage.png nepoužívat jako d�
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
 | 0:00 | 11 | A | Plazma v tokamaku se samo neudrží uprostřed komory. Protažené plazma je svisle nestabilní a bez rychlého řízení uhne ke stěně. | Snímek 1. Obrázek na celou plochu je jen ilustrace, neříkej, že jde o fotografii ani o doklad poškození stěny (docs/deck-fixes.md, snímek 1). |
-| 0:11 | 10 | A | Řízení proto musí znát polohu a tvar plazmatu v řádu milisekund, tak to říká zadání. | Stále stejný obrázek. Délku výboje (150 až 200 milisekund podle organizátorů) nahlas neříkáme, je v otázce 8. |
+| 0:11 | 10 | A | Řízení proto musí znát polohu a tvar plazmatu v milisekundách, tak to chce zadání. | Stále stejný obrázek. Délku výboje (150 až 200 milisekund podle organizátorů) nahlas neříkáme, je v otázce 8. |
 | 0:21 | 8 | A | Úplná rekonstrukce rovnováhy se počítá po výboji a trvá minuty. Řízení potřebuje rychlý odhad. | Přepnout na obrázek 02-minutes-vs-ms.png (přesýpací hodiny proti záblesku) a dlaždice minuty a jednotky ms. |
 | 0:29 | 7 | A | Naše otázka: dokáže malá neuronová síť rekonstrukci napodobit dost dobře a dost rychle? | Dole na snímku věta s otázkou (nový text je v docs/deck-fixes.md, snímek 2 decku). |
 | 0:36 | 2 | A | Data představí kolega. | Pohled na B, klik na snímek 2. |
@@ -62,7 +62,7 @@ Obrázek: 03-coils.png
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
 | 0:38 | 7 | B | Máme data ze 149 výbojů tokamaku COMPASS. | Snímek 2 (tři dlaždice 24, 16, 149; 42 972 okamžiků je na dlaždici a v hlavní větě, nahlas se neříká). Obrázek 03-coils.png je schéma, ne skutečný řez. |
-| 0:45 | 14 | B | Vstup: jen 24 magnetických čidel, proudy v cívkách pole a model komory síť nedostává. Výstup: 16 veličin, poloha a tvar plazmatu, proud a údaj o limiteru. | Ukázat na obrázek. Je na něm 16 cívek, smyčky toku na něm nejsou. |
+| 0:45 | 14 | B | Vstup: jen 24 magnetických čidel. Proudy v cívkách pole a model komory síť nedostává. Výstup: 16 veličin, poloha a tvar plazmatu, proud a údaj o limiteru. | Ukázat na obrázek. Je na něm 16 cívek, smyčky toku na něm nejsou. |
 | 0:59 | 7 | B | Dělíme po celých výbojích, aby se netestovalo na tom, co model viděl. | Spodní věta snímku. |
 
 ### Snímek 3: Metoda (1:06 až 1:26, 20 s)
@@ -85,10 +85,10 @@ Obrázek: 05-shape-schematic.png
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
 | 1:26 | 7 | A | Odhadujeme polohu osy, dolní bod X a dotykové body na deskách divertoru. Obrys vybraný model neodhaduje. | Snímek 4. Obrázek 05-shape-schematic.png asi 6 sekund, pak snímek s výsledky. |
-| 1:33 | 23 | A | Třicet výbojů jsme odložili před posledním výběrem modelu, náměty na úpravy ale vznikly na všech 149. Na odložených se vybraný model od rekonstrukce ústavu liší v radiální poloze osy o 0,13 milimetru, základní síť o 0,31. | Titulek a sloupce osy R. Protokol pod číslem: 30 odložených výbojů. Pod grafem je věta, že náměty na úpravy vznikly na všech 149 výbojích. |
-| 1:56 | 9 | A | V křížové validaci na 119 výbojích 0,23, na novějších číslech 0,40. | Řádek protokolů pod grafem (119 výbojů, křížová validace; novější čísla). |
+| 1:33 | 23 | A | Třicet výbojů jsme odložili před posledním výběrem modelu, náměty na úpravy ale vznikly na všech 149. Na odložených se vybraný model od rekonstrukce ústavu liší v radiální poloze osy o 0,13 milimetru. Základní síť o 0,31. | Titulek a sloupce osy R. Protokol pod číslem: 30 odložených výbojů. Pod grafem je věta, že náměty na úpravy vznikly na všech 149 výbojích. |
+| 1:56 | 9 | A | Křížová validace na 119 výbojích 0,23, novější čísla výbojů 0,40. | Řádek protokolů pod grafem (119 výbojů, křížová validace; novější čísla). |
 | 2:05 | 12 | A | Proud určí lineární model s chybou 0,035 kiloampéru; síť měla 1,2. | Dlaždice 0,035 kA (lineární model; proč stačí lineární, je v otázce 4). Protokol: 30 odložených výbojů. Bod u limiteru 4,55 mm proti 10,6 je na dlaždici a zazní na snímku 6. |
-| 2:17 | 12 | B | Samotné cívky stačí na skoro stejnou souhrnnou chybu jako všech 24 vstupů, osm nejlepších už ne. | Graf Kolik vstupů stačí (základní síť, pět dělení po výbojích): 0,066 proti 0,063, osm nejlepších 0,094. Menší číslo je lepší. |
+| 2:17 | 12 | B | Samotné cívky dají skoro stejnou souhrnnou chybu jako všech 24 vstupů, osm nejlepších už ne. | Graf Kolik vstupů stačí (základní síť, pět dělení po výbojích): 0,066 proti 0,063, osm nejlepších 0,094. Menší číslo je lepší. |
 
 ### Živá ukázka, mezi snímkem 4 a 5 (2:29 až 3:49, 80 s)
 
@@ -101,8 +101,8 @@ Obrázek: žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html)
 | 2:29 | 13 | A | Teď naživo. Obrys v ukázce je z rekonstrukce ústavu, naše síť odhaduje jen označené body, na třiceti výbojích, které jsme odložili. | Cmd+Tab do prohlížeče. Okno je předem otevřené na výboji 85, rychlost 1×, zastaveno. Dlaždice říká vybraný model. |
 | 2:42 | 12 | A | Tmavá čára je tvar z rekonstrukce ústavu, barevné značky jsou odhad sítě. Výboj číslo 85 je z odložených třiceti a je typický. | Ukázat na dva přepínače. V prohlížeči mají stát Rekonstrukce ústavu a Odhad sítě; dokud tam stojí Skutečnost a Předpověď, tato dvě slova nahlas neříkej (docs/deck-fixes.md, viewer). Mezerník spustí přehrávání. |
 | 2:54 | 6 | A | (ticho, výboj běží a porota se dívá) | Nech výboj proběhnout dvakrát. |
-| 3:00 | 12 | A | Kroužek je osa, křížek bod X. Vzdálenost osy od rekonstrukce je tady čtvrtina milimetru, na začátku i uprostřed výboje. | Ukázat na značky a tabulku. Čísla z prohlížeče: začátek 0,22 mm, střed 0,25 mm, vzdálenost v R i Z (docs/demo-facts.md); 0,13 mm na slajdech je jen radiální osa R. |
-| 3:12 | 14 | A | Teď nejhorší konec: výboj číslo 147, poslední snímek. Osa je vedle o třicet čtyři milimetry a bod u limiteru o víc než sto pět, ale průměr celého výboje je pod milimetrem. | Výboj 147 z nabídky, poslední snímek (t 1,0). Čísla: osa 33,7 mm, bod u limiteru asi 105 mm, průměr výboje 0,85 mm (docs/demo-facts.md). |
+| 3:00 | 12 | A | Kroužek je osa, křížek dolní bod X. Vzdálenost osy od rekonstrukce je tu čtvrt milimetru, na začátku i uprostřed. | Ukázat na značky a tabulku. Čísla z prohlížeče: začátek 0,22 mm, střed 0,25 mm, vzdálenost v R i Z (docs/demo-facts.md); 0,13 mm na slajdech je jen radiální osa R. |
+| 3:12 | 14 | A | Teď nejhorší konec: výboj číslo 147, poslední snímek. Osa se liší o třicet čtyři milimetry, bod u limiteru o víc než sto pět, ale v průměru přes celý výboj je to pod milimetrem. | Výboj 147 z nabídky, poslední snímek (t 1,0). Čísla: osa 33,7 mm, bod u limiteru asi 105 mm, průměr výboje 0,85 mm (docs/demo-facts.md). |
 | 3:26 | 5 | A | (ticho, špatný výboj běží) | Ukázat na místo, kde se čáry rozcházejí. |
 | 3:31 | 14 | B | Takových výbojů je málo: všech třicet odložených má průměrnou vzdálenost osy od rekonstrukce pod milimetrem, medián asi dvě desetiny. | Protokol: vybraný model, odložených 30 a vývojové výboje mimo učení, vzdálenost osy (docs/demo-facts.md); dva výboje nad 5 mm, obě vývojové (id 0 a 11); pod milimetrem je 135 ze 149 výbojů, nahlas se neříká. |
 | 3:45 | 4 | A | (ticho, přepnutí zpět) | Cmd+Tab zpět do prezentace, klik na snímek 5. Dlaždici latence v prohlížeči neukazovat ani neříkat (číslo zazní na snímku 5). |
@@ -116,8 +116,8 @@ Obrázek: 02-minutes-vs-ms.png (zopakovat jako pozadí)
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
 | 3:49 | 12 | B | Základní síť: jeden odhad na procesoru Apple M5 trvá 0,0145 milisekundy. | Snímek 5. Velká dlaždice 0,0145 ms, dlaždice 0,0209 ms (devadesát devět procent odhadů je rychlejších, nahlas se neříká). Pod nimi: základní síť, procesor Apple M5. |
-| 4:01 | 9 | B | Vybraný model má tři části a trvá asi 0,03 milisekundy. | Dlaždice vybraného modelu: 0,027 ms, limitované plazma, Apple M5, vytížený notebook (results/ipp1-latency-shipped.md, numpy, náhodné váhy stejného tvaru, jen čas). |
-| 4:10 | 19 | B | Náš rozpočet je jedna až deset milisekund, výpočet sítě je hluboko pod ním. Neověřili jsme zbytek řetězce: sběr a integraci signálů v reálném čase, jak signály vypadají v provozu, uzavřenou smyčku a systém reálného času. | Věta pod dlaždicemi. Rozpočet 1 až 10 ms je náš, ne ze zadání; že zadání chce jednotky až desítky milisekund, je na snímku a v otázce 8. Konec snímku, pohled na A, klik na snímek 6. |
+| 4:01 | 9 | B | Vybraný model má tři části, odhad asi 0,03 milisekundy. | Dlaždice vybraného modelu: 0,027 ms, limitované plazma, Apple M5, vytížený notebook (results/ipp1-latency-shipped.md, numpy, náhodné váhy stejného tvaru, jen čas). |
+| 4:10 | 19 | B | Náš rozpočet je jedna až deset milisekund, výpočet sítě je hluboko pod ním. Neověřili jsme zbytek řetězce: sběr a integraci signálů, jejich chování v provozu, uzavřenou smyčku a systém reálného času. | Věta pod dlaždicemi. Rozpočet 1 až 10 ms je náš, ne ze zadání; že zadání chce jednotky až desítky milisekund, je na snímku a v otázce 8. Konec snímku, pohled na A, klik na snímek 6. |
 
 ### Snímek 6: Meze (4:29 až 5:03, 34 s)
 
@@ -127,7 +127,7 @@ Obrázek: žádný obrázek, na snímku je graf chyby osy podle času
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 4:29 | 22 | A | Bod u limiteru je místo na stěně, kde se plazma dotkne. Medián chyby je 0,73 milimetru, průměr 4,55 táhnou řádky s jiným místem dotyku, v jednom procentu je chyba přes 77 milimetrů. Vzdálenost od stěny jsme neměřili. | Snímek 6. Dlaždice 4,55 mm a 8,35 mm (vybraný model, 30 odložených výbojů); pod nimi 99 % řádků pod 77,5 a 92,2 mm (results/ipp1-final.md, sloupec p99). Medián 0,733 mm a nejhorší řádky 357 a 485 mm jsou v tomtéž souboru. |
+| 4:29 | 22 | A | Bod u limiteru je místo na stěně, kde se plazma dotkne. Medián chyby je 0,73 milimetru. Průměr 4,55 zvedají řádky s jiným místem dotyku, v jednom procentu přes 77 milimetrů. Vzdálenost od stěny jsme neměřili. | Snímek 6. Dlaždice 4,55 mm a 8,35 mm (vybraný model, 30 odložených výbojů); pod nimi 99 % řádků pod 77,5 a 92,2 mm (results/ipp1-final.md, sloupec p99). Medián 0,733 mm a nejhorší řádky 357 a 485 mm jsou v tomtéž souboru. |
 | 4:51 | 12 | A | Chyba osy roste hlavně na konci výboje, 0,9 milimetru proti 0,24 uprostřed, základní síť, pět dělení. Příčinu neznáme. | Graf chyby osy podle desetin výboje (základní síť, pět dělení), oranžové sloupce jsou začátek a konec. Hypotézu o slabé rekonstrukci na koncích říkáme jen v otázce 8 a jen s přívlastkem hypotéza. Kolísání výstupu je jen v poznámce pod čarou. |
 
 ### Snímek 7: Co model neumí (5:03 až 6:17, 74 s)
@@ -138,9 +138,9 @@ Obrázek: žádný obrázek, na snímku jsou dva grafy (šum, počet výbojů)
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 5:03 | 20 | B | Slabina je odolnost vůči chybám čidel. Zkoušeli jsme šum od organizátorů a umělý posun. Základní síť má chybu osy 0,38 milimetru na čistých datech a 10,15 na zašuměných. | Snímek 7, levý graf, první dva sloupce (třetí sloupec 2,64 se nemluví, je v otázce 3). Protokol: základní síť, pět dělení po výbojích. |
-| 5:23 | 14 | B | Vybraný model na šumu selže, proto bychom použili síť učenou se šumem: osa 2,38 milimetru na třiceti odložených výbojích. | Řádek pod grafem (30 odložených výbojů; proud 4,65 kA je tam také). |
-| 5:37 | 17 | A | Druhá slabina: počet výbojů. Se 30 učícími výboji je chyba osy 1,47, se všemi učícími výboji, 119 v každém dělení, je 0,38, ale s pevným počtem epoch. | Pravý graf, křivka podle počtu učících výbojů (základní síť, pět dělení). |
+| 5:03 | 20 | B | Slabé místo jsou chyby čidel. Zkoušeli jsme šum od organizátorů a umělý posun. Základní síť má chybu osy 0,38 milimetru na čistých datech a 10,15 na zašuměných. | Snímek 7, levý graf, první dva sloupce (třetí sloupec 2,64 se nemluví, je v otázce 3). Protokol: základní síť, pět dělení po výbojích. |
+| 5:23 | 14 | B | Vybraný model na šumu selže, proto bychom použili síť učenou se šumem: chyba osy 2,38 milimetru na třiceti odložených. | Řádek pod grafem (30 odložených výbojů; proud 4,65 kA je tam také). |
+| 5:37 | 17 | A | Druhá slabina: počet výbojů. Při 30 učících výbojích je chyba osy 1,47, při všech 119 v každém dělení 0,38; počet epoch byl pevný. | Pravý graf, křivka podle počtu učících výbojů (základní síť, pět dělení). |
 | 5:54 | 17 | A | Třetí slabina: neobvyklé tvary. Osmnáct nejodlišnějších výbojů jsme vynechali z učení a chyba osy je u základní sítě asi dvaapůlkrát větší, od 0,9 do 2,3 milimetru. Čtrnáct z nich je z časné části kampaně, takže se tu míchá tvar s dobou. | Spodní text snímku. |
 | 6:11 | 6 | B | Platí jen pro jeden tokamak. | Spodní text snímku; věta, že řízení plazmatu model sám nenahradí, je jen tam. |
 
@@ -152,9 +152,9 @@ Obrázek: 07-closing.png
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 6:17 | 10 | A | Shoda s rekonstrukcí ústavu na čistých vstupech: osa 0,13 milimetru na odložených výbojích, 0,23 v křížové validaci. | Snímek 8. Obrázek 07-closing.png. Dlaždice Shoda s rekonstrukcí. |
+| 6:17 | 10 | A | Na čistých vstupech se radiální osa liší od rekonstrukce ústavu o 0,13 milimetru na odložených výbojích, o 0,23 v křížové validaci. | Snímek 8. Obrázek 07-closing.png. Dlaždice Shoda s rekonstrukcí. |
 | 6:27 | 11 | A | Rychlost: základní síť 0,0145 milisekundy, vybraný model asi 0,03. | Velké číslo 0,0145 ms vlevo a vedle něj vybraný model (0,027 ms). Pomalu. |
-| 6:38 | 17 | B | Na zašuměných vstupech je osa na jednotky milimetrů, bod u limiteru na desítky, proud 4,65 kiloampéru. Pro řízení model ještě není: chybí řetězec od čidel a zkouška v uzavřené smyčce. | Dlaždice Shoda s rekonstrukcí (druhý řádek) a Zbývá. Zašuměné vstupy: osa 2,38 mm, bod u limiteru 25,8 a 38,9 mm, proud 4,65 kA (30 odložených výbojů, síť učená se šumem). |
+| 6:38 | 17 | B | Na zašuměných vstupech: chyba osy jednotky milimetrů, bodu u limiteru desítky, proudu 4,65 kiloampéru. Pro řízení model ještě není: chybí řetězec od čidel a zkouška v uzavřené smyčce. | Dlaždice Shoda s rekonstrukcí (druhý řádek) a Zbývá. Zašuměné vstupy: osa 2,38 mm, bod u limiteru 25,8 a 38,9 mm, proud 4,65 kA (30 odložených výbojů, síť učená se šumem). |
 | 6:55 | 5 | A+B | Na čistých vstupech desetiny milimetru shody s rekonstrukcí, setiny milisekundy výpočtu. Děkujeme. | Oba se dívají na porotu. Konec v 7:00. |
 
 ## Pravidla řeči
@@ -185,13 +185,13 @@ Nepoužívá se, pokud před vystoupením nezbývá mezera aspoň 20 sekund. V �
 
 ## Verze na 30 sekund
 
-Řízení tokamaku potřebuje znát polohu a tvar plazmatu v milisekundách, úplná rekonstrukce ale trvá minuty. Naučili jsme malou neuronovou síť, aby rekonstrukci ústavu napodobila ze 24 magnetických měření. Na 30 odložených výbojích se osa od rekonstrukce liší o 0,13 milimetru, jeden odhad trvá setiny milisekundy. Slabé je šum, bod u limiteru a jediný tokamak.
+Řízení tokamaku potřebuje znát polohu a tvar plazmatu v milisekundách, úplná rekonstrukce ale trvá minuty. Naučili jsme malou neuronovou síť, aby rekonstrukci ústavu napodobila ze 24 magnetických měření. Na 30 odložených výbojích se osa od rekonstrukce liší o 0,13 milimetru, jeden odhad trvá setiny milisekundy. Slabiny: šum, bod u limiteru, jediný tokamak.
 
 Slov: 54, s čísly počítanými dvakrát 57. Přibližně 30 sekund (odhad podle počtu slov, ne stopky).
 
 ## Verze na 60 sekund (výtah)
 
-Řízení tokamaku potřebuje polohu a tvar plazmatu v milisekundách, úplná rekonstrukce rovnováhy trvá minuty. Naučili jsme malou neuronovou síť napodobit rekonstrukci ústavu ze 24 magnetických měření. Na 30 výbojích odložených před posledním výběrem modelu se osa vybraného modelu od rekonstrukce liší o 0,13 milimetru, základní sítě o 0,31; náměty na úpravy ale vznikly na všech 149 výbojích. Jeden odhad základní sítě trvá 0,0145 milisekundy na procesoru Apple M5, vybraný model asi 0,03. Nejsme hotovi: bod u limiteru má průměrnou chybu 4,55 milimetru, na zašuměných vstupech je osa 2,38, neobvyklé tvary jsme samostatně neověřili a chybí řetězec od čidel k řízení. Data jsou jen z jednoho tokamaku.
+Řízení tokamaku potřebuje polohu a tvar plazmatu v milisekundách, úplná rekonstrukce rovnováhy trvá minuty. Naučili jsme malou neuronovou síť napodobit rekonstrukci ústavu ze 24 magnetických měření. Na 30 výbojích odložených před posledním výběrem modelu se osa vybraného modelu od rekonstrukce liší o 0,13 milimetru, základní sítě o 0,31. Náměty na úpravy ale vznikly na všech 149 výbojích. Jeden odhad základní sítě trvá 0,0145 milisekundy na procesoru Apple M5, vybraný model asi 0,03. Nejsme hotovi: bod u limiteru má průměrnou chybu 4,55 milimetru, na zašuměných vstupech je osa 2,38, neobvyklé tvary jsme samostatně neověřili a chybí řetězec od čidel k řízení. Data jsou jen z jednoho tokamaku.
 
 Slov: 106, s čísly počítanými dvakrát 116. Přibližně 60 sekund (odhad podle počtu slov, ne stopky).
 
@@ -202,27 +202,27 @@ Každá odpověď říká i mez a u čísla protokol. Poznámky k zdrojům a k t
 ### 1. Fyzik
 Otázka: Čemu říkáte pravda? Porovnáváte se skutečným plazmatem, nebo s výpočtem? Jak přesné je 0,13 milimetru? (F1)
 
-Odpovídá A: Porovnáváme se s rekonstrukcí rovnováhy, kterou nám dal ústav, ne se skutečným plazmatem. Podle toho, co víme, takhle správné odpovědi vznikly; program a jeho nastavení neznáme. Na třiceti odložených výbojích se vybraný model od ní liší v radiální poloze osy průměrně o 0,13 milimetru, interval přes výboje je 0,10 až 0,18. Jak přesná je sama rekonstrukce, jsme neměřili a nezávislé měření polohy plazmatu jsme nepoužili. Ověřit by to šlo zkalibrovanou kamerou nebo výpočtem, kde tvar předem známe.
+Odpovídá A: Porovnáváme se s rekonstrukcí rovnováhy, kterou nám dal ústav, ne se skutečným plazmatem. Podle toho, co víme, takto vznikly cílové hodnoty; program a nastavení neznáme. Na třiceti odložených výbojích se vybraný model od ní liší v radiální poloze osy průměrně o 0,13 milimetru, interval přes výboje je 0,10 až 0,18. Jak přesná je sama rekonstrukce, jsme neměřili a nezávislé měření polohy plazmatu jsme nepoužili. Ověřit by to šlo zkalibrovanou kamerou nebo výpočtem, kde tvar předem známe.
 
 ### 2. Fyzik
 Otázka: Co když plazma bude mít nový tvar, který v datech nebyl? A co když řízení uzavře smyčku? (F9)
 
-Odpovídá A: Nevíme. Když jsme při učení vynechali celou rodinu tvarů, byla chyba osy 1,0 až 3,0krát větší, obvykle 1,2 až 2,4krát, u základní sítě v pětinásobném dělení. Osmnáct nejodlišnějších výbojů jsme pak vynechali z učení samostatně: u základní sítě je chyba osy 0,9 až 2,3 milimetru, asi dvaapůlkrát víc než v náhodném dělení, a pěti nejnižším protažením dokonce 2,6 až 4,9 milimetru. Čtrnáct z těch osmnácti je ale z nejstarších čísel výbojů, takže se tu míchá tvar s časnou částí kampaně. O tvarech mimo rozsah dat to nic neříká. (`results/ipp1-unusual-heldout.md`) Na nejnovějších číslech výbojů, při učení na šedesáti nejnižších, je osa vybraného modelu 0,40 milimetru místo 0,22. V datech leží protažení a trojúhelníkovost na úzké křivce, tedy na jedné rodině tvarů, které stroj ve svých scénářích vytváří. Síť se naučila tuto rodinu a pro tvar mimo ni jí věřit nelze. V uzavřené smyčce řízení samo změní proudy v cívkách, a tím vstupy sítě; to jsme netestovali.
+Odpovídá A: Nevíme. Když jsme při učení vynechali celou rodinu tvarů, byla chyba osy 1,0 až 3,0krát větší, obvykle 1,2 až 2,4krát, základní síť, pět dělení po výbojích. Osmnáct nejodlišnějších výbojů jsme pak vynechali z učení samostatně: u základní sítě je chyba osy 0,9 až 2,3 milimetru, asi dvaapůlkrát víc než v náhodném dělení, a pěti nejnižším protažením dokonce 2,6 až 4,9 milimetru. Čtrnáct z těch osmnácti je ale z nejstarších čísel výbojů, takže se tu míchá tvar s časnou částí kampaně. O tvarech mimo rozsah dat to nic neříká. (`results/ipp1-unusual-heldout.md`) Na nejnovějších číslech výbojů, při učení na šedesáti nejnižších, je osa vybraného modelu 0,40 milimetru místo 0,22. V datech leží protažení a trojúhelníkovost na úzké křivce, tedy na jedné rodině tvarů, které stroj ve svých scénářích vytváří. Síť se naučila tuto rodinu a pro tvar mimo ni jí věřit nelze. V uzavřené smyčce řízení samo změní proudy v cívkách, a tím vstupy sítě; to jsme netestovali.
 
 ### 3. Fyzik
 Otázka: Síť se na šumu zhroutí. Dá se to vůbec použít se skutečnými čidly? Je váš šum a posun realistický? (F7)
 
-Odpovídá A: Síť naučená na čistých datech na šum nestačí: chyba osy vyskočí z 0,38 na 10,15 milimetru, u základní sítě v pěti dělení po výbojích. Při učení na zašuměných datech je to 2,64 milimetru, ale na čistých datech pak 2,22. Vybraný model naučený na čistých datech na šumu selže úplně, proto bychom pro zašuměné vstupy použili síť učenou se šumem: na odložených výbojích má osu 2,38 milimetru. Šum v souboru od organizátorů je bílý a posun v něm není. Jeho směrodatná odchylka je asi 16 procent směrodatné odchylky signálu u cívek a 9 procent u smyček toku. Poměr se mezi čidly mění jen málo, což vypadá spíš na šum přidaný úměrně signálu než na změřený; to jen usuzujeme. Zda odpovídá skutečným čidlům, nevíme. Posun jsme vyrobili sami, lineární v relativním čase výboje, kdežto skutečný posun integrátoru roste s absolutním časem. Špatnou kalibraci a výpadek čidla jsme netestovali.
+Odpovídá A: Síť naučená na čistých datech na šum nestačí: chyba osy vyskočí z 0,38 na 10,15 milimetru, základní síť, pět dělení po výbojích. Při učení na zašuměných datech je to 2,64 milimetru, ale na čistých datech pak 2,22. Vybraný model naučený na čistých datech na šumu selže úplně, proto bychom pro zašuměné vstupy použili síť učenou se šumem: na odložených má chybu osy 2,38 milimetru. Šum v souboru od organizátorů je bílý a posun v něm není. Jeho směrodatná odchylka je asi 16 procent směrodatné odchylky signálu u cívek a 9 procent u smyček toku. Poměr se mezi čidly mění jen málo, což vypadá spíš na šum přidaný úměrně signálu než na změřený; to jen usuzujeme. Zda odpovídá skutečným čidlům, nevíme. Posun jsme vyrobili sami, lineární v relativním čase výboje, kdežto skutečný posun integrátoru roste s absolutním časem. Špatnou kalibraci a výpadek čidla jsme netestovali.
 
 ### 4. Odborník na strojové učení
 Otázka: Proč u proudu plazmatem vychází lineární model lépe než vaše síť? (F3)
 
-Odpovídá A: Je to tak a vybraný model to využívá. Podle Ampérova zákona je součet částečných Rogowského cívek po celém obvodu úměrný proudu uvnitř, takže stačí lineární model. Na odložených výbojích má chybu 0,035 kiloampéru, základní síť 1,2; to je 0,03 procenta rozptylu proudu, který je 114 kiloampérů. Takto přesná shoda spíš znamená, že proud v datech je odvozen z týchž signálů, než že je změřen nezávisle; to jsme ale neověřili. Není to úspěch sítě a nepočítáme to do tvrzení, že je vybraný model lepší. Na zašuměných vstupech je chyba proudu 4,0 až 4,7 kiloampéru podle modelu, obě učené se šumem.
+Odpovídá A: Je to tak a vybraný model to využívá. Podle Ampérova zákona je součet částečných Rogowského cívek po celém obvodu úměrný proudu uvnitř, takže stačí lineární model. Na odložených výbojích má chybu 0,035 kiloampéru, základní síť 1,2; to je 0,03 procenta rozptylu proudu, který je 114 kiloampérů. Takto přesná shoda spíš znamená, že proud v datech je odvozen z týchž signálů, než že je změřen nezávisle; to jsme ale neověřili. Není to úspěch sítě a nepočítáme to do tvrzení, že je vybraný model lepší. Na zašuměných vstupech je chyba proudu 4,0 až 4,7 kiloampéru podle modelu, oba učené se šumem.
 
 ### 5. Odborník na strojové učení
 Otázka: Je validace poctivá? Jen 149 výbojů, jedno náhodné nastavení, žádný interval spolehlivosti.
 
-Odpovídá A: Dělíme po celých výbojích. Základní síť ověřujeme pětkrát jinak, u osy je střední chyba 0,38 milimetru. Vybraný model jsme navrhovali na křížové validaci přes všech 149 výbojů, takže odložených 30 bylo při návrhu v testovacích částech; po odložení se nic neladilo, jen jsme vybrali jednu ze čtyř variant uvnitř 119 výbojů. Odložené výboje vycházejí lépe než vývojová křížová validace, 0,13 proti 0,23 milimetru, proto uvádíme obě čísla. Interval přes výboje pro odloženou osu je 0,10 až 0,18 milimetru. Pro hlavní srovnání jsme udělali pět semen: osa R vychází 0,133 milimetru se směrodatnou odchylkou 0,006 u vybraného modelu a 0,289 s odchylkou 0,011 u základní sítě; vybraný model je lepší v pěti z pěti u všech sedmi veličin.
+Odpovídá A: Dělíme po celých výbojích. Základní síť ověřujeme pětkrát jinak, průměrná chyba osy je 0,38 milimetru. Vybraný model jsme navrhovali na křížové validaci přes všech 149 výbojů, takže odložených 30 bylo při návrhu v testovacích částech; po odložení se nic neladilo, jen jsme vybrali jednu ze čtyř variant uvnitř 119 výbojů. Odložené výboje vycházejí lépe než vývojová křížová validace, 0,13 proti 0,23 milimetru, proto uvádíme obě čísla. Interval přes výboje pro odloženou osu je 0,10 až 0,18 milimetru. Pro hlavní srovnání jsme udělali pět semen: osa R vychází 0,133 milimetru se směrodatnou odchylkou 0,006 u vybraného modelu a 0,289 s odchylkou 0,011 u základní sítě; vybraný model je lepší v pěti z pěti u všech sedmi veličin.
 
 ### 6. Odborník na strojové učení
 Otázka: Proč jen jedna síť? Zkoušeli jste stromy nebo jiné architektury?
@@ -232,12 +232,12 @@ Odpovídá B: Zkoušeli jsme víc: širší a hlubší sítě, jinou ztrátovou 
 ### 7. Fyzik
 Otázka: Chyba 0,13 milimetru zní skvěle, ale hodnoty se skoro nehýbou. Co to znamená?
 
-Odpovídá A: Správně, ale jen u osy, bodu X a dotykových bodů: jejich směrodatná odchylka je od 2,4 do 13,7 milimetru, u radiální osy asi 8. U bodu limiteru je 90 a 153 milimetrů a u proudu plazmatem 114 kiloampérů. Proto uvádíme chyby v milimetrech i vztažené ke směrodatné odchylce: u osy je to 0,139 u základní sítě a 0,68 u lineárního modelu, v pěti dělení po výbojích.
+Odpovídá A: Správně, ale jen u osy, bodu X a dotykových bodů: jejich směrodatná odchylka je od 2,4 do 13,7 milimetru, u radiální osy asi 8. Pro bod u limiteru je to 90 a 153 milimetrů, pro proud 114 kiloampérů. Proto uvádíme chyby v milimetrech i vztažené ke směrodatné odchylce: u osy je to 0,139 u základní sítě a 0,68 u lineárního modelu, pět dělení po výbojích.
 
 ### 8. Podnikatel
 Otázka: Co to znamená v praxi? Dá se to nasadit do řízení? Co kromě času sítě musí řízení zvládnout? (F10)
 
-Odpovídá B: Zatím ne. Změřili jsme jen výpočet sítě, na jednom jádru procesoru Apple M5, na vytíženém notebooku: základní síť 0,0145 milisekundy, vybraný model 0,027 u limitovaného plazmatu a 0,015 u divertorového. Zadání chce jednotky až desítky milisekund, my počítáme s rozpočtem jedné až deseti a obojí je hluboko pod ním. Celý výboj trvá podle organizátorů 150 až 200 milisekund, ale čas v souboru je relativní a skutečný odstup řádků neznáme. Na systému bez reálného času se ojediněle objeví špičky, dřívější měření dalo 99 procent pod 0,65 milisekundy a největší 21. Neměřili jsme sběr a integraci signálů, zda signály za provozu vypadají jako data, uzavřenou smyčku, výpadek čidla ani nejhorší dobu na systému reálného času. Řízení polohy navíc potřebuje rychlost změny polohy, a tu jsme neměřili. Jsou to také dva modely, pro čisté a pro zašuměné vstupy, a přepínání mezi nimi jsme netestovali. Bez toho bych to do řízení nedal.
+Odpovídá B: Zatím ne. Změřili jsme jen výpočet sítě, na jednom jádru procesoru Apple M5, na vytíženém notebooku: základní síť 0,0145 milisekundy, vybraný model 0,027 u limitovaného plazmatu a 0,015 u divertorového. Zadání chce jednotky až desítky milisekund, náš rozpočet jedna až deset milisekund, obojí je hluboko pod ním. Celý výboj trvá podle organizátorů 150 až 200 milisekund, ale čas v souboru je relativní a skutečný odstup řádků neznáme. Na běžném systému se ojediněle objeví špičky: dřívější měření dalo 99 procent pod 0,65 milisekundy, největší 21 milisekund. Neměřili jsme sběr a integraci signálů, chování signálů za provozu, uzavřenou smyčku, výpadek čidla ani nejhorší dobu na systému reálného času. Řízení polohy navíc potřebuje rychlost změny polohy, a tu jsme neměřili. Jsou to také dva modely, pro čisté a pro zašuměné vstupy, a přepínání mezi nimi jsme netestovali. Bez toho bych to do řízení nedal.
 
 ### 9. Podnikatel
 Otázka: Komu to pomůže a co dál? Dá se to použít na COMPASS Upgrade?
@@ -247,7 +247,7 @@ Odpovídá B: Náš model je naučený jen na COMPASSu. Na jiném stroji se měn
 ### 10. Podnikatel
 Otázka: Proč věřit modelu, který neříká, jak si je jistý? Co když se plete?
 
-Odpovídá B: Síť sama vydá jen číslo. Zkusili jsme pět sítí s různým náhodným začátkem, základní síť v pěti dělení po výbojích: na deseti procentech řádků, kde se nejvíc rozcházejí, je chyba 8krát větší než na zbytku a ty řádky nesou 47 procent celé chyby. Je to použitelné varování, ne pravděpodobnost chyby, a netestovali jsme ho na neobvyklých tvarech ani na zašuměném vstupu. Slabá místa známe: bod u limiteru, začátek a konec výboje a šum. V prohlížeči jste viděli špatný výboj, rozdíl mezi čárami byl vidět. (Číslo říkej jen po ověření: odchylka osy 0,22 milimetru. Bez ověřeného čísla neříkej žádné.)
+Odpovídá B: Síť sama vydá jen číslo. Zkusili jsme pět sítí s různým náhodným začátkem, základní síť, pět dělení po výbojích: na deseti procentech řádků, kde se nejvíc rozcházejí, je chyba 8krát větší než na zbytku. Ty řádky nesou 47 procent celé chyby. Je to použitelné varování, ne pravděpodobnost chyby, a netestovali jsme ho na neobvyklých tvarech ani na zašuměném vstupu. Slabá místa známe: bod u limiteru, začátek a konec výboje a šum. V prohlížeči jste viděli špatný výboj, rozdíl mezi čárami byl vidět. (Číslo říkej jen po ověření: odchylka osy 0,22 milimetru. Bez ověřeného čísla neříkej žádné.)
 
 ## Příloha: dalších třináct otázek od Kritika 2
 
@@ -256,12 +256,12 @@ Kritik 2 sepsal třináct nových otázek; prvních deset je hlavní sada, N11 a
 ### N1. Fyzik
 Otázka: Vaše nejlepší číslo je pro signály bez šumu. Skutečné sondy šum mají. Jak přesní jste na nich?
 
-Odpovídá A: Na souboru se šumem od organizátorů dává model, který bychom použili, učený se šumem a posunem, na 30 odložených výbojích osu 2,38 milimetru, bod u limiteru 25,8 a 38,9 milimetru a proud 4,65 kiloampéru. Vybraný model naučený na čistých datech tam selže (osa 190 milimetrů). Zda šum v souboru odpovídá skutečným čidlům, nevíme: je bílý, jeho směrodatná odchylka je asi 16 procent směrodatné odchylky signálu u cívek. Podrobněji v otázce 3.
+Odpovídá A: Na šumu od organizátorů má model učený se šumem a posunem, který bychom použili, na 30 odložených výbojích chybu osy 2,38 milimetru, bodu u limiteru 25,8 a 38,9 milimetru a proudu 4,65 kiloampéru. Vybraný model naučený na čistých datech tam selže (osa 190 milimetrů). Zda šum v souboru odpovídá skutečným čidlům, nevíme: je bílý, jeho směrodatná odchylka je asi 16 procent směrodatné odchylky signálu u cívek. Podrobněji v otázce 3.
 
 ### N2. Odborník na strojové učení
 Otázka: Navrhovali jste model s pohledem na testovací výboje?
 
-Odpovídá A: Částečně. Třicet odložených výbojů jsme vylosovali po návrhu receptu, ale návrhové pokusy běžely na křížové validaci přes všech 149 výbojů, takže těch 30 bylo při návrhu v testovacích částech. Na odložených 30 se pak nic nepřeučovalo; jen poslední volba ze čtyř variant se udělala uvnitř 119 vývojových výbojů. Odložené výboje vycházejí lépe než vývojové, osa 0,133 proti 0,230 milimetru, proto uvádíme obě čísla.
+Odpovídá A: Částečně. Třicet odložených výbojů jsme vylosovali po návrhu receptu, ale návrhové pokusy běžely na křížové validaci přes všech 149 výbojů, takže těch 30 bylo při návrhu v testovacích částech. Na odložených 30 se pak nic neladilo; jen poslední volba ze čtyř variant se udělala uvnitř 119 vývojových výbojů. Odložené výboje vycházejí lépe než vývojové, osa 0,133 proti 0,230 milimetru, proto uvádíme obě čísla.
 
 ### N3. Odborník na strojové učení
 Otázka: Je odložená sada reprezentativní? Co je to opačný směr proudu? (F6)
@@ -276,12 +276,12 @@ Odpovídá A: Pět semen: vybraný model je lepší v pěti z pěti u všech sed
 ### N5. Fyzik
 Otázka: Jakou rychlost uvádíte, tu vybraného modelu?
 
-Odpovídá B: Číslo 0,0145 milisekundy patří základní síti. Vybraný model trvá 0,027 milisekundy u limitovaného plazmatu a 0,015 u divertorového, asi dvakrát víc než základní síť. Dřívější odhad 0,18 se při měření na stejném postupu nepotvrdil. Obojí je hluboko pod naším rozpočtem jedné až deseti milisekund; ani jedno nezahrnuje sběr dat.
+Odpovídá B: Číslo 0,0145 milisekundy patří základní síti. Vybraný model: 0,027 milisekundy u limitovaného plazmatu a 0,015 u divertorového, asi dvakrát víc než základní síť. Dřívější odhad 0,18 se při stejném měření nepotvrdil. Obojí je hluboko pod naším rozpočtem jedné až deseti milisekund; ani jedno nezahrnuje sběr dat.
 
 ### N6. Fyzik
 Otázka: Pro řízení rozhodují náhlé zániky a start výboje. Jak jste tam dobří? (F8)
 
-Odpovídá A: Nejhůř na koncích. V posledních 2 procentech výboje je u vybraného modelu na odložených výbojích radiální chyba osy 0,578 milimetru proti 0,114 uprostřed, svislá 1,33 proti 0,14. U základní sítě v pěti dělení má nejhorší jednotlivý řádek svislou chybu 284 milimetrů při směrodatné odchylce svislé osy 13,7. Příčinu neznáme: může to být síť, ale i rekonstrukce, která je při malém proudu a rychlých změnách nejhůř určená; to je jen hypotéza. Zda data obsahují zánik plazmatu, jsme nevyhodnotili. Výboje mají 17 až 439 řádků.
+Odpovídá A: Nejhůř na koncích. V posledních 2 procentech výboje je u vybraného modelu na odložených výbojích radiální chyba osy 0,578 milimetru proti 0,114 uprostřed, svislá 1,33 proti 0,14. U základní sítě, pět dělení po výbojích, má nejhorší řádek svislou chybu 284 milimetrů při směrodatné odchylce svislé osy 13,7. Příčinu neznáme: může to být síť, ale i rekonstrukce, která je při malém proudu a rychlých změnách nejhůř určená; to je jen hypotéza. Zda data obsahují zánik plazmatu, jsme nevyhodnotili. Výboje mají 17 až 439 řádků.
 
 ### N7. Odborník na strojové učení
 Otázka: Model, který musí vědět, zda jsou vstupy zašuměné, není model. Co dodáte?
@@ -296,17 +296,17 @@ Odpovídá A: Zkusili jsme tři po sobě jdoucí řádky: na zašuměných vstup
 ### N9. Fyzik
 Otázka: Přežije se výpadek cívky?
 
-Odpovídá A: Netestovali jsme. Jediný důkaz: samotných 16 cívek dává souhrnnou chybu 0,066 proti 0,063 se všemi 24 vstupy, samotných 8 smyček toku 0,285, vše u základní sítě v pěti dělení po výbojích. Pořadí vstupů není stabilní (shoda tří způsobů je od minus 0,14 do 0,40), proto žádné jedno čidlo nepojmenováváme; cívka IPR13 přežila vyřazování ve všech pěti dělení.
+Odpovídá A: Netestovali jsme. Jediný důkaz: samotných 16 cívek dává souhrnnou chybu 0,066 proti 0,063 se všemi 24 vstupy, samotných 8 smyček toku 0,285, vše základní síť, pět dělení po výbojích. Pořadí vstupů není stabilní (shoda tří způsobů je od minus 0,14 do 0,40), proto žádné čidlo nejmenujeme; cívka IPR13 přežila vyřazování v každém dělení.
 
 ### N10. Odborník na strojové učení
 Otázka: Kamerový model je špatný. Je kamera k ničemu?
 
-Odpovídá A: Je to malá síť na snímcích 48 na 64 bodů, 12 epoch, každý osmý snímek, 78 ze 149 výbojů. Je 1,3 až 13krát horší než cívky a při spojení s cívkami nic nepřidá (1,21 proti 0,24 milimetru na dvou dělení). To ukazuje, že tato síť obrazy dobře nevyužívá, ne že kamera nenese informaci.
+Odpovídá A: Je to malá síť na snímcích 48 na 64 bodů, 12 epoch, každý osmý snímek, 78 ze 149 výbojů. Je 1,3 až 13krát horší než cívky a při spojení s cívkami nic nepřidá (1,21 proti 0,24 milimetru, dvě dělení). To ukazuje, že tato síť obrazy dobře nevyužívá, ne že kamera nenese informaci.
 
 ### N11. Fyzik
 Otázka: Zadání mluví o 17 parametrech, vy uvádíte 16.
 
-Odpovídá B: Vybraný model odhaduje 16 hlavních sloupců z 31 v souboru. Ostatních patnáct jsou doplňkové veličiny pro obrys; ty odhaduje jen základní síť a čísla pro ně zatím nezveřejňujeme (oprava podle `docs/bonus-gaps.md`, stejně jako v `docs/REHEARSAL.md`).
+Odpovídá B: Vybraný model odhaduje 16 hlavních sloupců z 31 v souboru. Ostatních patnáct jsou doplňkové veličiny pro obrys; ty odhaduje jen základní síť a čísla pro ně zatím nezveřejňujeme (delete).
 
 ### N12. Odborník na strojové učení
 Otázka: A jak si model vede na nejnovějších výbojích?
@@ -316,7 +316,7 @@ Odpovídá A: Čísla výbojů zřejmě sledují čas, což jsme s organizátory
 ### N13. Podnikatel
 Otázka: Proč věřit shodě 99,3 procenta pro limitované a divertorové plazma?
 
-Odpovídá B: Základní síť má 0,993 v pěti dělení, vybraný model 0,9916 a základní síť 0,9892 na odložených výbojích. Chyby základní sítě v pěti dělení se dělí zhruba rovným dílem mezi obě konfigurace, 49 a 51 procent čtverce chyby. Příznak je tvrdé rozhodnutí na spojitém přechodu, takže chyby čekáme právě tam, ale na přechodu jsme je zvlášť nevyhodnotili. Chyby bodu X a dotykových bodů jsme počítali jen na řádcích, kde tyto body podle rekonstrukce jsou; v provozu by je řídil odhadnutý příznak a jeho chyby na přechodu jsme nezměřili.
+Odpovídá B: Základní síť má 0,993, pět dělení po výbojích; na odložených vybraný model 0,9916, základní síť 0,9892. Chyby základní sítě v pěti dělení se dělí zhruba rovným dílem mezi obě konfigurace, 49 a 51 procent čtverce chyby. Příznak je tvrdé rozhodnutí na spojitém přechodu, takže chyby čekáme právě tam, ale na přechodu jsme je zvlášť nevyhodnotili. Chyby bodu X a dotykových bodů jsme počítali jen na řádcích, kde tyto body podle rekonstrukce jsou; v provozu by je řídil odhadnutý příznak a jeho chyby na přechodu jsme nezměřili.
 
 ### N14. Porotce nebo organizátor: Kdo to dělal a jak jste používali nástroje s umělou inteligencí?
 
@@ -356,7 +356,7 @@ Odpovídá A: Bod u limiteru je místo na stěně, kde se plazma dotkne, ne spoj
 ### F5. Fyzik
 Otázka: Pro svislou stabilizaci potřebuji rychlost změny polohy. Jak dobrá je?
 
-Odpovídá B: Rychlost změny jsme neměřili. Máme jen krok chyby mezi sousedními řádky, ne kolísání z poznámky pod čarou. U základní sítě na čistých vstupech je ve svislé ose 1,46 milimetru, zatímco osa z rekonstrukce se mezi řádky posune o 2,53; v radiální ose je to 0,45 proti 2,5. Na zašuměných vstupech je krok chyby sítě naučené na čistých datech 8,4krát větší než pohyb osy v radiálním směru a 3,1krát ve svislém, po učení se šumem 1,7 a 1,4krát. Výstup tedy kolísá víc, než se plazma hýbe, a rychlost z něj brát nelze. Časový odstup řádků neznáme.
+Odpovídá B: Rychlost změny jsme neměřili. Máme jen krok chyby mezi sousedními řádky, ne kolísání z poznámky pod čarou. U základní sítě na čistých vstupech je ve svislé ose 1,46 milimetru, zatímco osa z rekonstrukce se mezi řádky posune o 2,53; v radiální ose je to 0,45 proti 2,5. Na zašuměných vstupech je krok chyby sítě naučené na čistých datech 8,4krát větší než pohyb osy v radiálním směru a 3,1krát ve svislém, po učení se šumem 1,7 a 1,4krát. Výstup tedy kolísá víc, než se plazma hýbe, rychlost z něj nezískáme. Časový odstup řádků neznáme.
 
 ## Lead notes (English, for the team, not spoken)
 

@@ -32,7 +32,7 @@ No text change. Only the notes.
 ## 3. Slide 4 (Metoda)
 
 3.1 Replace the bottom line "Ověření: 5 různých rozdělení výbojů; chyby vždy na výbojích, které model neviděl." with:
-"Základní síť: 5 různých rozdělení po výbojích. Vybraný model: navíc 30 výbojů odložených před posledním výběrem modelu."
+"Základní síť: 5 dělení po výbojích. Vybraný model: navíc 30 výbojů odložených před posledním výběrem modelu."
 
 3.2 Add one line under the three tiles (small print):
 "Vybraný model = základní síť + rozdíly sousedních cívek + lineární model pro proud + zvláštní síť pro bod u limiteru."
