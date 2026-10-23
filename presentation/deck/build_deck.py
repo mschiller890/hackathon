@@ -61,6 +61,15 @@ def load():
     # results/ipp1-unusual-shapes.md (REQ-B08): error factor range when a shape family is left out of training, and the
     # R axis MAE of the low elongation group (random fold against family held out).
     j["unusual"] = {"factor": (1.0, 3.0), "axis": (0.68, 1.63)}
+    # results/ipp1-final.md, locked test set (30 discharges), clean inputs, pooled MAE: (baseline MLP, shipped candidate).
+    # The candidate ships for clean inputs (docs/PLAN.md KQ-8); p99 and worst rows from the same tables.
+    j["final"] = {"R_mag_axis": (0.307, 0.133), "Z_mag_axis": (0.321, 0.172), "R_x_point": (0.161, 0.115),
+                  "R_strike_point_1": (0.212, 0.108), "R_limiter": (10.6, 4.55), "Z_limiter": (22.5, 8.35),
+                  "plasma_current": (1.2, 0.0347), "p99_limiter": (77.5, 92.2), "x_worst": (2.76, 10.1),
+                  "noisy_axis_aug": 2.38}
+    # results/cloud-camera-findings.md, 5 folds, grey camera CNN MAE against the magnetic baseline; nRMSE ratio range.
+    j["camera"] = {"R_mag_axis": (1.70, 0.377), "Z_mag_axis": (2.40, 0.391), "R_x_point": (1.50, 0.202),
+                   "R_strike_point_1": (2.25, 0.265), "ratio": (3, 13), "colour_grey": (1.79, 1.70), "current": 14.0}
     return j
 
 
@@ -247,7 +256,7 @@ def build():
     s = frame(prs, 1, "Problém", None, notes_text(sc[1], "Snímek 1a", end="0:24"), "04-wall-damage.png", 0.35)
     box(s, 0, 4.9, 13.333, 2.6, fill=NAVY, alpha=0.75)
     text(s, 0.6, 5.2, 12.1, 1.0, "Plazma se musí udržet dál od stěny", size=40, bold=True)
-    text(s, 0.6, 6.05, 12.1, 0.5, "Celý výboj trvá jen 150 až 200 milisekund.", size=20, color=MUTED)
+    text(s, 0.6, 6.05, 12.1, 0.5, "Celý výboj trvá podle organizátorů jen 150 až 200 milisekund.", size=20, color=MUTED)
     caption(s, 9.2, 6.6, 3.5, "Ilustrace, ne fotografie.")
 
     # 1 Problem, screen b (0:24 to 0:50): minutes against milliseconds, then the question
@@ -287,6 +296,26 @@ def build():
                                     (f"{b['folds']} různých rozdělení výbojů; chyby vždy na výbojích, které model "
                                      "neviděl.", 16, TEXT, False)]])
 
+    # 3b Camera (bonus, KQ-6): not in the timed script yet, so its notes say so
+    cm = j["camera"]
+    s = frame(prs, 3, "Bonus: kamera", f"Kamera je {cm['ratio'][0]} až {cm['ratio'][1]}krát horší než cívky",
+              "Snímek 3b, kamera: v časovaném scénáři zatím nemá řádky; čas a text určí vedoucí (docs/PLAN.md).\n"
+              "Zdroj: results/cloud-camera-findings.md, 5 dělení po výbojích, srovnání s magnetickou sítí je orientační.")
+    keys = [("R_mag_axis", "osa R"), ("Z_mag_axis", "osa Z"), ("R_x_point", "bod X R"), ("R_strike_point_1", "dotyk 1 R")]
+    cv_, mv_ = [cm[k][0] for k, _ in keys], [cm[k][1] for k, _ in keys]
+    text(s, 0.6, 2.05, 8.0, 0.4, "Průměrná chyba v mm, 5 dělení po výbojích", size=14, color=MUTED)
+    c = chart(s, 0.5, 2.35, 8.3, 4.3, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
+              [("kamera, šedá", cv_), ("magnetická síť", mv_)], [BLUE, ORANGE])
+    style_chart(c)
+    c.plots[0].gap_width, c.plots[0].overlap = 60, -10
+    label_points(c.plots[0].series[0], cv_, 2, BLUE, 11)
+    label_points(c.plots[0].series[1], mv_, 2, ORANGE, 11)
+    c.value_axis.visible = False
+    tile(s, 9.1, 2.35, 3.6, 1.35, f"{cz(cm['current'], 0)} kA", "chyba proudu plazmatem: kamera ho neurčí", MUTED, 32)
+    tile(s, 9.1, 3.85, 3.6, 1.35, f"{cz(cm['colour_grey'][0], 2)} mm",
+         f"osa R barevně, šedá {cz(cm['colour_grey'][1], 2)} mm: barva nepomáhá", BLUE, 32)
+    caption(s, 9.1, 5.4, 3.6, "Srovnání je jen orientační: kamera má snímky jen ze 78 výbojů.")
+
     # 4 Results, screen a (1:45 to 1:54): what we estimate
     s = frame(prs, 4, "Výsledky", "Co odhadujeme", notes_text(sc[4], "Snímek 4a", end="1:54"))
     picture(s, "05-shape-schematic.png", 2.3, 1.9, 8.7)
@@ -295,28 +324,30 @@ def build():
         text(s, x, y, 2.0, 0.9, words, size=16, color=TEXT, bold=True)
     caption(s, 2.3, 6.8 - 0.05, 8.7, "Schéma tvaru, ne skutečný výboj.")
 
-    # 4 Results, screen b (1:54 to 2:14): errors against the linear model
-    s = frame(prs, 4, "Výsledky", "Osa, bod X i dotykové body s chybou pod půl milimetru",
+    # 4 Results, screen b (1:54 to 2:14): the shipped model on the locked test set, baseline as comparison (KQ-8)
+    fn = j["final"]
+    s = frame(prs, 4, "Výsledky", f"Na 30 zamčených výbojích: osa {cz(fn['R_mag_axis'][1], 2)} mm",
               notes_text(sc[4], "Snímek 4b", start="1:54", end="2:14"))
-    tile(s, 0.6, 2.2, 3.6, 1.45, f"{cz(mlp['R_mag_axis']['mae'], 2)} mm", "průměrná chyba polohy osy", BLUE, 34)
-    tile(s, 0.6, 3.8, 3.6, 1.45, f"{cz(mlp['R_x_point']['mae'], 2)} mm", "průměrná chyba bodu X", BLUE, 34)
-    tile(s, 0.6, 5.4, 3.6, 1.45, f"{cz(mlp['is_limited']['accuracy'] * 100, 1)} %",
-         "správně určeno, zda plazma leží na limiteru", ORANGE, 34)
-    keys = [("R_mag_axis", "osa R"), ("Z_mag_axis", "osa Z"), ("R_x_point", "bod X R"), ("Z_x_point", "bod X Z"),
-            ("R_strike_point_1", "dotyk 1 R"), ("Z_strike_point_1", "dotyk 1 Z")]
-    rv, mv = [ridge[k]["mae"] for k, _ in keys], [mlp[k]["mae"] for k, _ in keys]
-    text(s, 4.6, 2.15, 8.1, 0.4, "Průměrná chyba v mm na náhodně vybraných výbojích, které model neviděl", size=14,
+    tile(s, 0.6, 2.2, 3.6, 1.45, f"{cz(fn['R_mag_axis'][1], 2)} mm", "průměrná chyba polohy osy", BLUE, 34)
+    tile(s, 0.6, 3.8, 3.6, 1.45, f"{cz(fn['R_limiter'][1], 2)} mm",
+         f"bod u limiteru radiálně, dříve {cz(fn['R_limiter'][0], 1)} mm", ORANGE, 34)
+    tile(s, 0.6, 5.4, 3.6, 1.45, f"{cz(fn['plasma_current'][1], 3)} kA",
+         f"proud plazmatem lineárním modelem, dříve {cz(fn['plasma_current'][0], 1)} kA", BLUE, 34)
+    keys = [("R_mag_axis", "osa R"), ("Z_mag_axis", "osa Z"), ("R_x_point", "bod X R"), ("R_strike_point_1", "dotyk 1 R")]
+    bv, nv = [fn[k][0] for k, _ in keys], [fn[k][1] for k, _ in keys]
+    text(s, 4.6, 2.15, 8.1, 0.4, "Průměrná chyba v mm na 30 výbojích, které při vývoji nikdo neviděl", size=14,
          color=MUTED)
-    c = chart(s, 4.5, 2.45, 8.3, 4.25, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
-              [("lineární model", rv), ("neuronová síť", mv)], [MUTED, ORANGE])
+    c = chart(s, 4.5, 2.45, 8.3, 3.85, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
+              [("základní síť", bv), ("nasazený model", nv)], [MUTED, ORANGE])
     style_chart(c)
     c.plots[0].gap_width, c.plots[0].overlap = 60, -10
-    label_points(c.plots[0].series[0], rv, 1, MUTED, 11)
-    label_points(c.plots[0].series[1], mv, 2, ORANGE, 11)
+    label_points(c.plots[0].series[0], bv, 3, MUTED, 11)
+    label_points(c.plots[0].series[1], nv, 3, ORANGE, 11)
     c.value_axis.visible = False
-    tl = j["tails"]
-    caption(s, 4.6, 6.75, 8.1, f"Osa R: medián {cz(tl['median'], 2)} mm, 99 % řádků pod {cz(tl['p99'], 1)} mm; limitované "
-            f"plazma {cz(tl['limited'] / tl['diverted'], 1)}krát horší ({cz(tl['limited'], 2)} proti {cz(tl['diverted'], 2)} mm).")
+    text(s, 4.6, 6.3, 8.1, 0.65, [
+        [(f"Několik jednotlivých řádků je horších: nejhorší řádek bodu X {cz(fn['x_worst'][1], 1)} mm proti "
+          f"{cz(fn['x_worst'][0], 2)} mm. Na zašuměných vstupech nasazujeme síť učenou se šumem "
+          f"(osa R {cz(fn['noisy_axis_aug'], 2)} mm).", 12, MUTED, False)]])
 
     # 4 Results, screen c (2:14 to 2:30): how many inputs are needed (pitch script, Lead note 1b)
     runs = inp["runs"]
@@ -373,15 +404,19 @@ def build():
         [("Neověřeno: ", 18, ORANGE, True),
          ("sběr signálů z cívek, nejhorší doba na systému reálného času a přesnost na skutečně zašuměných "
           "signálech.", 18, TEXT, False)],
-        [(f"Procesor {lat['cpu']}; na systému bez reálného času se ojediněle objeví špičky.", 14, MUTED, False)]])
+        [(f"Procesor {lat['cpu']}; na systému bez reálného času se ojediněle objeví špičky. Nasazený model se třemi "
+          "částmi je pomalejší, asi 0,18 ms (podobný recept, zatížený počítač).", 14, MUTED, False)]])
 
     # 6 Limits
     s = frame(prs, 6, "Meze", "Nejslabší je bod u limiteru a konec výboje", notes_text(sc[6], "Snímek 6"))
-    tile(s, 0.6, 2.2, 3.6, 2.0, f"{cz(mlp['R_limiter']['mae'], 1)} mm", "chyba bodu u limiteru, radiálně", ORANGE, 40)
-    tile(s, 0.6, 4.4, 3.6, 2.0, f"{cz(mlp['Z_limiter']['mae'], 1)} mm", "chyba bodu u limiteru, svisle", ORANGE, 40)
+    tile(s, 0.6, 2.2, 3.6, 2.0, f"{cz(fn['R_limiter'][1], 2)} mm",
+         f"bod u limiteru radiálně, 99 % řádků pod {cz(fn['p99_limiter'][0], 1)} mm", ORANGE, 40)
+    tile(s, 0.6, 4.4, 3.6, 2.0, f"{cz(fn['Z_limiter'][1], 2)} mm",
+         f"bod u limiteru svisle, 99 % řádků pod {cz(fn['p99_limiter'][1], 1)} mm", ORANGE, 40)
     dec = tm["mae_by_time_decile"]["R_mag_axis"]
     cats = [f"{i * 10 + 5} %" for i in range(10)]  # middle of each tenth of the discharge
-    text(s, 4.6, 2.15, 8.1, 0.4, "Chyba polohy osy (mm) podle času výboje", size=14, color=MUTED)
+    text(s, 4.6, 2.15, 8.1, 0.4, "Chyba polohy osy (mm) podle času výboje, základní síť, 5 dělení", size=14,
+         color=MUTED)
     c = chart(s, 4.5, 2.45, 8.3, 3.55, XL_CHART_TYPE.COLUMN_CLUSTERED, cats, [("osa R", dec)], [BLUE])
     style_chart(c, legend=False)
     c.plots[0].gap_width = 40
@@ -427,7 +462,9 @@ def build():
          ("Tvary mimo rozsah dat neověřeny, jen jeden tokamak, řízení model sám nenahradí.", 15, MUTED, False)]])
 
     # 8 Close: one number
-    s = frame(prs, 8, "Závěr", None, notes_text(sc[8], "Snímek 8"), "07-closing.png", 0.45)
+    s = frame(prs, 8, "Závěr", None, notes_text(sc[8], "Snímek 8") + f"\nK číslu (KQ-7): celý odhad od vstupu po výstup "
+              f"medián {cz(e2e['median_ms'], 3)} ms, 99 % pod {cz(e2e['p99_ms'], 2)} ms, procesor {lat['cpu']}.",
+              "07-closing.png", 0.45)
     text(s, 0.6, 2.0, 6.8, 0.5, "Jeden odhad tvaru plazmatu", size=22, color=MUTED)
     text(s, 0.6, 2.5, 6.8, 1.6, f"{cz(one['median_ms'], 4)} ms", size=88, color=ORANGE, bold=True)
     text(s, 0.6, 4.2, 6.8, 1.0, "Klasický výpočet trvá minuty. Zadání chce jednotky až desítky milisekund.",
