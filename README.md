@@ -44,7 +44,7 @@ Setup (Python 3.12 with [`uv`](https://docs.astral.sh/uv/)):
 
 ```bash
 uv venv ~/.venvs/hackathon --python 3.12
-uv pip install --python ~/.venvs/hackathon/bin/python pandas pyarrow openpyxl matplotlib scikit-learn scipy torch charset-normalizer nbconvert ipykernel
+uv pip install --python ~/.venvs/hackathon/bin/python -r requirements.txt
 ~/.venvs/hackathon/bin/python -m ipykernel install --user --name hackathon   # notebooks 01 to 05 and 09 ask for this kernel
 ```
 
