@@ -247,7 +247,7 @@ walk-through in `notebooks/10_synthetic_validation.ipynb`.
 - With white noise of the size of the organizers' noisy file (15 % of the spread on the coils, 9 % on the flux loops)
   the same quantities degrade to {m(hi, cn, 'R_mag_axis')} mm, {m(hi, cn, 'Z_mag_axis')} mm, {m(hi, cn, 'elongation')},
   {m(hi, cn, 'triangularity')}, {m(hi, cn, 'R_x_point')} mm and {m(hi, cn, 'Z_x_point')} mm when the network was trained on clean
-  signals, so noise at that size, not the network, is what limits the result.
+  signals: noise at that size is the dominant error source, several times the clean error.
 - **It says nothing about the real COMPASS reference labels**, about how close the reference reconstruction is to the real
   plasma, or about real probe calibration. The errors here are against an analytic truth; the 0.13 mm and 0.38 mm in
   `ipp1-final.md` and `ipp1-baseline.md` are agreements with the institute's reconstruction. The two sets of numbers are
@@ -314,6 +314,9 @@ Spread of the truth over the {meta['rows']} rows:
   parameters drift smoothly.
 - **A narrow family.** About seven free parameters (R0p, a, kappa, delta, A, vertical shift, Ip) plus the configuration, so
   24 signals overdetermine it. Real profiles are far richer. This makes the test optimistic about recovering shape from probes.
+- **No consistent vacuum exterior (tried, dropped).** An attempt to replace the continuation by the field of the plasma current
+  (current filaments from the Solov'ev interior) plus fitted external coil filaments was ill-posed: the fit to the boundary flux left
+  0.25 % residual, needed coil currents of order 1e8 A and gave flux-loop values that were not credible. It is not used anywhere.
 - **No limiter physics and no upper X point or double null.** `limited` is only the symmetric no-X-point family.
 - **No second solver.** The finite-difference fixed-boundary Grad-Shafranov solve named as a second choice was not built;
   the analytic family was enough for the closed test and the time was spent on checking it.
@@ -355,13 +358,15 @@ Fold-to-fold spread of the R axis MAE for clean to clean (seed 0, mm): {folds}.
 - Supported: on simulated static equilibria of this family, with exact invented probes, a 107 k-parameter network trained on
   whole discharges recovers the axis, elongation, triangularity and X point of a discharge it has not seen to a small fraction of the spread of the truth
   (nRMSE {m(hi, cc, 'R_mag_axis', 'nrmse')} for R axis, {m(hi, cc, 'Z_mag_axis', 'nrmse')} for Z axis, {m(hi, cc, 'R_x_point', 'nrmse')} for the X point R,
-  clean signals), and ridge regression does clearly worse on every position-like target (position and shape are not linear in the
+  clean signals). On clean signals ridge regression is clearly worse on every position-like target (they are not linear in the
   probe signals), while the current is nearly linear in the signals (ridge nRMSE {_g(hi[cc]['ridge']['plasma_current']['nrmse'])},
   network {m(hi, cc, 'plasma_current', 'nrmse')}).
-- Supported: noise at the size of the organizers' noisy file moves the axis error from sub-millimetre to several millimetres,
-  and training on one fixed noise draw recovers only part of it ({m(lo, nn_, 'R_mag_axis')} mm at {e_lo} epochs, {m(hi, nn_, 'R_mag_axis')} mm at {e_hi}
-  epochs: long training memorises the one noise draw). This is a statement about this synthetic noise and this
-  family.
+- Supported: noise at the size of the organizers' noisy file moves the axis error from about a millimetre to several millimetres.
+  Training on one fixed noisy copy did not reduce it on the radial axis ({m(lo, cn, 'R_mag_axis')} mm trained clean against
+  {m(lo, nn_, 'R_mag_axis')} mm trained noisy at {e_lo} epochs, {m(hi, cn, 'R_mag_axis')} against {m(hi, nn_, 'R_mag_axis')} mm at {e_hi}),
+  and under noise ridge is as good as the network on the radial axis ({_g(hi[nn_]['ridge']['R_mag_axis']['mae'])} mm). That the long run
+  overfits the one noise draw is a plausible reading, not tested. All of this is about this synthetic noise and this family; the
+  main work found a gain from noise training on the real noisy file, and this test neither confirms nor contradicts that.
 - Not supported: any statement about COMPASS, about how close the reference reconstruction is to the real plasma, about calibration, drift
   or disruptions, or that the real-data errors would be larger or smaller than these. The honest sentence for the talk is: "On a plasma we
   simulated ourselves, so that the truth is known, the same network recovers the axis to about a millimetre from clean probe signals.
