@@ -32,6 +32,13 @@ These override everything else. Violating one is a defect, not a style preferenc
   Written code is not a finished task.
 - **Never overbuild.** No abstractions for hypothetical futures, no dependencies without
   justification, no diagrams/docs/tests added just to look thorough.
+- **Never inflate volume to demonstrate effort.** Write the *simplest* implementation that
+  satisfies the requirements while preserving correctness, clarity, and maintainability.
+  Every comment, abstraction, test, diagram, and documentation file must serve a specific
+  purpose. Explain non-obvious reasoning, invariants, constraints, and trade-offs — do
+  **not** narrate straightforward code. Reserve complexity analysis and formal correctness
+  arguments for technically significant algorithms, not trivial operations (§5, §8). Do
+  not increase code or documentation volume merely to look rigorous.
 - **Never accumulate a large body of unpushed work.** Push at each stable checkpoint
   (§14.3), not as one mega-push at the end.
 
