@@ -3,14 +3,15 @@
 at a time through the fast pass, then runs all unseen discharges through it at full speed (batches on 6 cores, kept in L3).
 
 The fast pass uses the trained weights with the input standardisation folded
-into the first layer and the output scaling into the last one (exact algebra), preallocated buffers and in-place SiLU; it is
+into the first layer and the output scaling into the last one (exact algebra), preallocated buffers and in-place ReLU; it is
 checked against the network itself on every unseen time step before it is used.
 
 The training loop is ipp1_common.fit_mlp (same network, AdamW, one-cycle schedule, masked loss, 60 epochs), copied here only so
-it can print progress after every epoch. LOCAL ONLY: prints IPP data rows to the terminal; never record, share or commit its
+it can print progress after every epoch, with one change: ReLU instead of SiLU between the layers. On fold 0 this gave axis R
+0.457 mm against 0.387 mm with SiLU (one run each, Fri 23 Oct); the throughput in results/ipp1-throughput-ryzen.md is SiLU. LOCAL ONLY: prints IPP data rows to the terminal; never record, share or commit its
 output (CON-001). Aggregate throughput numbers for the report come from analysis/ipp1_throughput.py.
 
-    HACKATHON_HOME=<hackathon folder> taskset -c 0,2,4,6,8,10 python analysis/ipp1_live_train_fast.py
+    HACKATHON_HOME=<hackathon folder> analysis/ipp1_live_train_fast.sh
 """
 import time
 
@@ -23,7 +24,7 @@ torch.set_num_threads(2)
 B, D, G, R, Y0, X0 = "\033[1m", "\033[2m", "\033[32m", "\033[31m", "\033[33m", "\033[0m"
 EPOCHS = 60
 
-print(f"{B}Tvar plazmatu z magnetických měření: síť se učí živě{X0}\n")
+print(f"{B}Tvar plazmatu z magnetických měření: síť se učí živě (aktivace ReLU){X0}\n")
 df, X, Y, groups, mask = C.load()
 tr, te = C.group_folds(X, Y, groups)[0]
 print(f"Učení: {len(np.unique(groups[tr]))} výbojů ({len(tr):,} okamžiků). Kontrola: {len(np.unique(groups[te]))} výbojů, "
@@ -38,6 +39,9 @@ xt = torch.tensor((xtr - mu) / sd)
 yt = torch.tensor(np.nan_to_num((ytr - ym) / ys))
 mt = torch.tensor(mtr.astype(np.float32))
 net = C.Net(xt.shape[1], yt.shape[1])
+for k, m in enumerate(net.f):  # ReLU instead of the project's SiLU; SiLU has no weights, so the initial weights are unchanged
+    if isinstance(m, torch.nn.SiLU):
+        net.f[k] = torch.nn.ReLU()
 opt = torch.optim.AdamW(net.parameters(), lr=2e-3, weight_decay=1e-4)
 steps = EPOCHS * ((len(xt) + 511) // 512)
 sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=3e-3, total_steps=steps)
@@ -88,7 +92,7 @@ FB = [b.float().contiguous() for b in bs]
 
 
 def make_forward(n):
-    """Fast pass for batches of up to n rows: addmm into preallocated buffers, SiLU in place."""
+    """Fast pass for batches of up to n rows: addmm into preallocated buffers, ReLU in place."""
     bufs = [torch.empty(n, w.shape[1]) for w in FW]
 
     def fwd(x):
@@ -97,7 +101,7 @@ def make_forward(n):
             out = bufs[i][:m]
             torch.addmm(b, h, w, out=out)
             if i < 3:
-                torch.nn.functional.silu(out, inplace=True)
+                torch.relu_(out)
             h = out
         return h
     return fwd
