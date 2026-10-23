@@ -28,7 +28,7 @@ One seed per arm (the spread comes only from a second seed of A); the network se
 
 ## Results
 
-Status: magnetic MLP finished, arm A finished, arm B (with C and D) finished, second seed of A NOT RUN or not finished.
+Status: magnetic MLP finished, arm A finished, arm B (with C and D) finished, second seed of A finished.
 
 MAE in mm (plasma current in kA, shape numbers dimensionless) and nRMSE (RMSE / SD of the target), mean over the 5 folds, test frames = every 8th frame of the held-out discharges. Old small network = grey, 48x64, width 16, 12 epochs (`results/cloud-camera-main.md`, seed 0).
 
@@ -80,13 +80,49 @@ Ratio = MAE with the moved test frame / MAE with the unmoved test frame, mean ov
 | elongation | - | 0.0126 | 0.0291 | (48, 48) | 0.00275 | 3 of 48 |
 | R_strike_point_1 | mm | 1.86 | 2.77 | (48, 80) | 0.252 | 2 of 48 |
 
+## Second seed of arm A (seed spread)
+
+| target | unit | MAE seed 0 | MAE seed 1 | difference | relative |
+|---|---|---:|---:|---:|---:|
+| plasma_current | kA | 20.4 | 14 | -6.36 | -31 % |
+| R_mag_axis | mm | 2.28 | 1.57 | -0.709 | -31 % |
+| Z_mag_axis | mm | 3.33 | 2.15 | -1.18 | -35 % |
+| elongation | - | 0.0278 | 0.0137 | -0.0142 | -51 % |
+| triangularity | - | 0.0138 | 0.00749 | -0.00626 | -46 % |
+| triangularity_upper | - | 0.0128 | 0.00779 | -0.00499 | -39 % |
+| triangularity_lower | - | 0.0209 | 0.0115 | -0.00942 | -45 % |
+| R_x_point | mm | 2.19 | 1.4 | -0.797 | -36 % |
+| Z_x_point | mm | 3.11 | 1.77 | -1.35 | -43 % |
+| R_strike_point_1 | mm | 3.24 | 1.84 | -1.41 | -43 % |
+| Z_strike_point_1 | mm | 1.3 | 0.676 | -0.625 | -48 % |
+| R_strike_point_2 | mm | 3.12 | 1.92 | -1.2 | -38 % |
+| Z_strike_point_2 | mm | 0.628 | 0.385 | -0.242 | -39 % |
+| R_limiter | mm | 18 | 11.6 | -6.39 | -35 % |
+| Z_limiter | mm | 42 | 25.5 | -16.5 | -39 % |
+
+`is_limited` agreement of A: seed 0 0.962, seed 1 0.980.
+
+Shift and rotation test of A, seed 1 (ratio of the MAE on the moved test frames to the unmoved MAE, mean over the six moves, worst single move in brackets):
+
+| target | A seed 1: unmoved MAE | ratio |
+|---|---:|---:|
+| plasma_current | 14 | 1.80 (2.34) |
+| R_mag_axis | 1.57 | 1.74 (2.32) |
+| Z_mag_axis | 2.15 | 1.66 (2.02) |
+| elongation | 0.0137 | 2.15 (3.28) |
+| R_x_point | 1.4 | 2.52 (3.65) |
+| R_strike_point_1 | 1.84 | 2.18 (2.80) |
+| R_limiter | 11.6 | 1.52 (2.00) |
+| Z_limiter | 25.5 | 1.69 (2.30) |
+
+
 
 ## Reading
 
-**Wording: "this 96x128 camera network"; the labels are the institute's reference reconstruction.**
+**Wording: "this 96x128 camera network"; the labels are the institute's reference reconstruction.** **Correction (second seed in, 00:07):** the first reading of arms A and B, written from one seed each, said that augmentation made the network better and size alone did not. The second seed of arm A shows that this was seed noise, so that sentence is withdrawn.
 
-1. **Size alone did not help.** Arm A (width 32, 96x128, 20 epochs, no augmentation) is worse than the old small network on every target (R_mag_axis 2.28 mm against 1.7 mm, R_strike_point_1 3.24 mm against 2.25 mm, nRMSE of R_mag_axis 0.554 against 0.447). One seed only, and this run differs from the old one in several ways at once (resolution, width, epochs, training on every 4th frame, and the Apple GPU), so it does not say which of them hurts.
-2. **With random shifts of up to 2 px and rotations of up to 2 degrees in training (arm B) the same network is better than the old small one** on most targets: R_mag_axis 1.59 mm (old 1.7), Z_mag_axis 1.99 mm (old 2.4), R_x_point 1.36 mm (old 1.5), R_strike_point_1 1.86 mm (old 2.25), elongation 0.0126 (old 0.0162), `is_limited` agreement 0.980 (old 0.975). Arm B is better than the old small network on all 15 targets (MAE ratio 0.74 to 0.94) and arm A is worse on all 15 (ratio 1.34 to 1.72). Against the magnetic MLP on the same frames and folds, B has a 2.1 to 8.1 times larger MAE on the 13 targets other than the limiter point (R_mag_axis 1.59 against 0.407 mm, 3.9 times; R_strike_point_1 1.86 against 0.250 mm, 7.4 times) and about the same MAE at the limiter point (R_limiter 11.6 against 12.7 mm, Z_limiter 25 against 24.3 mm): the 24 magnetic signals give the shape more directly than this camera network extracts it, except at the wall contact that the picture shows.
-3. **Robustness (C).** The B network's error does not move when the test frame is shifted by 1 pixel or rotated by 1 degree (ratio 0.99 to 1.01, worst single move 1.02), while arm A's error grows by a factor 1.2 to 1.7 (R_x_point 1.68, R_mag_axis 1.33). Caveat: the moves are INSIDE the range of the training augmentation of B (up to 2 px and 2 degrees), so this shows that the augmentation does what it is meant to do, not that this 96x128 camera network would survive a larger or a different camera movement.
-4. **Where the network looks (D, REQ-B07).** Hiding a 16x16 px patch raises the error mainly in the middle of the frame (patch rows about 32 to 64 px, columns about 32 to 96 px) for all four targets, and not at the edges or corners (median rise over the grid is 9 to 16 % of the largest rise). The largest rises: R_mag_axis +1.26 mm and Z_mag_axis +1.09 mm at the centre (patch at row 48, column 64 and 48), elongation +0.029 at (48, 48), R_strike_point_1 +2.77 mm at (48, 80), which is one of only 2 of 48 patches above half of the maximum, a narrower region than for the axis (8 and 9 patches). A rise means that the network depends on the information in that region (or that the grey patch itself disturbs it, which this test cannot separate); it is not a proof of which physical structure is used.
-5. **Limits.** One seed per arm (a second seed of arm A is reported below if it finished); the network settings were fixed by the Lead and not tuned; 78 discharges, the frames of one discharge are near copies; no locked test set; not a statement about what a real camera can do.
+1. **The seed spread of the same network is larger than the differences between the arms.** Arm A (no augmentation) changes by 31 to 51 % on every target between seed 0 and seed 1 (R_mag_axis 2.28 and 1.57 mm, R_strike_point_1 3.24 and 1.84 mm, elongation 0.0278 and 0.0137). Seed 1 of A (R_mag_axis 1.57 mm) is about as good as arm B (1.59 mm, one seed) and better than the old small network (1.7 mm, one seed). So this run does NOT resolve whether size, augmentation or neither changes the agreement with the reference reconstruction: A seed 0 is worse than the old network on all 15 targets (ratio 1.34 to 1.72), A seed 1 is better on 14 of 15 (ratio 0.81 to 1.00) and B on all 15 (0.74 to 0.94); A seed 1 is within 0.98 to 1.27 times B. Most differences between the arms are inside the spread between two seeds of one arm. The run also differs from the old one in several ways at once (resolution, width, epochs, training on every 4th frame, the Apple GPU).
+2. **What does hold for every camera network here: it is clearly worse than the magnetic MLP on the same frames and folds**, except at the limiter point. Arm B has a 2.1 to 8.1 times larger MAE on the 13 targets other than the limiter point (R_mag_axis 1.59 against 0.407 mm, 3.9 times; R_strike_point_1 1.86 against 0.250 mm, 7.4 times) and about the same at the limiter point (R_limiter 11.6 against 12.7 mm, Z_limiter 25 against 24.3 mm). With the better seed of A the gap is about the same (R_mag_axis 1.57 against 0.407 mm). The 24 magnetic signals give the shape more directly than this camera network extracts it, except at the wall contact that the picture shows.
+3. **Robustness to a moved frame (C) does depend on the training.** On test frames shifted by 1 pixel or rotated by 1 degree the error of arm B stays at 0.99 to 1.01 times its unmoved value (worst single move 1.02), while the error of arm A grows to 1.24 to 1.68 times (seed 0) and to 1.52 to 2.52 times (seed 1; worst single move up to 3.65), so this holds for both seeds of A. Caveat: the moves are INSIDE the range of the training augmentation of B (up to 2 px and 2 degrees), so this shows that the augmentation does what it is meant to do, not that this 96x128 camera network would survive a larger or a different movement of a real camera. B was trained once.
+4. **Where the network looks (D, REQ-B07; arm B, one seed).** Hiding a 16x16 px patch raises the error mainly in the middle of the frame (patch rows about 32 to 64 px, columns about 32 to 96 px) for all four targets, and not at the edges or corners (median rise over the grid is 9 to 16 % of the largest rise). The largest rises: R_mag_axis +1.26 mm and Z_mag_axis +1.09 mm at the centre (patch at row 48, column 64 and 48), elongation +0.029 at (48, 48), R_strike_point_1 +2.77 mm at (48, 80), one of only 2 of 48 patches above half of the maximum, a narrower region than for the axis (8 and 9 patches). A rise means that the network depends on the information in that region (or that the grey patch itself disturbs it, which this test cannot separate); it is not a proof of which physical structure is used.
+5. **Limits.** Two seeds for arm A and one for arm B and for the old network; the network settings were fixed by the Lead and not tuned; 78 discharges, the frames of one discharge are near copies; no locked test set; not a statement about what a real camera can do.
