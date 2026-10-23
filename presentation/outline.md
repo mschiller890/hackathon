@@ -28,7 +28,8 @@ Věta: Použili jsme malou neuronovou síť o 107 152 parametrech a porovnali ji
 * Srovnání: lineární model (hřebenová regrese) proti malé neuronové síti.
 * Ověření: pětkrát jiné rozdělení výbojů na učení a test.
 * Dále: kolik vstupů opravdu potřebujeme, jak stabilní je výstup v čase, jak rychlá je odpověď.
-* Kamera a odolnost proti šumu: DOPLNIT, zda se do prezentace dostanou (výsledky ještě nejsou).
+* Dále jsme zkoušeli šum a posun čidel, počet učících výbojů a vstup z několika po sobě jdoucích časů.
+* Kamerový model: DOPLNIT (zatím neměřeno).
 
 ## Snímek 4: Výsledky (80 s)
 
@@ -65,8 +66,10 @@ Věta: Model se naučil jen tvary, které jsou v datech, a o neobvyklém tvaru a
 
 * Ověřeno jen na jednom tokamaku a na výbojích z těchto dat.
 * Neobvyklý tvar, který poruší vztahy mezi veličinami: DOPLNIT (zatím neměřeno).
-* Odolnost proti šumu a pomalému posunu čidel: DOPLNIT (zatím neměřeno).
-* Závislost přesnosti na množství učících dat: DOPLNIT.
+* Šum: model učený na čistých datech je křehký. Osa má chybu 0,38 mm na čistých datech, ale 10,15 mm na datech s šumem, tedy asi 27krát větší. Učení na zašuměných datech to srazí na 2,64 mm, ale na čistých datech pak chyba stoupne na 2,22 mm.
+* Pomalý posun čidel je náš vlastní model, ne měřený posun skutečných čidel.
+* Množství dat: při 6, 12, 30, 60 a 119 učících výbojích je chyba osy 7,3; 6,9; 1,47; 0,83 a 0,38 mm, od 30 výbojů se s každým zdvojením zhruba půlí a nepřestala klesat.
+* Tři po sobě jdoucí časy zlepšují zašuměný vstup (osa 2,64 na 2,33 mm), ale na čistém vstupu osu zhoršují (0,38 na 0,57 mm).
 * Odhaduje jen tvar. Řízení plazmatu samo nenahrazuje.
 
 ## Snímek 8: Ukázka a závěr (30 s)
@@ -83,6 +86,5 @@ Věta: V prohlížeči vidíte skutečný a odhadnutý tvar plazmatu vedle sebe 
 ## Chybějící čísla (DOPLNIT)
 
 * Výsledky kamerového modelu a srovnání s magnetickým.
-* Odolnost proti šumu a posunu, závislost na množství dat, vliv časového kontextu.
 * Chování pro neobvyklý tvar.
 * Kdo potvrdí napojení na řídicí systém.
