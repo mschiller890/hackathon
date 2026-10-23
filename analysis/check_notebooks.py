@@ -19,7 +19,7 @@ files = [Path(a) for a in sys.argv[1:]] or sorted((REPO / "notebooks").glob("*.i
 PATH = re.compile(r"(/Users/|/home/|[A-Za-z]:\\)")
 BANNED = [("DOPLNIT", r"DOPLNIT"), ("TODO", r"\bTODO\b"), ("ground truth", r"ground[ -]truth"), ("nobody saw", r"nobody (?:ever )?saw|nikdo nevid"),
           ("important sensors", r"important sensors"), ("quiet run", r"quiet run|quieter machine"), ("0,18 estimate", r"0[.,]18 ?ms|0[.,]1775")]
-LOCKED = re.compile(r"\blocked\b(?! test set| test)", re.I)
+LOCKED = re.compile(r"\blocked\b(?! test set| test|-test-ids)", re.I)   # "ipp1-locked-test-ids.txt" is a file name, not a claim
 ACC = re.compile(r"\baccura(?:te|cy)\b", re.I)
 AGREE = re.compile(r"agree|reference|misclassif|classif|flag|is_limited|rows are wrong|wrongly", re.I)
 RT = re.compile(r"real[- ]time|reálném čase", re.I)
