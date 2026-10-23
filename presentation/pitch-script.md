@@ -91,7 +91,7 @@ Obrázek: 05-shape-schematic.png
 
 ### Živá ukázka, mezi snímkem 4 a 5 (2:29 až 3:49, 80 s)
 
-Hlavní věta: Skutečný a odhadnutý tvar vedle sebe; v ukázce je základní síť, ne vybraný model; jedna typická a jedna špatná ukázka.
+Hlavní věta: Tvar z rekonstrukce a odhadnuté body vedle sebe; v ukázce je vybraný model na 30 odložených výbojích; jedna typická a jedna špatná ukázka.
 
 Obrázek: žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html)
 
@@ -101,7 +101,7 @@ Obrázek: žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html)
 | 2:42 | 12 | A | Tmavá čára je tvar z rekonstrukce ústavu, barevné značky jsou odhad sítě. Výboj číslo 85 patří mezi odložených třicet, je to typický výboj. | Ukázat na přepínače Skutečnost a Předpověď. Mezerník spustí přehrávání. |
 | 2:54 | 6 | A | (ticho, výboj běží a porota se dívá) | Nech výboj proběhnout dvakrát. |
 | 3:00 | 12 | A | Kroužek je osa, křížek bod X. Chyba osy je tady čtvrtina milimetru, na začátku i uprostřed výboje. | Ukázat na značky a tabulku. Čísla z prohlížeče: začátek 0,22 mm, střed 0,25 mm (docs/demo-facts.md). |
-| 3:12 | 14 | A | Teď nejhorší konec: výboj číslo 147, poslední snímek. Osa je vedle o třicet tři milimetrů a bod u limiteru o sto pět, ale průměr celého výboje je pod milimetrem. | Výboj 147 z nabídky, poslední snímek (t 1,0). Čísla: osa 33,7 mm, bod u limiteru 105,5 mm, průměr výboje 0,85 mm (docs/demo-facts.md). |
+| 3:12 | 14 | A | Teď nejhorší konec: výboj číslo 147, poslední snímek. Osa je vedle o třicet tři milimetrů a bod u limiteru o sto pět, ale průměr celého výboje je pod milimetrem. | Výboj 147 z nabídky, poslední snímek (t 1,0). Čísla: osa 33,7 mm, bod u limiteru asi 105 mm, průměr výboje 0,85 mm (docs/demo-facts.md). |
 | 3:26 | 5 | A | (ticho, špatný výboj běží) | Ukázat na místo, kde se čáry rozcházejí. |
 | 3:31 | 14 | B | Takových výbojů je málo: všech třicet odložených má průměrnou chybu osy pod milimetrem, medián 0,18, a ze všech 149 jsou pod milimetrem 135. | Protokol: vybraný model, odložených 30 a vývojové výboje mimo učení, vzdálenost osy (docs/demo-facts.md); dva výboje nad 5 mm, obě vývojové (id 0 a 11). |
 | 3:45 | 4 | A | (ticho, přepnutí zpět) | Cmd+Tab zpět do prezentace, klik na snímek 5. Dlaždici latence v prohlížeči neukazovat ani neříkat (v prohlížeči je základní síť; číslo zazní na snímku 5). |
@@ -155,7 +155,7 @@ Obrázek: 07-closing.png
 | 6:17 | 10 | A | Shoda s rekonstrukcí ústavu na čistých vstupech: osa 0,13 milimetru na odložených výbojích, asi 0,2 v křížové validaci. | Snímek 8. Obrázek 07-closing.png. Dlaždice Přesnost. |
 | 6:27 | 11 | A | Rychlost: základní síť 0,0145 milisekundy, vybraný model asi 0,03, obojí hluboko pod rozpočtem. | Velké číslo 0,0145 ms vlevo a vedle něj vybraný model (0,027 ms). Pomalu. |
 | 6:38 | 17 | B | Na zašuměných vstupech je osa na jednotky milimetrů, bod u limiteru na desítky, proud 4,65 kiloampéru. Pro řízení model ještě není: nezná neobvyklé tvary a šum mu vadí. | Dlaždice Přesnost (druhý řádek) a Zbývá. Zašuměné vstupy: osa 2,38 mm, bod u limiteru 25,8 a 38,9 mm, proud 4,65 kA (30 odložených výbojů, síť učená se šumem). |
-| 6:55 | 5 | A+B | Desetiny milimetru shody s rekonstrukcí, setiny milisekundy výpočtu. Děkujeme. | Oba se dívají na porotu. Konec v 7:00. Věta Zbývá napojení na řídicí systém je na dlaždici Zbývá. |
+| 6:55 | 5 | A+B | Na čistých vstupech desetiny milimetru shody s rekonstrukcí, setiny milisekundy výpočtu. Děkujeme. | Oba se dívají na porotu. Konec v 7:00. Věta Zbývá napojení na řídicí systém je na dlaždici Zbývá. |
 
 ## Pravidla řeči
 
