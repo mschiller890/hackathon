@@ -304,3 +304,47 @@ Line numbers are those of `presentation/outline.md` and `presentation/slovnicek.
 * the wording "Odhad" instead of "předpověď" everywhere in both files.
 
 Open on lane K's side, not a wording change: the definitions of elongation and the three triangularities, and the convention of the extreme points when the plasma is limited, are not written in the repository (review M8). Copy them from the organizers' notebook into the glossary when the answer to question 4 arrives.
+
+## For lane K: lines to change in the deck, the outline and the glossary
+
+Added by the Vizualizace session after review 4 and the Czech edit (23 Oct). Lane K owns `presentation/deck/build_deck.py`, `presentation/outline.md` and `presentation/slovnicek.md`; the Lead's two files (`pitch-script.md`, this file) are already changed. Facts, numbers and protocol words must not change in any row.
+
+### A. From `docs/review-findings-4.md` (line numbers of the files on 23 Oct)
+
+| Where | Old | New | Item |
+|---|---|---|---|
+| `build_deck.py:390` title | osa 0,13 mm | Na 30 odložených výbojích: radiální osa 0,13 mm | M01 |
+| `build_deck.py:394` tile label | průměrná chyba osy | průměrná chyba radiální osy | M01 |
+| `build_deck.py:611` tile body | čisté vstupy 0,13 mm | radiální osa, čisté vstupy 0,13 mm | M01 |
+| `outline.md:55`, `:108` | osa 0,13 mm | radiální osa 0,13 mm | M01 |
+| `outline.md:108` | asi 0,2 v křížové validaci | 0,23 v křížové validaci | M15 |
+| `build_deck.py:608-609` (slide 14) | Klasický výpočet trvá minuty; obojí je pod naším rozpočtem 1 až 10 ms | Jeden odhad, procesor Apple M5: obě sítě jsou pod naším rozpočtem 1 až 10 ms (měřen jen výpočet sítě). Klasický výpočet trvá minuty. | M04 |
+| `build_deck.py:618` | Na čistých vstupech: desetiny milimetru za setiny milisekundy. | Na čistých vstupech: desetiny milimetru shody s rekonstrukcí za setiny milisekundy výpočtu sítě. | M05 |
+| `build_deck.py:613` tile Zbývá | Zbývá: bod u limiteru, neobvyklé tvary, šum, napojení na řízení | celý řetězec od čidel k řízení a zkouška v uzavřené smyčce, bod u limiteru, neobvyklé tvary (samostatně neověřeny), skutečné chyby čidel | M05 (text of 16.9) |
+| `build_deck.py:491` kicker, `outline.md:69` heading | Verdikt pro řízení v reálném čase | Rychlost výpočtu sítě (ne celý řetězec řízení) | M06 |
+| `build_deck.py:401` chart title | 30 výbojů odložených před výběrem | Průměrná chyba (mm), 30 výbojů odložených před posledním výběrem modelu; add the caption sentence on the slide | M24 |
+| `outline.md:13`, `:39` | před finálním výběrem | odložené před posledním výběrem modelu | M24 |
+| `build_deck.py:316` first tile | jednotky ms | jednotky až desítky ms | M27 |
+
+Exact wording of the other items (M03 banned words in the deck, M16, M18, M19, M20, M25, M26, M28) is in `docs/review-findings-4.md`; the old seconds of the outline and the rehearsal notes (M18) follow the timed script of `pitch-script.md`.
+
+### B. From `docs/czech-edit.md` (rows for the deck builder and the glossary)
+
+| Row (file and line) | Old | New | Why |
+|---|---|---|---|
+| presentation/slovnicek.md L14 (Cívka) | samotných 16 cívek IPR dává skoro stejnou přesnost jako všech 24 vstupů. | samotných 16 cívek IPR dává skoro stejnou chybu jako všech 24 vstupů. | 'Přesnost' invites the banned reading (accuracy of the plasma position). The talk says 'souhrnná chyba'. |
+| presentation/deck/build_deck.py L316 (slide 2) | na reakci dává zadání úlohy | na reakci chce zadání úlohy | 'Dává zadání' is an English calque; the talk says 'Zadání chce'. |
+| presentation/deck/build_deck.py L319 (slide 2) | odhadne malá neuronová síť tvar plazmatu z magnetických měření dost přesně | dokáže malá neuronová síť rekonstrukci napodobit dost dobře | Deck still has the old question; the spoken one (0:29) says imitate the reconstruction. 'Přesně' claims accuracy of the plasma shape. |
+| presentation/deck/build_deck.py L384 (slide 6) | "bod X\ndole" | "dolní bod X" | Speech rules: 'dolní bod X'. Same length, no line break needed. |
+| presentation/deck/build_deck.py L396 (slide 7) | bod u limiteru, dříve | bod u limiteru, proti | 'Dříve' says an earlier version; the 10,6 mm is the basic network. 'Proti' matches the spoken '4,55 proti 10,6'. |
+| presentation/deck/build_deck.py L425 (slide 8) | Samotné cívky stačí skoro na stejnou chybu | Samotné cívky dají skoro stejnou chybu | Word order 'skoro na stejnou' is colloquial; same fix as row 2:17. |
+| presentation/deck/build_deck.py L456 (slide 8) | Chyba v násobcích rozptylu veličiny. | Chyba ve směrodatných odchylkách. | The error is divided by the standard deviation, not the variance (Q7 says 'směrodatné odchylce'). |
+| presentation/deck/build_deck.py L458 (slide 8) | chyba vztažená k rozptylu veličiny. | chyba ve směrodatných odchylkách. | Same as the line before: variance is wrong here. |
+| presentation/deck/build_deck.py L471 (slide 9) | Skutečný tvar plazmatu a odhadnuté body, chyba v čase | Rekonstrukce ústavu, odhad sítě, odchylka v čase | Banned word 'skutečný'. The viewer shows the institute's reconstruction (deck-fixes 16.5, shorter wording). |
+| presentation/deck/build_deck.py L472, L488 (slides 9, 10) | obrys se nepředpovídá | obrys neodhadujeme | 'Předpověď' is on the banned list; the talk says 'odhad'. Appears twice (lines 472 and 488). |
+| presentation/deck/build_deck.py L510 (slide 12) | Nejslabší je bod u limiteru, začátek a konec výboje | Nejhůř: bod u limiteru, začátek a konec výboje | One singular verb with three items. The label form is plain and shorter. |
+| presentation/deck/build_deck.py L527 (slide 12) | kanonizaci znaménka | sjednocení znaménka | 'Kanonizace' is jargon; Q&A N3 already says 'sjednocení znaménka'. |
+| presentation/deck/build_deck.py L528 (slide 12) | nenasadili, na běžné polaritě stojí asi 20 procent. | nepoužili, na běžné polaritě zhorší o 20 procent. | 'Nenasadili' was banned in deck-fixes 0.2 ('použijeme'). 'Stojí 20 procent' is unclear; N3 says 'zhorší většinu o 20'. |
+| presentation/deck/build_deck.py L536 (slide 12) | Kolísání výstupu proti skutečnosti | Kolísání proti rekonstrukci ústavu | Banned word 'skutečnost' (deck-fixes 16.7). Same length. |
+| presentation/deck/build_deck.py L608 (slide 14) | Jeden odhad, procesor {lat['cpu']}. Klasický výpočet trvá minuty; obojí je pod naším rozpočtem 1 až 10 ms. | Klasický výpočet trvá minuty. Jeden odhad, {lat['cpu']}: oba pod naším rozpočtem 1 až 10 ms. | 'Obojí' follows 'minuty', so it says minutes are under 1 to 10 ms. Classical first, then the two estimates. |
+| presentation/deck/build_deck.py L611 (slide 14) | Přesnost osy | Shoda osy | Banned 'přesnost' (deck-fixes 16.9 says 'Shoda s rekonstrukcí'). Same fix at lines 622 ('Přesnost podrobně' to 'Shoda podrobně') and 626 ('přesnost' to 'shoda'). |
