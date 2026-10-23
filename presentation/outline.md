@@ -100,14 +100,14 @@ Podle rozhodnutí vedoucího (RP 11) platí časy ze souboru pitch script: 50 + 
 ## Chybějící čísla (DOPLNIT)
 
 * Kamera: srovnání na stejných řádcích a zbylé běhy z cloudu (čísla z cloudu zatím neprošla kontrolou vedoucího).
-* Rozptyly veličin a pět hlavních složek vstupů: čeká na vedoucího (KQ 5).
 
 ## Do zálohy: dotazy poroty (neříká se nahlas)
 
-* Soubor se šumem od organizátorů obsahuje jen bílý šum a žádný měřitelný posun. Posun v čase jsme zkoušeli jen na vlastních, uměle vytvořených datech: posun se směrodatnou odchylkou sklonu 0,3 přidá k chybě osy asi 1 mm u sítě naučené na šumu.
+* Posun v čase jsme zkoušeli jen na vlastních, uměle vytvořených datech: posun se směrodatnou odchylkou sklonu 0,3 přidá k chybě osy asi 1 mm u sítě naučené na šumu.
 * Učení na zašuměných datech zhorší čistá data: chyba osy 2,22 mm místo 0,38 mm.
 * Tři po sobě jdoucí časy zlepšují zašuměný vstup (osa 2,64 na 2,33 mm), ale na čistém vstupu osu zhoršují (0,38 na 0,57 mm).
 * Naměřeno pro jednu inicializaci a jednu realizaci šumu na každé rozdělení, rozdíly pár procent nejsou prokázané.
-* Rozptyl veličin je malý jen u osy, bodu X a dotykových bodů, od 2,4 do 13,7 mm; u bodu limiteru je 90 a 153 mm, proto chyby uvádíme v mm i vůči rozptylu. Čísla pro rozptyl a pro rozdělení po souvislých blocích pocházejí z kontroly mimo složku results, takže je před použitím na snímku DOPLNIT do results.
-* Pozor, neříkat: "pět složek nese 99,9 % informace". Správně je rozptyl, ne informace; model na pěti složkách má radiální chybu osy 2,6 mm místo 0,38 mm (z kontroly mimo složku results, DOPLNIT do results).
+* Rozptyl veličin je malý jen u osy, bodu X a dotykových bodů, směrodatná odchylka od 2,4 do 13,7 mm; u bodu limiteru je 89,6 a 153,3 mm a u proudu plazmatem 114 kA, proto chyby uvádíme v mm i vůči rozptylu. 98 % hodnot osy leží v pásu širokém 42,3 mm (radiálně) a 56,4 mm (svisle).
+* Soubor se šumem od organizátorů obsahuje bílý šum bez měřitelného posunu: šum má asi 0,158 směrodatné odchylky signálu u cívek a 0,090 u smyček toku. Veškerý posun, který zkoušíme, je umělý.
+* Pozor, neříkat: "pět složek nese 99,9 % informace". Správně je rozptyl, ne informace: síť, která vidí jen prvních pět hlavních složek, má radiální chybu osy 2,63 mm místo 0,41 mm (asi 6,5krát horší).
 * Model ví, kdy se mýlí: pět sítí s různým zrnem náhodných čísel se nejvíc rozcházejí na 10 % řádků, které nesou 47 % celkové chyby, a chyba na nich je 8,1krát větší než na zbytku. Netestovali jsme, zda se rozcházejí i na neobvyklých tvarech nebo na zašuměném vstupu, a řádky jednoho výboje jsou téměř kopie, takže jde o pořadí, ne o pravděpodobnost chyby.
