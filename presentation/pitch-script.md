@@ -316,7 +316,7 @@ Odpovídá A: Čísla výbojů zřejmě sledují čas, což jsme s organizátory
 ### N13. Podnikatel
 Otázka: Proč věřit shodě 99,3 procenta pro limitované a divertorové plazma?
 
-Odpovídá B: Základní síť má 0,993 v pěti dělení, vybraný model 0,9916 a základní síť 0,9892 na odložených výbojích. Chyby se dělí zhruba rovným dílem mezi obě konfigurace, 49 a 51 procent čtverce chyby. Příznak je tvrdé rozhodnutí na spojitém přechodu, takže chyby čekáme právě tam, ale na přechodu jsme je zvlášť nevyhodnotili. Chyby bodu X a dotykových bodů jsme počítali jen na řádcích, kde tyto body podle rekonstrukce jsou; v provozu by je řídil odhadnutý příznak a jeho chyby na přechodu jsme nezměřili.
+Odpovídá B: Základní síť má 0,993 v pěti dělení, vybraný model 0,9916 a základní síť 0,9892 na odložených výbojích. Chyby základní sítě v pěti dělení se dělí zhruba rovným dílem mezi obě konfigurace, 49 a 51 procent čtverce chyby. Příznak je tvrdé rozhodnutí na spojitém přechodu, takže chyby čekáme právě tam, ale na přechodu jsme je zvlášť nevyhodnotili. Chyby bodu X a dotykových bodů jsme počítali jen na řádcích, kde tyto body podle rekonstrukce jsou; v provozu by je řídil odhadnutý příznak a jeho chyby na přechodu jsme nezměřili.
 
 ## Příloha: deset nejtěžších fyzikálních otázek
 
@@ -338,7 +338,7 @@ Zdroj: `docs/review-physics.md`, část 5 (otázky F1 až F10). Sedm z nich je t
 ### F2. Fyzik
 Otázka: Rekonstrukce potřebuje proudy v cívkách pole a model komory. Vy máte jen 24 čidel. Jak je to možné?
 
-Odpovídá A: Nevíme, co všechno rekonstrukce použila. Naše síť dostává jen těch 24 čidel. To, že to funguje, ukazuje, že v těchto 149 výbojích jsou ostatní veličiny téměř určeny čidly, tedy že výboje patří do úzké rodiny scénářů. Prvních pět hlavních složek nese 99,93 procenta rozptylu vstupů, ale síť jen s pěti složkami má chybu osy 2,63 milimetru místo 0,41. Spíš se tedy naučila rodinu tvarů, které tento stroj vytváří, než že by řešila celou úlohu.
+Odpovídá A: Nevíme, co všechno rekonstrukce použila. Naše síť dostává jen těch 24 čidel. To, že to funguje, ukazuje, že v těchto 149 výbojích jsou ostatní veličiny téměř určeny čidly, tedy že výboje patří do úzké rodiny scénářů. Prvních pět hlavních složek nese 99,93 procenta rozptylu vstupů, ale základní síť jen s pěti složkami má v pěti dělení chybu osy 2,63 milimetru místo 0,41. Spíš se tedy naučila rodinu tvarů, které tento stroj vytváří, než že by řešila celou úlohu.
 
 ### F4. Fyzik
 Otázka: Co znamená chyba bodu u limiteru 4,55 milimetru?
