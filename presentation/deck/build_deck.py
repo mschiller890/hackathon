@@ -354,28 +354,32 @@ def build():
                     "na učení a test). Vybraný model: navíc 30 výbojů odložených před posledním výběrem."])
     add_sources(s, ["results/ipp1-baseline.md (107 152 parametrů, 5 dělení)", "results/ipp1-final.md (30 odložených)"])
 
-    # 3b Camera, hidden backup (items 0.4, 5.1 to 5.5); spoken text from the script's "Záloha: kamera" section
+    # 3b Camera, hidden backup; title, subtitle and caveats from the Lead's gate G1 verdict (docs/PLAN.md KQ-28)
     s = frame(prs, "Bonus: kamera",
-              f"Kamerová síť je {cz(cm['ratio'][0], 1)} až {cz(cm['ratio'][1], 0)}krát horší než cívky",
+              f"Malá kamerová síť (48×64) je asi {cz(cm['ratio'][0], 1)} až {cz(cm['ratio'][1], 0)}krát horší než "
+              "základní síť na cívkách",
               backup_notes("Záloha: kamera", "Skrytý snímek 5, kamera (bez vteřin v časovém plánu)"))
     s._element.set("show", "0")
+    text(s, 0.6, 2.2, 12.1, 0.4, "jiné řádky a dělení než u cívek; 78 výbojů s kamerou", size=18, color=MUTED)
     keys = [("R_mag_axis", "osa R"), ("Z_mag_axis", "osa Z"), ("R_x_point", "bod X R"), ("R_strike_point_1", "dotyk 1 R")]
     cv_, mv_ = [cm[k][0] for k, _ in keys], [cm[k][1] for k, _ in keys]
-    chart_title(s, 0.6, 2.0, 8.0, "Průměrná chyba (mm), 5 dělení po výbojích")
-    c = chart(s, 0.5, 2.45, 8.3, 4.2, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
+    chart_title(s, 0.6, 2.7, 8.0, "Průměrná chyba (mm), 5 dělení po výbojích")
+    c = chart(s, 0.5, 3.0, 8.3, 3.75, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
               [("kamera, šedá", cv_), ("magnetická síť", mv_)], [LIGHT, ORANGE])
     style_chart(c, size=14)
     c.plots[0].gap_width, c.plots[0].overlap = 60, -10
     label_points(c.plots[0].series[0], cv_, 2, LIGHT, 14)
     label_points(c.plots[0].series[1], mv_, 2, ORANGE, 14)
     c.value_axis.visible = False
-    tile(s, 9.1, 2.45, 3.6, 1.5, f"{cz(cm['current'], 0)} kA", "proud: tato síť ho neurčí", MUTED, 32)
-    tile(s, 9.1, 4.1, 3.6, 1.5, f"{cz(cm['colour_grey'][0], 2)} mm", f"osa R barevně, šedá {cz(cm['colour_grey'][1], 2)}",
+    tile(s, 9.1, 2.6, 3.6, 1.4, f"{cz(cm['current'], 0)} kA", "proud: tato síť ho neurčí", MUTED, 32)
+    tile(s, 9.1, 4.15, 3.6, 1.4, f"{cz(cm['colour_grey'][0], 2)} mm", f"osa R barevně, šedá {cz(cm['colour_grey'][1], 2)}",
          LIGHT, 32)
-    # docs/PLAN.md KQ-27: the cloud numbers stay only with this caveat, and come off if the Lead has not confirmed them at G1
-    caption(s, 9.1, 5.8, 3.6, "Měřeno na dvou až pěti dělení, malá síť 48×64.", size=16)
-    notes_extra(s, ["Barva nepomáhá. Srovnání je jen orientační: snímky jen ze 78 výbojů, 12 epoch, každý osmý snímek. "
-                    "Platí pro tuto malou síť, ne pro kameru jako takovou."])
+    caption(s, 9.1, 5.7, 3.6, "Jedna inicializace; rozptyl mezi děleními 20 až 45 % chyby.", size=14)
+    notes_extra(s, ["Gate G1 (Lead, KQ-28): potvrzeno s výhradami. Kamera má snímky jen ze 78 ze 149 výbojů, jedna "
+                    "inicializace, rozptyl mezi děleními 20 až 45 % průměrné chyby; poměr 1,3 až 13krát porovnává jiné řádky "
+                    "a dělení, srovnání na stejných řádcích je v results/cloud-camera-multimodal.md.",
+                    "Barva nepomáhá. Snímky 48×64, 12 epoch, každý osmý snímek. Platí pro tuto malou síť, ne pro kameru "
+                    "jako takovou. V řeči nanejvýš jedna opatrná věta."])
     add_sources(s, ["results/cloud-camera-findings.md (5 dělení, šedá kamera)"])
 
     # 4 Results, screen a (1:26 to 1:33): what we estimate
