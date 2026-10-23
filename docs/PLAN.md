@@ -21,7 +21,7 @@ acceptance criteria are met **and verified** — code being written is not compl
 |---|---|---|---|---|
 | PREP-1 | Inspect repository and establish verified baseline | DONE | Remote, branch, tree, and history confirmed by command output | `git remote -v`, `git status`, `git log` run against the live repo |
 | PREP-2 | Establish engineering workflow in `AGENTS.md` | DONE | Workflow documented and pushed to `main` | Commit `a61fa5d` on `origin/main` |
-| PREP-3 | Establish documentation system (README, PLAN, REQUIREMENTS, DECISIONS) | IN PROGRESS | Four documents created, `AGENTS.md` refined, all links valid | Documents authored and link-validated; **flip to DONE only after the commit is verified pushed to `main`** (see `AGENTS.md` §15) |
+| PREP-3 | Establish documentation system (README, PLAN, REQUIREMENTS, DECISIONS) | DONE | Four documents created, `AGENTS.md` refined, all links valid | Committed `77df198`; verified on `origin/main` (`git ls-remote`); link/path validator passed |
 | PREP-4 | Configure repo-local Git identity | DONE | Commits attributable without altering global config | `git config user.name` / `user.email` return repo-local values |
 | PREP-5 | Analyze the assignment specification | BLOCKED | Requirements extracted, classified, and traced | **Blocked on:** the specification being supplied by the user |
 
