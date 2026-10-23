@@ -9,9 +9,7 @@
 | `PLAN.md` | the task board (single tracker) |
 | `SUBMISSION.md` | what is delivered, in which form, how to build and check the package |
 | `claims-corrections.md` | sentences that must not be said, with the exact replacements (Czech) |
-| `hackathon-rules.md` | the organisers' public rules and the data conditions |
-| `related-work.md` | fast and machine-learned equilibrium reconstruction, for context |
+| `hackathon-rules.md`, `related-work.md` | the organisers' public rules and the data conditions; fast and machine-learned equilibrium reconstruction for context |
 | `deck-fixes.md` | open list of changes to the deck, for the deck owner |
-| `internal/` | working notes of the team and its assistants: reviews, audits, briefs, timeline, lanes; `TIDY-REPORT.md` lists the last tidy-up |
-
-Speaker material (cheat sheet, rehearsal, demo facts) is in `../presentation/`; the script index is `../analysis/README.md`.
+| `internal/` | working notes of the team and its assistants (reviews, audits, briefs, timeline, lanes); `TIDY-REPORT.md` lists the last tidy-up |
+| `../presentation/` | speaker material (cheat sheet, rehearsal, demo facts); script index: `../analysis/README.md` |
