@@ -198,3 +198,7 @@ S 30 výboji je chyba osy 1,47 milimetru (radiální) a 0,95 milimetru (svislá)
 
 ## Added Fri 19:40 (multi-seed check, `results/ipp1-final-seeds.md`)
 - Say "lepší u všech sedmi veličin v každém ze 5 semen"; pro bod X (R) jen "o něco lepší" (zisk 21 procent, nejhorší semeno kandidáta je jen 3 procenta pod nejlepším semenem základu). Proud plazmatem 0,0347 kA je lineární model bez semene.
+
+## Added Fri 19:45 (distribution table and input ranking from bladed-55)
+- Pořadí důležitosti: "žádné jedno čidlo není samo nezbytné; platí jen výsledek po rodinách: samotné cívky IPR 0,066, samotné smyčky toku 0,285, tedy 4,3krát horší" (`results/ipp1-inputs-ranking.md`: tři pořadí se téměř neshodují, Spearman -0,14 až 0,40). Jediné obhajitelné tvrzení o jednom čidle: IPR13 přežije eliminaci ve všech 5 foldech. Nepoužívat "důležitá čidla".
+- Meze modelu (`results/ipp1-distribution.md`): limitované plazma tvoří 44 procent řádků a 92 procent čtverce chyby osy R; 16 výbojů s opačným znaménkem proudu tvoří 7 procent řádků a 78 procent chyby; posledních 2 procenta výboje tvoří 2 procenta řádků a 27 procent chyby osy; R limiteru je v prvních 2 procentech výboje 52,6 mm proti 8,3 mm uprostřed. Přesnost is_limited 99,3 procenta je rozložená rovnoměrně mezi obě konfigurace a dá se citovat.
