@@ -97,8 +97,8 @@ Podle rozhodnutí vedoucího (RP 11) platí časy ze souboru pitch script: 50 + 
 
 ## Chybějící čísla (DOPLNIT)
 
-* Kamera: zbylá tři dělení z pěti a nezávislý kamerový model z cloudu.
-* Údaj, že výboj trvá 150 až 200 ms, není ve složce results.
+* Kamera: srovnání na stejných řádcích a zbylé běhy z cloudu (čísla z cloudu zatím neprošla kontrolou vedoucího).
+* Rozptyly veličin a pět hlavních složek vstupů: čeká na vedoucího (KQ 5).
 
 ## Do zálohy: dotazy poroty (neříká se nahlas)
 
