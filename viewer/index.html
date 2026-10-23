@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tvar plazmatu COMPASS</title>
+<style>
+:root {
+  --bg: #0a0e14; --panel: #111823; --line: #202b3a; --text: #e8eef7; --muted: #8b97a8;
+  --true: #e8eef7; --pred: #ff8a3d; --wall: #6f7c90;
+  font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); }
+body { display: grid; grid-template-rows: auto 1fr; font-variant-numeric: tabular-nums; }
+header { padding: 18px 28px 10px; display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+h1 { margin: 0; font-size: 22px; letter-spacing: -0.01em; font-weight: 650; }
+.sub { color: var(--muted); font-size: 13.5px; }
+main { display: grid; grid-template-columns: minmax(0, 1fr) 470px; gap: 14px; padding: 0 28px 22px; min-height: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; min-height: 0; }
+.stage { position: relative; }
+.stage canvas { width: 100%; height: 100%; display: block; }
+.legend { position: absolute; left: 16px; top: 16px; display: flex; gap: 18px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: 7px; }
+.legend .t i { border-color: var(--true); } .legend .p i { border-color: var(--pred); border-top-style: dashed; }
+.badge { position: absolute; right: 16px; top: 14px; text-align: right; }
+.badge b { display: block; font-size: 30px; font-weight: 650; letter-spacing: -0.02em; }
+.badge span { font-size: 12.5px; color: var(--muted); }
+aside { display: grid; grid-template-rows: auto minmax(0, 1fr) 168px; gap: 14px; min-height: 0; }
+.controls { padding: 14px 16px; display: grid; gap: 10px; }
+.row { display: flex; gap: 10px; align-items: center; }
+select, button { background: #0d141e; color: var(--text); border: 1px solid var(--line); border-radius: 7px;
+  padding: 7px 10px; font: inherit; font-size: 13.5px; }
+select { flex: 1; min-width: 0; }
+button { cursor: pointer; min-width: 84px; font-weight: 600; }
+button:hover, select:hover { border-color: #3a4a62; }
+input[type=range] { flex: 1; accent-color: var(--pred); }
+.tl { font-size: 13px; color: var(--muted); min-width: 150px; text-align: right; }
+.tablewrap { overflow: auto; padding: 4px 4px 8px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { position: sticky; top: 0; background: var(--panel); text-align: right; color: var(--muted); font-weight: 500;
+  padding: 9px 10px 7px; border-bottom: 1px solid var(--line); }
+th:first-child, td:first-child { text-align: left; }
+td { padding: 4.5px 10px; text-align: right; border-bottom: 1px solid #172131; }
+td.name { color: var(--text); } td.true { color: var(--true); } td.pred { color: var(--pred); }
+td.err { color: var(--muted); } td.err.big { color: var(--pred); font-weight: 600; }
+.chartcard { padding: 10px 14px 8px; display: grid; grid-template-rows: auto 1fr; gap: 4px; }
+.chartcard .row { justify-content: space-between; }
+.chartcard { overflow: hidden; grid-template-rows: auto minmax(0, 1fr); }
+.cwrap { position: relative; min-height: 0; }
+.cwrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.note { font-size: 12px; color: var(--muted); }
+.fatal { padding: 40px; font-size: 18px; }
+@media (max-height: 800px) { td { padding: 2.5px 10px; } aside { grid-template-rows: auto minmax(0, 1fr) 140px; } .controls { padding: 10px 14px; gap: 8px; } }
+@media (max-width: 1200px) { main { grid-template-columns: minmax(0, 1fr) 400px; padding: 0 16px 16px; } header { padding: 14px 16px 8px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tvar plazmatu v tokamaku COMPASS</h1>
+  <span class="sub">Skutečný tvar (bílá) a předpověď neuronové sítě (oranžová) z 24 magnetických měření. Síť tento výboj při učení neviděla.</span>
+</header>
+<main>
+  <section class="card stage">
+    <canvas id="stage"></canvas>
+    <div class="badge"><b id="cfg">-</b><span id="cfgSub"></span></div>
+    <div class="legend"><span class="t"><i></i>skutečnost</span><span class="p"><i></i>předpověď</span><span id="wallNote"></span></div>
+  </section>
+  <aside>
+    <section class="card controls">
+      <div class="row"><select id="discharge" aria-label="Výboj"></select></div>
+      <div class="row"><button id="play">Přehrát</button><input id="slider" type="range" min="0" max="0" value="0" aria-label="Čas"><span class="tl" id="timeLabel"></span></div>
+      <div class="row"><span class="note">Rychlost</span><select id="speed" style="flex:0 0 78px"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option></select><span class="note" id="meta"></span></div>
+    </section>
+    <section class="card tablewrap">
+      <table><thead><tr><th>Parametr</th><th>skutečnost</th><th>předpověď</th><th>chyba</th></tr></thead><tbody id="rows"></tbody></table>
+    </section>
+    <section class="card chartcard">
+      <div class="row"><select id="param" style="flex:0 1 270px" aria-label="Parametr grafu"></select><span class="note" id="chartNote"></span></div>
+      <div class="cwrap"><canvas id="chart"></canvas></div>
+    </section>
+  </aside>
+</main>
+<script src="data.js"></script>
+<script>
+"use strict";
+const D = window.VIEWER;
+if (!D) {
+  document.body.innerHTML = '<p class="fatal">Chybí soubor data.js. Vytvoří se příkazem analysis/export_viewer_data.py.</p>';
+  throw new Error("data.js missing");
+}
+const $ = (s) => document.querySelector(s);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const COL = { true: css("--true"), pred: css("--pred"), wall: css("--wall"), line: css("--line"), muted: css("--muted") };
+const fmt = (v, d) => (v == null || Number.isNaN(v) ? "-" : v.toFixed(d).replace(".", ","));
+const state = { di: 0, i: 0, playing: false, speed: 2, param: "axis" };
+
+// Rows of the parameter table: label, column, factor, unit, decimals.
+const ROWS = [
+  ["Proud plazmatem", "plasma_current", 1e-3, "kA", 1], ["Elongace κ", "elongation", 1, "", 3],
+  ["Triangularita δ", "triangularity", 1, "", 3], ["δ horní", "triangularity_upper", 1, "", 3],
+  ["δ dolní", "triangularity_lower", 1, "", 3], ["Magnetická osa R", "R_mag_axis", 1e3, "mm", 1],
+  ["Magnetická osa Z", "Z_mag_axis", 1e3, "mm", 1], ["X-bod R", "R_x_point", 1e3, "mm", 1],
+  ["X-bod Z", "Z_x_point", 1e3, "mm", 1], ["Strike point 1 R (menší R)", "sp:0:R", 1e3, "mm", 1],
+  ["Strike point 1 Z", "sp:0:Z", 1e3, "mm", 1], ["Strike point 2 R (větší R)", "sp:1:R", 1e3, "mm", 1],
+  ["Strike point 2 Z", "sp:1:Z", 1e3, "mm", 1], ["Limiter R", "R_limiter", 1e3, "mm", 1],
+  ["Limiter Z", "Z_limiter", 1e3, "mm", 1],
+];
+// Strike points can swap places between rows, so both sets are paired by increasing R.
+function strikes(c, i, suffix) {
+  const a = [c["R_strike_point_1" + suffix]?.[i], c["Z_strike_point_1" + suffix]?.[i]];
+  const b = [c["R_strike_point_2" + suffix]?.[i], c["Z_strike_point_2" + suffix]?.[i]];
+  if (a[0] == null || b[0] == null) return [null, null];
+  return a[0] <= b[0] ? [a, b] : [b, a];
+}
+function value(c, i, name, pred) {
+  const m = name.match(/^sp:(\d):([RZ])$/);
+  if (m) { const s = strikes(c, i, pred ? "_pred" : "")[+m[1]]; return s ? s[m[2] === "R" ? 0 : 1] : null; }
+  const v = c[name + (pred ? "_pred" : "")]?.[i];
+  return v == null ? null : v;
+}
+const cur = () => D.discharges[state.di];
+const isLimited = (c, i, pred) => (pred ? (c.is_limited_pred[i] ?? 0) > 0.5 : c.is_limited[i] > 0.5);
+
+// Boundary of the plasma as four superellipses (Luce 2013), as in the organisers' notebook.
+function boundary(get, n = 50) {
+  const quadrants = [["upper_outer", "outer", "top", false], ["upper_inner", "inner", "top", true],
+    ["lower_inner", "inner", "bottom", false], ["lower_outer", "outer", "bottom", true]];
+  const R = [], Z = [];
+  for (const [q, side, tip, reverse] of quadrants) {
+    const diagonal = 1 / Math.SQRT2 + get("squareness_" + q) * (1 - 1 / Math.SQRT2);
+    const p = -Math.log(2) / Math.log(clamp(diagonal, 0.01, 0.99));
+    const Rs = get("R_" + side), Zs = get("Z_" + side), Rt = get("R_" + tip), Zt = get("Z_" + tip);
+    const qr = [], qz = [];
+    for (let k = 0; k < n; k++) {
+      const phi = (k / (n - 1)) * Math.PI / 2;
+      qr.push(Rt + (Rs - Rt) * Math.pow(Math.cos(phi), 2 / p));
+      qz.push(Zs + (Zt - Zs) * Math.pow(Math.sin(phi), 2 / p));
+    }
+    if (reverse) { qr.reverse(); qz.reverse(); }
+    R.push(...qr); Z.push(...qz);
+  }
+  return [R, Z];
+}
+const BOUNDARY_NAMES = ["R_top", "Z_top", "R_bottom", "Z_bottom", "R_outer", "Z_outer", "R_inner", "Z_inner",
+  "squareness_upper_outer", "squareness_upper_inner", "squareness_lower_outer", "squareness_lower_inner"];
+const HAS_PRED_BOUNDARY = BOUNDARY_NAMES.every((n) => D.predColumns.includes(n + "_pred"));
+
+// ---- stage -------------------------------------------------------------------------------------
+const stage = $("#stage"), sctx = stage.getContext("2d");
+let view = { sc: 1, ox: 0, oy: 0, w: 0, h: 0, dpr: 1 };
+function fitCanvas(cv) {
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr));
+  return { w: r.width, h: r.height, dpr };
+}
+function layout() {
+  const f = fitCanvas(stage), [R0, R1] = D.view.R, [Z0, Z1] = D.view.Z, mx = 44, mt = 66, mb = 44;
+  const sc = Math.min((f.w - 2 * mx) / (R1 - R0), (f.h - mt - mb) / (Z1 - Z0));
+  view = { sc, ox: (f.w - sc * (R1 - R0)) / 2 - sc * R0, oy: mt + (f.h - mt - mb - sc * (Z1 - Z0)) / 2 + sc * Z1, w: f.w, h: f.h, dpr: f.dpr };
+}
+const X = (R) => view.ox + R * view.sc, Y = (Z) => view.oy - Z * view.sc;
+function path(ctx, R, Z, close) {
+  ctx.beginPath();
+  R.forEach((r, k) => (k ? ctx.lineTo(X(r), Y(Z[k])) : ctx.moveTo(X(r), Y(Z[k]))));
+  if (close) ctx.closePath();
+}
+function marker(ctx, kind, R, Z, color, filled) {
+  const x = X(R), y = Y(Z), s = 7;
+  ctx.lineWidth = 2; ctx.strokeStyle = color; ctx.fillStyle = color; ctx.beginPath();
+  if (kind === "circle") ctx.arc(x, y, s, 0, 2 * Math.PI);
+  else if (kind === "square") ctx.rect(x - s, y - s, 2 * s, 2 * s);
+  else if (kind === "tri") { ctx.moveTo(x - s, y - s); ctx.lineTo(x + s, y - s); ctx.lineTo(x, y + s); ctx.closePath(); }
+  else { ctx.moveTo(x - s, y - s); ctx.lineTo(x + s, y + s); ctx.moveTo(x + s, y - s); ctx.lineTo(x - s, y + s); }
+  if (kind !== "x" && filled) ctx.fill(); else ctx.stroke();
+}
+function drawGrid(ctx) {
+  ctx.lineWidth = 1; ctx.font = "12px -apple-system, Arial"; ctx.fillStyle = COL.muted; ctx.strokeStyle = "#16202d";
+  const [R0, R1] = D.view.R, [Z0, Z1] = D.view.Z;
+  for (let r = Math.ceil(R0 * 10) / 10; r <= R1; r += 0.1) { ctx.beginPath(); ctx.moveTo(X(r), Y(Z0)); ctx.lineTo(X(r), Y(Z1)); ctx.stroke(); ctx.textAlign = "center"; ctx.fillText(r.toFixed(1).replace(".", ","), X(r), Y(Z0) + 16); }
+  for (let z = Math.ceil(Z0 * 10) / 10; z <= Z1; z += 0.1) { ctx.beginPath(); ctx.moveTo(X(R0), Y(z)); ctx.lineTo(X(R1), Y(z)); ctx.stroke(); ctx.textAlign = "right"; ctx.fillText(z.toFixed(1).replace(".", ","), X(R0) - 8, Y(z) + 4); }
+  ctx.textAlign = "center"; ctx.fillText("R [m]", X((R0 + R1) / 2), Y(Z0) + 32);
+  ctx.textAlign = "left"; ctx.fillText("Z [m]", X(R0) - 36, Y(Z1) - 8);
+}
+function drawStage() {
+  const c = cur().c, i = state.i, ctx = sctx;
+  ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0); ctx.clearRect(0, 0, view.w, view.h);
+  drawGrid(ctx);
+  if (D.wall) { path(ctx, D.wall.R, D.wall.Z, true); ctx.fillStyle = "#0e151f"; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = COL.wall; ctx.stroke(); }
+  const draw = (pred) => {
+    const color = pred ? COL.pred : COL.true, sfx = pred ? "_pred" : "", g = (n) => c[n + sfx][i];
+    if (!pred || HAS_PRED_BOUNDARY) {
+      const [R, Z] = boundary(g); path(ctx, R, Z, true);
+      ctx.lineWidth = pred ? 2.5 : 3; ctx.strokeStyle = color; ctx.setLineDash(pred ? [9, 6] : []); ctx.stroke(); ctx.setLineDash([]);
+    }
+    const lim = isLimited(c, i, pred);
+    const pt = (kind, rn, zn) => { const R = c[rn + sfx][i], Z = c[zn + sfx][i]; if (R != null && Z != null) marker(ctx, kind, R, Z, color, pred); };
+    if (!lim) {
+      const sp = strikes(c, i, sfx), xr = c["R_x_point" + sfx][i], xz = c["Z_x_point" + sfx][i];
+      if (xr != null && sp[0] && sp[1]) { ctx.lineWidth = 1.5; ctx.strokeStyle = color; ctx.setLineDash([4, 4]);
+        for (const s of sp) { ctx.beginPath(); ctx.moveTo(X(xr), Y(xz)); ctx.lineTo(X(s[0]), Y(s[1])); ctx.stroke(); } ctx.setLineDash([]); }
+      pt("x", "R_x_point", "Z_x_point");
+      for (const s of sp) if (s) marker(ctx, "tri", s[0], s[1], color, pred);
+    } else pt("square", "R_limiter", "Z_limiter");
+    pt("circle", "R_mag_axis", "Z_mag_axis");
+  };
+  draw(false); draw(true);
+}
+
+// ---- table -------------------------------------------------------------------------------------
+function drawTable() {
+  const c = cur().c, i = state.i, out = [];
+  const lt = isLimited(c, i, false), lp = isLimited(c, i, true);
+  out.push(`<tr><td class="name">Konfigurace</td><td class="true">${lt ? "limiterová" : "divertorová"}</td><td class="pred">${lp ? "limiterová" : "divertorová"}</td><td class="err ${lt === lp ? "" : "big"}">${lt === lp ? "shoda" : "rozdíl"}</td></tr>`);
+  for (const [label, name, k, unit, d] of ROWS) {
+    const t = value(c, i, name, false), p = value(c, i, name, true);
+    const e = t == null || p == null ? null : Math.abs(p - t) * k;
+    out.push(`<tr><td class="name">${label}</td><td class="true">${t == null ? "-" : fmt(t * k, d)}</td><td class="pred">${p == null || t == null ? "-" : fmt(p * k, d)}</td><td class="err">${e == null ? "-" : fmt(e, d) + (unit ? " " + unit : "")}</td></tr>`);
+  }
+  $("#rows").innerHTML = out.join("");
+}
+
+// ---- error chart -------------------------------------------------------------------------------
+const PARAMS = [["axis", "Poloha magnetické osy (mm)"], ...ROWS.filter((r) => !r[1].startsWith("sp:")).map((r) => [r[1], r[0] + (r[3] ? " (" + r[3] + ")" : "")])];
+function series(param) {
+  const c = cur().c, n = cur().n, out = [];
+  for (let i = 0; i < n; i++) {
+    if (param === "axis") { out.push(Math.hypot(c.R_mag_axis[i] - c.R_mag_axis_pred[i], c.Z_mag_axis[i] - c.Z_mag_axis_pred[i]) * 1000); continue; }
+    const row = ROWS.find((r) => r[1] === param), t = c[param][i], p = c[param + "_pred"][i];
+    out.push(t == null || p == null ? null : Math.abs(p - t) * row[2]);
+  }
+  return out;
+}
+const chart = $("#chart"), cctx = chart.getContext("2d");
+function drawChart() {
+  const f = fitCanvas(chart), ctx = cctx, s = series(state.param), n = s.length, valid = s.filter((v) => v != null);
+  ctx.setTransform(f.dpr, 0, 0, f.dpr, 0, 0); ctx.clearRect(0, 0, f.w, f.h);
+  if (!valid.length) { ctx.fillStyle = COL.muted; ctx.font = "13px -apple-system, Arial"; ctx.fillText("Pro tento výboj parametr neexistuje.", 6, 24); $("#chartNote").textContent = ""; return; }
+  // The first and last rows of a discharge carry spikes; the axis follows the 97th percentile so the rest stays readable.
+  const sorted = [...valid].sort((a, b) => a - b), max = sorted[Math.floor(0.97 * (sorted.length - 1))] * 1.3 || 1, L = 34, B = 18, T = 6, W = f.w - L - 6, H = f.h - B - T;
+  const px = (i) => L + (i / Math.max(1, n - 1)) * W, py = (v) => T + H - (Math.min(v, max) / max) * H;
+  ctx.strokeStyle = COL.line; ctx.fillStyle = COL.muted; ctx.font = "11px -apple-system, Arial"; ctx.lineWidth = 1; ctx.textAlign = "right";
+  for (const v of [0, max / 2, max]) { ctx.beginPath(); ctx.moveTo(L, py(v)); ctx.lineTo(L + W, py(v)); ctx.stroke(); ctx.fillText(v >= 10 ? v.toFixed(0) : v.toFixed(2).replace(".", ","), L - 5, py(v) + 4); }
+  ctx.textAlign = "center"; ctx.fillText("čas ve výboji", L + W / 2, f.h - 3);
+  ctx.beginPath(); let open = false;
+  s.forEach((v, i) => { if (v == null) { open = false; return; } open ? ctx.lineTo(px(i), py(v)) : ctx.moveTo(px(i), py(v)); open = true; });
+  ctx.lineWidth = 1.8; ctx.strokeStyle = COL.pred; ctx.stroke();
+  ctx.strokeStyle = COL.true; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(px(state.i), T); ctx.lineTo(px(state.i), T + H); ctx.stroke();
+  const mean = valid.reduce((a, b) => a + b, 0) / valid.length;
+  $("#chartNote").textContent = `průměr ${fmt(mean, mean >= 10 ? 1 : 2)}, největší ${fmt(Math.max(...valid), Math.max(...valid) >= 10 ? 1 : 2)}`;
+}
+
+// ---- controls ----------------------------------------------------------------------------------
+function render() {
+  const d = cur(), c = d.c, i = state.i;
+  drawStage(); drawTable(); drawChart();
+  $("#slider").value = i;
+  $("#timeLabel").textContent = `t = ${fmt(c.time[i], 3)} z 1, snímek ${i + 1} z ${d.n}`;
+  const lp = isLimited(c, i, false);
+  $("#cfg").textContent = lp ? "limiterová" : "divertorová";
+  $("#cfgSub").textContent = `výboj ${d.id}`;
+}
+function selectDischarge(idx) {
+  state.di = idx; state.i = 0; const d = cur();
+  $("#slider").max = d.n - 1;
+  $("#meta").textContent = `chyba osy ${fmt(d.axisErrMm, 1)} mm`;
+  render();
+}
+function init() {
+  $("#discharge").innerHTML = D.discharges.map((d, k) => `<option value="${k}">Výboj ${d.id} · chyba osy ${fmt(d.axisErrMm, 1)} mm · ${Math.round(d.limitedShare * 100)} % limiterová</option>`).join("");
+  $("#param").innerHTML = PARAMS.map(([v, l]) => `<option value="${v}">${l}</option>`).join("");
+  $("#wallNote").textContent = D.wall ? "" : "obrys stěny komory zatím chybí";
+  const q = new URLSearchParams(location.hash.slice(1));
+  const byId = q.has("d") ? D.discharges.findIndex((d) => d.id === +q.get("d")) : -1;
+  const median = [...D.discharges].sort((a, b) => a.axisErrMm - b.axisErrMm)[Math.floor(D.discharges.length / 2)];
+  const start = byId >= 0 ? byId : D.discharges.indexOf(median);
+  $("#discharge").value = start; layout(); selectDischarge(start);
+  if (q.get("f")) { state.i = clamp(Math.round(+q.get("f") * (cur().n - 1)), 0, cur().n - 1); render(); }
+  if (q.get("play") === "1") play(true);
+}
+let timer = null;
+function play(on) {
+  state.playing = on; $("#play").textContent = on ? "Pozastavit" : "Přehrát";
+  clearInterval(timer);
+  if (on) timer = setInterval(() => { state.i = (state.i + state.speed) % cur().n; render(); }, 33);
+}
+$("#play").onclick = () => play(!state.playing);
+$("#slider").oninput = (e) => { state.i = +e.target.value; render(); };
+$("#discharge").onchange = (e) => selectDischarge(+e.target.value);
+$("#speed").onchange = (e) => (state.speed = +e.target.value);
+$("#param").onchange = (e) => { state.param = e.target.value; drawChart(); };
+window.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "SELECT") return;
+  if (e.code === "Space") { e.preventDefault(); play(!state.playing); }
+  if (e.code === "ArrowRight") { state.i = clamp(state.i + 1, 0, cur().n - 1); render(); }
+  if (e.code === "ArrowLeft") { state.i = clamp(state.i - 1, 0, cur().n - 1); render(); }
+});
+new ResizeObserver(() => { layout(); render(); }).observe(stage.parentElement);
+init();
+</script>
+</body>
+</html>
