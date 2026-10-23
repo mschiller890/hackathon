@@ -63,7 +63,7 @@ Věta: V prohlížeči vidíte na výbojích odložených před výběrem skute�
 
 * Posuvník času, stěna komory, skutečné a odhadnuté body, tabulka chyb. Vybraný model nepředpovídá celý obrys plazmatu, jen body; legenda v prohlížeči to říká. Podrobný scénář je v souboru pitch script.
 * Prohlížeč přehrává předpovědi vybraného modelu na 30 odložených výbojích. Obrys v ukázce je z rekonstrukce ústavu, síť odhaduje jen označené body. Číslo, jak dobře síť sedí, je shoda s rekonstrukcí ústavu, ne s opravdovým plazmatem.
-* Výboj 85 je typický (chyba osy 0,18 mm, medián z 30 odložených). Výboj 147 je záměrně špatný konec: v posledním snímku chyba osy 33,7 mm a bodu u limiteru asi 105 mm (zaokrouhleno, nehlásit na desetiny), průměr výboje 0,85 mm. Všech 30 odložených výbojů má průměrnou chybu osy pod 1 mm, žádný přes 5 mm. Čísla jsou z `docs/demo-facts.md`, počítaná z prohlížeče, a ve složce results nejsou.
+* Výboj 85 je typický (průměrná chyba osy 0,18 mm; medián z 30 odložených výbojů je 0,19 mm). Výboj 147 je záměrně špatný konec: v posledním snímku chyba osy 33,7 mm a bodu u limiteru asi 105 mm, průměr výboje 0,85 mm. Všech 30 odložených výbojů má průměrnou chybu osy pod 1 mm, žádný přes 5 mm. Čísla jsou ve složce results, soubor ipp1 demo facts; počítána jsou z každého třetího řádku, takže se od průměru ze všech řádků mohou lišit o desetinu mm, a není to totéž co 0,133 mm radiální osy.
 * Podíl výbojů: 128 ze 149 (85,9 %) má průměrnou chybu osy pod 1 mm, 3 přes 5 mm (základní síť, pět dělení).
 
 ## Snímek 5: Verdikt pro řízení v reálném čase (37 s)
