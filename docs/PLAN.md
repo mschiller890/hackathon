@@ -46,6 +46,19 @@ Fresh clone at `~/GitHub/hackathon`. Each row is a point where `README.md` alone
 | RP-2 | No source for the data: no Drive link, file name, size or checksum, no unzip target | Owner of this machine downloaded `uloha_1-magneticka_data.zip` (37,368,783 bytes, sha256 `0b2b3dd1…3781381`) and unzipped it into `data/raw/ipp1-magnetic/`, made read-only. CSVs: `equil_data.csv` 43,161,674 bytes, `equil_data_noisy.csv` 44,246,279 bytes | Name the zip, its size and where to unzip it; point to the Drive folder without putting the link in the repository if it is private |
 | RP-3 | `uv` is required but not installed and not explained | `python3 -m pip install --user uv` (uv 0.13.5); `uv venv --python 3.12` then fetched CPython 3.12.15 itself | One line: how to install `uv` |
 | RP-4 | On Linux, plain `uv pip install torch` pulls the CUDA build: torch 2.14.1 plus 16 NVIDIA/triton wheels, about 3.0 GB to download (measured from PyPI). Here at about 1 MB/s it took more than 25 minutes. The scripts only use the CPU | Let the download finish to keep the README command as written | Offer `--index-url https://download.pytorch.org/whl/cpu` for torch on Linux (about 200 MB) |
+| RP-5 | The README pins no versions. This machine got torch 2.14.1+cu130, pandas 3.1.0, numpy 2.5.4, scikit-learn 1.9.1; the owner's versions are not recorded, so a mismatch could not be traced to a version | Ran with what `uv` resolved | Record the versions that produced `results/` (a `requirements.txt` or `uv pip freeze`) |
+| RP-6 | `results/ipp1-time.png` (middle and right panels) plots the true `R_mag_axis` and elongation of one real discharge row by row. That is close to raw data (CON-001), and WORKERS.md allows only aggregate numbers on slides | The deck uses only the left, aggregate panel until the owner decides | Owner: is a single discharge trace allowed in the public talk? |
+| RP-7 | Latency is hardware bound: here (AMD Ryzen 5 7535HS) one sample takes 0.032 ms median, p99 0.048 ms, batch of 4096 3.7 ms, against 0.015 / 0.042 / 2.3 ms in `results/ipp1-baseline.md`. The real-time verdict still holds (two orders of magnitude under 1 ms) | Recorded | Name the CPU next to every latency figure in `results/` and on the slides |
+
+**Result of the check (Fri 17:10).** Both scripts run end to end from a fresh clone once RP-1 to RP-4 are worked
+around: `HACKATHON_HOME=~/GitHub/hackathon-home ~/.venvs/hackathon/bin/python -I analysis/ipp1_eda.py` (2.9 s) and
+`.../ipp1_baseline.py` (54 s wall, 5 folds, 60 epochs, CPU). EDA matches IMPL-1 and DEC-003: 42,972 rows, 57 columns,
+149 discharges (17 to 439 rows), 24 inputs, 31 targets, 44.2 % limited, PCA 92.8 % at two components and 99.93 % at five.
+Baseline against `results/ipp1-baseline.md`: all 16 MLP MAE and R2 values identical at the printed precision, `is_limited`
+accuracy identical (ridge 0.912, MLP 0.993), 107,152 parameters. Ridge differs only in the third or fourth digit
+(`plasma_current` 0.0323 against 0.0346 kA, `elongation` 0.0921 against 0.092, triangularities +0.0001), likely
+library versions (RP-5); no reported conclusion changes. Latency differs by hardware (RP-7). Still open for the
+acceptance criterion "README commands work": the README fixes for RP-1 to RP-5 (owner's file).
 
 ## Milestones (checkpoints, Fri to Sat)
 
