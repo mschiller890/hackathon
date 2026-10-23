@@ -121,6 +121,13 @@ Use your own budget (GPT and the colleague's Claude have separate limits; the fo
 **V (third Claude):** the video plan and the PDF of the deck as described above; first read `docs/claims-corrections.md`.
 **U (fork), light items only:** finish the viewer blockers (wall, predicted outline from `out/ipp1-predictions-full.csv` when it exists), then stop.
 
+### Fri 18:30: the two terminal agents take lane R's four analyses (GPT has not started them)
+Local Claude sessions "bladed-55" and "bladed-85" (both idle, ready) split the work in `Work for the local lanes`, part R; keep it lean, the weekly Claude limit is shared:
+- **bladed-55:** item 1 (distribution table REQ-007, `analysis/ipp1_distribution.py`) and item 4 (backward-elimination ranking, `results/ipp1-inputs-ranking.md`).
+- **bladed-85:** item 2 (unusual shapes, `analysis/ipp1_unusual_shapes.py`) and item 3 (uncertainty from five networks, `analysis/ipp1_uncertainty.py`).
+Both use `analysis/ipp1_common.py`, split by whole discharges, write only their own files, report numbers with the command that made them in the matching row of `docs/PLAN.md`, small Conventional Commits, `git pull --rebase` before `git push`.
+GPT: stop the local camera training (the cloud session is the camera lane); take over only what the two terminals did not start.
+
 ### Cloud environment (two Claude cloud sessions, started by the owner Fri 16:47)
 Repository: private mirror `BLADED-K/hackathon-cloud` (the local remote `cloud` of `hackathon/repo`). It holds code, docs and aggregate
 results only, never data; the sessions download the data themselves with gdown from the organizers' Drive and keep it in their sandbox.
