@@ -103,7 +103,7 @@ Obrázek: žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html)
 | 3:00 | 12 | A | Kroužek je osa, křížek bod X. Chyba osy je tady čtvrtina milimetru, na začátku i uprostřed výboje. | Ukázat na značky a tabulku. Čísla z prohlížeče: začátek 0,22 mm, střed 0,25 mm (docs/demo-facts.md). |
 | 3:12 | 14 | A | Teď nejhorší konec: výboj číslo 147, poslední snímek. Osa je vedle o třicet tři milimetrů a bod u limiteru o sto pět, ale průměr celého výboje je pod milimetrem. | Výboj 147 z nabídky, poslední snímek (t 1,0). Čísla: osa 33,7 mm, bod u limiteru asi 105 mm, průměr výboje 0,85 mm (docs/demo-facts.md). |
 | 3:26 | 5 | A | (ticho, špatný výboj běží) | Ukázat na místo, kde se čáry rozcházejí. |
-| 3:31 | 14 | B | Takových výbojů je málo: všech třicet odložených má průměrnou chybu osy pod milimetrem, medián 0,18, a ze všech 149 jsou pod milimetrem 135. | Protokol: vybraný model, odložených 30 a vývojové výboje mimo učení, vzdálenost osy (docs/demo-facts.md); dva výboje nad 5 mm, obě vývojové (id 0 a 11). |
+| 3:31 | 14 | B | Takových výbojů je málo: všech třicet odložených má průměrnou chybu osy pod milimetrem, medián asi 0,2, a ze všech 149 jsou pod milimetrem 135. | Protokol: vybraný model, odložených 30 a vývojové výboje mimo učení, vzdálenost osy (docs/demo-facts.md); dva výboje nad 5 mm, obě vývojové (id 0 a 11). |
 | 3:45 | 4 | A | (ticho, přepnutí zpět) | Cmd+Tab zpět do prezentace, klik na snímek 5. Dlaždici latence v prohlížeči neukazovat ani neříkat (v prohlížeči je základní síť; číslo zazní na snímku 5). |
 
 ### Snímek 5: Rychlost, verdikt pro řízení (3:49 až 4:29, 40 s)
