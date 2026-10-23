@@ -313,6 +313,16 @@ def write_report():
                 continue
             a0, a1 = res["A"][0][t]["mae"], res["A1"][0][t]["mae"]
             L.append(f"| {t} | {unit[t]} | {fmt(a0)} | {fmt(a1)} | {fmt(a1 - a0)} | {100 * (a1 / a0 - 1):+.0f} % |")
+        L += ["", f"`is_limited` agreement of A: seed 0 {acc['A']:.3f}, seed 1 {res['A1'][0]['is_limited']['accuracy']:.3f}.", "",
+              "Shift and rotation test of A, seed 1 (ratio of the MAE on the moved test frames to the unmoved MAE, mean over the six moves, worst single move in brackets):", "",
+              "| target | A seed 1: unmoved MAE | ratio |", "|---|---:|---:|"]
+        for t in head:
+            ratios = []
+            for mv in range(len(MOVES)):
+                num = np.mean([np.abs(d["moved"][mv][:, J[t]] - y[d["idx_test"], J[t]])[m[d["idx_test"], J[t]]].mean() for d in res["A1"][1]])
+                den = np.mean([np.abs(d["pred"][:, J[t]] - y[d["idx_test"], J[t]])[m[d["idx_test"], J[t]]].mean() for d in res["A1"][1]])
+                ratios.append(num / den)
+            L.append(f"| {t} | {fmt(res['A1'][0][t]['mae'])} | {np.mean(ratios):.2f} ({max(ratios):.2f}) |")
         L.append("")
     old = MD.read_text()
     MD.write_text(old.split(MARKER)[0] + MARKER + "\n" + "\n".join(L) + "\n" + (("\n## Reading" + old.split("\n## Reading", 1)[1]) if "\n## Reading" in old else ""))
