@@ -71,6 +71,39 @@ verdict, the limits, what the model cannot do. Use plain Czech without English w
 that do not exist yet stay marked `DOPLNIT`. (3) Later: material for the motion reel; the owner starts it after the
 results exist (not before Sat 08:00).
 
+### U next (Fri 17:30): the viewer becomes the demo and the evidence
+Order of work, each a small commit, check every result with a browser screenshot:
+1. **Noise demo.** Write `analysis/ipp1_oof_noise.py` (uses `ipp1_common`): for every fold train on the training discharges only (a) the plain
+   network on clean inputs and (b) a hardened network on the clean rows plus one corrupted copy (Gaussian noise and a linear drift with a
+   random slope per discharge and coil, amplitude 0.15 of each input's spread; twice the rows, half the epochs), and predict the held-out discharges
+   from `equil_data_noisy.csv`. Write `out/ipp1-predictions-noise.csv` with columns `<target>_clean_on_noisy` and `<target>_hardened_on_noisy`.
+   In the viewer add a switch "measurement noise" that shows the true shape, the plain network and the hardened network (the plain one
+   breaks, the hardened one holds: R_mag_axis 10 mm against about 2 mm, measured by lane R in `out/ipp1-robustness.md`).
+2. **Portable build.** One self-contained file `viewer/dist/index.html` (data inlined) that opens by double click on another Mac; test it on the
+   colleague's machine through lane K. Never deploy it anywhere public (CON-001).
+3. **Stills and a short clip for the slides:** `presentation/assets/viewer-*.png` (a limited start, a divertor middle, a rough end) and a 15 second
+   `viewer-demo.mp4` of one discharge (true against predicted) made from headless Chrome frames and ffmpeg. The MP4 stays outside git.
+4. Report in the IMPL-10 row of `docs/PLAN.md`.
+
+### V, a third Claude: submission video and the safety net (Fri 17:30)
+IMPL-9. The video of the submission, 60 to 90 seconds, built from the final viewer and the figures in `results/`: screen recording of the
+viewer with a spoken commentary in Czech and captions; it is also the fallback if the live demo fails on stage. Until the viewer is final,
+prepare the script and the shot list in `presentation/video-plan.md` using only numbers from `results/`. Also prepare the backup: the whole
+deck exported to PDF in `presentation/deck/`. Never include raw IPP data rows. Paths: `presentation/video-plan.md`, `presentation/video/`
+(large files outside git), `presentation/deck/*.pdf`.
+
+### Cloud environment (two Claude cloud sessions, started by the owner Fri 16:47)
+Repository: private mirror `BLADED-K/hackathon-cloud` (the local remote `cloud` of `hackathon/repo`). It holds code, docs and aggregate
+results only, never data; the sessions download the data themselves with gdown from the organizers' Drive and keep it in their sandbox.
+- `cloud/camera`: independent second camera model (`cloud/BRIEF-camera.md`); files `analysis/cloud_camera*.py`, `results/cloud-camera-findings.md`.
+- `cloud/search`: large model search for the magnetic part (`cloud/BRIEF-search.md`); files `analysis/cloud_search*.py`, `results/cloud-search.*`.
+- They cannot see the owner's `out/` folder or the team repository: everything they need must be in git (`results/`, `docs/`).
+- No notice arrives when a cloud session ends. The Lead checks `git fetch cloud` and the pull requests at CP2 (Fri 22:00) and CP4 (Sat 08:00),
+  reads the findings, reruns the best script on the owner's Mac when the claim matters, and copies only verified files (`results/`, scripts) into
+  `mschiller890/hackathon`. Keep the mirror's `main` in step with the team repository: `git push cloud main` after each integration.
+- Selection of the final model follows the same rule for everybody: lowest error on held-out discharges, hyperparameters chosen inside the
+  training folds, latency far below 1 ms per sample, trained with noise and drift augmentation, final number on a locked test set.
+
 ### K takes more work (Fri 17:00)
 In this order, after the reproducibility check and the outline:
 1. **The real slide deck** from `presentation/outline.md` and, when it exists, `presentation/pitch-script.md`, with the images in
