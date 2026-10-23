@@ -61,7 +61,7 @@ def train(x, y, x_test, y_test, epochs, seed=0):
     opt = torch.optim.AdamW(net.parameters(), lr=2e-3, weight_decay=1e-4)
     steps = epochs * ((len(xt) + 511) // 512)
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=3e-3, total_steps=steps)
-    print(f"{DIM}epocha | ztráta učení | chyba osy R na neviděných výbojích | osa Z | čas{END}")
+    print(f"{DIM}{'epocha':^6} | {'ztráta učení':^12} | {'chyba osy R na neviděných výbojích':<51} | {'osa Z':^9} | {'čas':>7}{END}")
     started = time.perf_counter()
     for epoch in range(1, epochs + 1):
         order = torch.randperm(len(xt))
@@ -77,7 +77,7 @@ def train(x, y, x_test, y_test, epochs, seed=0):
             losses.append(loss.item())
         with torch.no_grad():
             err_r, err_z = axis_error(net(xv).numpy() * ys + ym, y_test)
-        print(f"{epoch:5d}  |   {np.mean(losses):8.4f}   | {bar(err_r)} | {err_z:6.3f} mm | {time.perf_counter() - started:5.1f} s")
+        print(f"{epoch:^6d} | {np.mean(losses):^12.4f} | {bar(err_r)} | {err_z:6.3f} mm | {time.perf_counter() - started:5.1f} s")
     net.eval()
     return net, (mu, sd, ym, ys)
 

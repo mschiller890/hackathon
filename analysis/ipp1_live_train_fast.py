@@ -57,7 +57,7 @@ def heldout_axis_mm():
     return [float(np.nanmean(np.abs(p[:, j] - Y[te, j]))) * 1000 for j in (iR, iZ)]
 
 
-print(f"{D}epocha | ztráta učení | chyba osy R na neviděných výbojích | osa Z | čas{X0}")
+print(f"{D}{'epocha':^6} | {'ztráta učení':^12} | {'chyba osy R na neviděných výbojích':<51} | {'osa Z':^9} | {'čas':>7}{X0}")
 t0 = time.time()
 for ep in range(1, EPOCHS + 1):
     perm, total, nb = torch.randperm(len(xt)), 0.0, 0
@@ -72,7 +72,7 @@ for ep in range(1, EPOCHS + 1):
     eR, eZ = heldout_axis_mm()
     bar = "█" * max(1, min(40, int(40 * np.log10(1 + eR) / np.log10(11))))
     col = G if eR < 0.5 else (Y0 if eR < 2 else R)
-    print(f"  {ep:3d}  | {total / nb:10.4f}   | {col}{eR:7.3f} mm {bar:40s}{X0} | {eZ:6.3f} mm | {time.time() - t0:5.1f} s",
+    print(f"{ep:^6d} | {total / nb:^12.4f} | {col}{eR:7.3f} mm {bar:40s}{X0} | {eZ:6.3f} mm | {time.time() - t0:5.1f} s",
           flush=True)
 net.eval()
 print(f"\n{G}Naučeno za {time.time() - t0:.0f} s.{X0} Teď síť dostane výboj, který nikdy neviděla, okamžik po okamžiku.\n")
