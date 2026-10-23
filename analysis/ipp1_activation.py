@@ -149,12 +149,12 @@ def report():
          f"Reversed polarity = {n_rev} development discharges, usual = {len(sign) - n_rev}.", "",
          "| quantity | SiLU (shipped) | ReLU | GELU |", "|---|---:|---:|---:|"]
     for key in keys:
-        L.append(f"| {key} | " + " | ".join(f"{mean(a, key):.4g} ({sd(a, key):.2g})" for a in ACTS) + " |")
+        L.append(f"| {key.replace('|', ', ')} | " + " | ".join(f"{mean(a, key):.4g} ({sd(a, key):.2g})" for a in ACTS) + " |")
     L += ["", "Paired difference to SiLU (activation minus SiLU, same seed, folds and initial weights), mean over the 3 seeds and its SD; negative = better than SiLU.", "",
           "| quantity | ReLU minus SiLU | GELU minus SiLU |", "|---|---:|---:|"]
     for key in keys:
         d = {a: np.array([r[key] for r in res[a]]) - np.array([r[key] for r in res["silu"]]) for a in ("relu", "gelu")}
-        L.append(f"| {key} | " + " | ".join(f"{d[a].mean():+.4g} ({d[a].std(ddof=1):.2g})" for a in ("relu", "gelu")) + " |")
+        L.append(f"| {key.replace('|', ', ')} | " + " | ".join(f"{d[a].mean():+.4g} ({d[a].std(ddof=1):.2g})" for a in ("relu", "gelu")) + " |")
     L.append("")
     verdict = "SiLU stays"
     better = []
