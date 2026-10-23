@@ -21,7 +21,7 @@ Tempo kolem 2 slov za sekundu je rychlé, zvlášť u čísel, která se čtou p
 
 ## Kde je text těžký na sledování
 
-* Snímek 4 má nejvíc čísel (osa, bod X, dotykové body, proud, protažení, vstupy). Říct nahlas jen tři: osa 0,38 mm, bod X 0,20 mm, 99,3 % u limiteru. Zbytek nechat na obrazovce.
+* Snímek 4 má nejvíc čísel (osa, bod X, dotykové body, proud, protažení, vstupy). Říct nahlas jen tři: osa 0,38 mm, bod X 0,20 mm, proud plazmatem 0,035 kA z lineárního modelu. Zbytek nechat na obrazovce.
 * Snímek 7 míchá šum, množství dat a meze. Mluvit ve třech větách, v tomto pořadí.
 * Slova IPR a FL (snímek 2) nejsou pro posluchače srozumitelná. Říkat "cívky" a "smyčky toku", viz slovníček.
 
@@ -29,7 +29,7 @@ Tempo kolem 2 slov za sekundu je rychlé, zvlášť u čísel, která se čtou p
 
 Deset otázek poroty s odpověďmi je v souboru pitch script. Zde jsou moje doplňující odpovědi, všechny z osnovy a z results:
 
-* Proč síť, a ne klasická rekonstrukce? Odezva 0,0145 ms na procesoru proti minutám; přesnost je pod půl milimetru u většiny veličin.
+* Proč síť, a ne klasická rekonstrukce? Výpočet sítě trvá 0,015 ms na procesoru Apple M5 proti minutám; průměrná chyba je pod půl milimetru u většiny veličin, ale 99 % řádků osy je pod 3,74 mm a nejhorší řádky mají desítky mm.
 * Co když čidla mají šum? Na čistých datech učený model je křehký (osa 0,38 mm na 10,15 mm). Učení na šumu to srazí na 2,64 mm za cenu horších čistých dat (2,22 mm).
 * Jak víte, že to funguje na nových výbojích? Dělili jsme po celých výbojích, pětkrát jinak.
 * Je 149 výbojů dost? Od 30 výbojů se chyba osy s každým zdvojením zhruba půlí ale učili jsme vždy 60 epoch, takže část zlepšení tvoří víc kroků učení; víc dat by zřejmě pomohlo.
