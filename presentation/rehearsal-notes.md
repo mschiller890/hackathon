@@ -30,9 +30,9 @@ DOPLNIT: deset otázek z pitch skriptu, až bude existovat. Do té doby připrav
 * Proč síť, a ne klasická rekonstrukce? Odezva 0,0145 ms na procesoru proti minutám; přesnost je pod půl milimetru u většiny veličin.
 * Co když čidla mají šum? Na čistých datech učený model je křehký (osa 0,38 mm na 10,15 mm). Učení na šumu to srazí na 2,64 mm za cenu horších čistých dat (2,22 mm).
 * Jak víte, že to funguje na nových výbojích? Dělili jsme po celých výbojích, pětkrát jinak.
-* Je 149 výbojů dost? Od 30 výbojů se chyba osy s každým zdvojením zhruba půlí a nepřestala klesat, víc dat by pomohlo.
+* Je 149 výbojů dost? Od 30 výbojů se chyba osy s každým zdvojením zhruba půlí ale učili jsme vždy 60 epoch, takže část zlepšení tvoří víc kroků učení; víc dat by zřejmě pomohlo.
 * Kde model selhává? Bod u limiteru (10,7 a 22,2 mm) a začátek a konec výboje.
   * Záloha: zkusili jsme zvláštní model pro bod u limiteru. Na čistých datech chybu půlí (10,7 na 5,7 mm radiálně, 22,2 na 11,7 mm svisle), ale na zašuměných datech selže úplně, proto ho zatím nepoužíváme. Platí, dokud vedoucí nerozhodne, který model se v talku ukáže (RP-9); osnova zůstává na základním modelu.
-* Dá se to nasadit do řízení? Rychlost to nevylučuje; napojení na skutečný řídicí systém jsme neověřovali.
+* Dá se to nasadit do řízení? Výpočet sítě je rychlý; sběr signálů, systém reálného času a skutečně zašuměné signály jsme neověřovali.
 * Co neobvyklý tvar? Neměřeno (DOPLNIT, nebo přiznat jako mez).
 * Co kamera? DOPLNIT, dokud nejsou výsledky.
