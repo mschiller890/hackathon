@@ -31,10 +31,12 @@ for line in sec.splitlines():
             cards.append(dict(id=ids[0], also=ids[1:], who=who, danger="★" in c[0], q=clean(c[1]), a=ans, full="", src=clean(c[3])))
 
 pitch = (REPO / "presentation/pitch-script.md").read_text()
-pitch_full, pitch_f = {}, {}
+pitch_full, pitch_f, pitch_q, pitch_who = {}, {}, {}, {}
 for m in re.finditer(r"### (N?\d+)\. (.+?)\nOtázka: (.+?)\n\nOdpovídá [AB]: (.+?)(?=\n\n### |\n\n## |\Z)", pitch, re.S):
     pid = m.group(1) if m.group(1).startswith("N") else "Q" + m.group(1)
     pitch_full[pid] = clean(m.group(4))
+    pitch_q[pid] = re.sub(r"\s*\(F\d+\)\s*$", "", clean(m.group(3)))
+    pitch_who[pid] = {'Fyzik': 'IPP fyzik', 'Odborník na strojové učení': 'ML', 'Podnikatel': 'organizátor'}.get(m.group(2).strip(), 'IPP fyzik')
     tag = re.search(r"\((F\d+)\)\s*$", m.group(3).strip())
     if tag:
         pitch_f[tag.group(1)] = pid
@@ -51,7 +53,7 @@ for pid, txt in pitch_full.items():
             if len(short) + len(nxt) > 260:
                 break
             short += " " + nxt
-        cards.append(dict(id=pid, also=[], who="IPP fyzik", danger=False, q=pid, a=short, full=txt if txt != short else "", src="presentation/pitch-script.md"))
+        cards.append(dict(id=pid, also=[], who=pitch_who[pid], danger=False, q=pitch_q[pid], a=short, full=txt if txt != short else "", src="presentation/pitch-script.md"))
 
 phys = (REPO / "docs/review-physics.md").read_text().split("## 5. Ten hardest physics questions", 1)[1].split("## 6.", 1)[0]
 for m in re.finditer(r"\*\*(F\d+)\. (.+?)\*\*\n(.+?)(?=\n\n\*\*F|\Z)", phys, re.S):
@@ -62,6 +64,10 @@ for m in re.finditer(r"\*\*(F\d+)\. (.+?)\*\*\n(.+?)(?=\n\n\*\*F|\Z)", phys, re.
         if len(short) + len(nxt) > 260:
             break
         short += " " + nxt
+    dup = next((x for x in cards if x['q'][:40].lower() == clean(m.group(2))[:40].lower()), None)
+    if dup and m.group(1) not in pitch_f:
+        pitch_f[m.group(1)] = dup['id']
+        by_id[dup['id']] = dup
     if m.group(1) in pitch_f:  # same question as a pitch card: keep its short answer, offer the longer text under full
         c = by_id[pitch_f[m.group(1)]]
         if len(full) > len(c["full"] or c["a"]):
