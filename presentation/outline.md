@@ -56,7 +56,7 @@ Věta: Na 30 odložených výbojích určí vybraný model osu s chybou 0,13 mm 
 * Samotných 16 cívek IPR dává souhrnnou chybu 0,066, samotných 8 smyček toku 0,285, tedy 4,3krát horší. Mluví se takto: samotné cívky stačí na skoro stejnou souhrnnou chybu, osm nejlepších už ne. Žádné jedno čidlo není samo nezbytné: pořadí podle tří způsobů se téměř neshodují. Neříkáme, která čidla jsou důležitá, říkáme jen výsledek po rodinách.
 * Obrázek: graf chyby podle počtu vstupů (soubor ipp1 inputs ve složce results).
 
-## Živá ukázka mezi snímkem 4 a 5 (90 s)
+## Živá ukázka mezi snímkem 4 a 5 (88 s)
 
 Věta: V prohlížeči vidíte skutečný a odhadnutý tvar plazmatu vedle sebe a chybu v čase, jednu typickou a jednu špatnou ukázku; v ukázce je základní síť, ne vybraný model.
 
@@ -66,7 +66,7 @@ Věta: V prohlížeči vidíte skutečný a odhadnutý tvar plazmatu vedle sebe 
 * Čísla z prohlížeče (chyba osy výboje 0, tvar chyby výboje 123) se zapíšou den předem po přehrání; do té doby jsou `[[chyba osy výboje 0]]`.
 * Podíl výbojů: 128 ze 149 (85,9 %) má průměrnou chybu osy pod 1 mm, 3 přes 5 mm (základní síť, pět dělení).
 
-## Snímek 5: Verdikt pro řízení v reálném čase (35 s)
+## Snímek 5: Verdikt pro řízení v reálném čase (37 s)
 
 Věta: Výpočet sítě rychlosti nebrání: základní síť 0,0145 ms na procesoru Apple M5, vybraný model asi `[[latency shipped]]` ms, rozpočet je 1 až 10 ms; ověřili jsme ale jen výpočet samotné sítě.
 
@@ -111,7 +111,7 @@ Věta: Přesnost na čistých vstupech je desetiny milimetru, rychlost výpočtu
 
 ## Součet času
 
-Podle rozhodnutí vedoucího (RP 11) platí časy ze souboru pitch script, přepočtené po kontrole Kritika 2: 38 + 28 + 24 + 54 + 90 (ukázka) + 35 + 31 + 76 + 44 = 420 sekund, tedy 7 minut. Kamerový snímek je skrytá záloha bez času. Při zpoždění se škrtá: věta o rychlosti ukázky, věta Zbývá napojení, kamera, poslední věta snímku 7.
+Podle rozhodnutí vedoucího (RP 11) platí časy ze souboru pitch script, přepočtené po kontrole Kritika 2: 38 + 28 + 24 + 54 + 88 (ukázka) + 37 + 31 + 76 + 44 = 420 sekund, tedy 7 minut. Kamerový snímek je skrytá záloha bez času. Při zpoždění se škrtá: věta o rychlosti ukázky, věta Zbývá napojení, kamera, poslední věta snímku 7.
 
 ## Záloha: kamera (skrytý snímek, 20 s jen když je mezera)
 

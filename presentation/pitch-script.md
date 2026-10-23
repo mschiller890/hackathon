@@ -25,8 +25,8 @@ Stav: přepsáno v pátek 23. října večer podle `docs/review-findings-2.md` (
 | 0:38 až 1:06 | 28 | Snímek 2: Data | 3 | 03-coils.png | B |
 | 1:06 až 1:30 | 24 | Snímek 3: Metoda | 4 (5 skrytá záloha) | 06-neural-bridge.png | A |
 | 1:30 až 2:24 | 54 | Snímek 4: Výsledky | 6, 7, 8 | 05-shape-schematic.png | A a B |
-| 2:24 až 3:54 | 90 | Živá ukázka, mezi snímkem 4 a 5 | 9 (10 skrytá záloha) | žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html) | A, jedna věta B |
-| 3:54 až 4:29 | 35 | Snímek 5: Rychlost, verdikt pro řízení | 11 | 02-minutes-vs-ms.png (zopakovat jako pozadí) | B |
+| 2:24 až 3:52 | 88 | Živá ukázka, mezi snímkem 4 a 5 | 9 (10 skrytá záloha) | žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html) | A, jedna věta B |
+| 3:52 až 4:29 | 37 | Snímek 5: Rychlost, verdikt pro řízení | 11 | 02-minutes-vs-ms.png (zopakovat jako pozadí) | B |
 | 4:29 až 5:00 | 31 | Snímek 6: Meze | 12 | žádný obrázek, na snímku je graf chyby osy podle času | A |
 | 5:00 až 6:16 | 76 | Snímek 7: Co model neumí | 13 | žádný obrázek, na snímku jsou dva grafy (šum, počet výbojů) | B a A |
 | 6:16 až 7:00 | 44 | Snímek 8: Závěr | 14 | 07-closing.png | A a B |
@@ -90,7 +90,7 @@ Obrázek: 05-shape-schematic.png
 | 2:00 | 14 | A | Bod u limiteru: 4,55 milimetru proti 10,6. Proud určí lineární model s chybou 0,035 kiloampéru; síť měla 1,2. | Dlaždice 4,55 mm a 0,035 kA (lineární model). Protokol: 30 odložených výbojů. |
 | 2:14 | 10 | B | Samotné cívky stačí na skoro stejnou souhrnnou chybu jako všech 24 vstupů, osm nejlepších už ne. | Graf Kolik vstupů stačí (základní síť, pět dělení po výbojích): 0,066 proti 0,063, osm nejlepších 0,094. Menší číslo je lepší. |
 
-### Živá ukázka, mezi snímkem 4 a 5 (2:24 až 3:54, 90 s)
+### Živá ukázka, mezi snímkem 4 a 5 (2:24 až 3:52, 88 s)
 
 Hlavní věta: Skutečný a odhadnutý tvar vedle sebe; v ukázce je základní síť, ne vybraný model; jedna typická a jedna špatná ukázka.
 
@@ -98,17 +98,17 @@ Obrázek: žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html)
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 2:24 | 14 | A | Teď naživo. Prohlížeč běží bez internetu. Vidíte základní síť, ne vybraný model, který je u osy na odložených výbojích asi dvakrát přesnější. | Cmd+Tab do prohlížeče. Okno je předem otevřené na adrese končící #d=123, rychlost 1×, zastaveno. Dlaždice v prohlížeči musí říkat základní síť. |
-| 2:38 | 12 | A | Tmavá čára je skutečný tvar, oranžová odhad sítě. Výboj číslo 123 síť neviděla, nepatří ani mezi odložených třicet. | Ukázat na přepínače Skutečnost a Předpověď. Mezerník spustí přehrávání. Stav dole: validační skupina 1 z 5. |
-| 2:50 | 7 | A | (ticho, výboj běží a porota se dívá) | Nech výboj proběhnout dvakrát. |
-| 2:57 | 13 | A | Kroužek je osa, křížek bod X. Dole je chyba v čase, v tomto výboji roste na začátku a na konci. | Ukázat na značky a spodní graf. Před vystoupením ověřit, že graf to opravdu ukazuje. |
-| 3:10 | 6 | A | Jeden odhad základní sítě trvá 0,0145 milisekundy, přehráváme zpomaleně. | Dlaždice latence v prohlížeči (základní síť). Číslo je i na snímku s rychlostí. |
-| 3:16 | 14 | A | Teď záměrně špatný výboj, číslo 0. Rozdíl je vidět, chyba osy je podle prohlížeče [[chyba osy výboje 0]] milimetru. | Výboj 0 z nabídky nebo adresa s #d=0. Číslo doplnit až po přehrání den předem; bez ověřeného čísla řekni jen: Rozdíl mezi čárami je vidět. |
-| 3:30 | 6 | A | (ticho, špatný výboj běží) | Ukázat na místo, kde se čáry rozcházejí. |
-| 3:36 | 14 | B | Takových výbojů je málo: u základní sítě má chybu osy pod milimetrem 86 procent výbojů, tedy 128 ze 149. | Protokol: základní síť, pět dělení po výbojích (results/ipp1-claim-support.md); jen tři výboje jsou přes 5 mm. |
-| 3:50 | 4 | A | Typický výboj sedí, chybují jen vzácné výjimky. | Cmd+Tab zpět do prezentace, klik na snímek 5. |
+| 2:24 | 13 | A | Teď naživo. Prohlížeč běží bez internetu. Vidíte základní síť, ne vybraný model, který je u osy na odložených výbojích asi dvakrát přesnější. | Cmd+Tab do prohlížeče. Okno je předem otevřené na adrese končící #d=123, rychlost 1×, zastaveno. Dlaždice v prohlížeči musí říkat základní síť. |
+| 2:37 | 12 | A | Tmavá čára je skutečný tvar, oranžová odhad sítě. Výboj číslo 123 síť neviděla, nepatří ani mezi odložených třicet. | Ukázat na přepínače Skutečnost a Předpověď. Mezerník spustí přehrávání. Stav dole: validační skupina 1 z 5. |
+| 2:49 | 7 | A | (ticho, výboj běží a porota se dívá) | Nech výboj proběhnout dvakrát. |
+| 2:56 | 12 | A | Kroužek je osa, křížek bod X. Dole je chyba v čase, v tomto výboji roste na začátku a na konci. | Ukázat na značky a spodní graf. Před vystoupením ověřit, že graf to opravdu ukazuje. |
+| 3:08 | 6 | A | Jeden odhad základní sítě trvá 0,0145 milisekundy, přehráváme zpomaleně. | Dlaždice latence v prohlížeči (základní síť). Číslo je i na snímku s rychlostí. |
+| 3:14 | 14 | A | Teď záměrně špatný výboj, číslo 0. Rozdíl je vidět, chyba osy je podle prohlížeče [[chyba osy výboje 0]] milimetru. | Výboj 0 z nabídky nebo adresa s #d=0. Číslo doplnit až po přehrání den předem; bez ověřeného čísla řekni jen: Rozdíl mezi čárami je vidět. |
+| 3:28 | 6 | A | (ticho, špatný výboj běží) | Ukázat na místo, kde se čáry rozcházejí. |
+| 3:34 | 14 | B | Takových výbojů je málo: u základní sítě má chybu osy pod milimetrem 86 procent výbojů, tedy 128 ze 149. | Protokol: základní síť, pět dělení po výbojích (results/ipp1-claim-support.md); jen tři výboje jsou přes 5 mm. |
+| 3:48 | 4 | A | Typický výboj sedí, chybují jen vzácné výjimky. | Cmd+Tab zpět do prezentace, klik na snímek 5. |
 
-### Snímek 5: Rychlost, verdikt pro řízení (3:54 až 4:29, 35 s)
+### Snímek 5: Rychlost, verdikt pro řízení (3:52 až 4:29, 37 s)
 
 Hlavní věta: Základní síť 0,0145 ms, vybraný model asi [[latency shipped]] ms, obojí pod rozpočtem 1 až 10 ms; ověřili jsme jen výpočet samotné sítě.
 
@@ -116,9 +116,9 @@ Obrázek: 02-minutes-vs-ms.png (zopakovat jako pozadí)
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 3:54 | 13 | B | Základní síť: jeden odhad na procesoru Apple M5 trvá 0,0145 milisekundy, devadesát devět procent odhadů je rychlejších než 0,021. | Snímek 5. Velká dlaždice 0,0145 ms, dlaždice 0,0209 ms. Pod nimi: základní síť, procesor Apple M5. |
-| 4:07 | 8 | B | Vybraný model má tři části a je pomalejší, asi [[latency shipped]] milisekundy. | Dlaždice vybraného modelu. Dokud není změřeno, říkej: asi 0,18 milisekundy, zatím odhad z podobného postupu na vytíženém počítači. |
-| 4:15 | 14 | B | Obojí je hluboko pod rozpočtem jedné až deseti milisekund. Ověřili jsme ale jen výpočet sítě, ne sběr signálů, systém reálného času ani zašuměné signály. | Věta pod dlaždicemi. Konec snímku, pohled na A, klik na snímek 6. |
+| 3:52 | 13 | B | Základní síť: jeden odhad na procesoru Apple M5 trvá 0,0145 milisekundy, devadesát devět procent odhadů je rychlejších než 0,021 milisekundy. | Snímek 5. Velká dlaždice 0,0145 ms, dlaždice 0,0209 ms. Pod nimi: základní síť, procesor Apple M5. |
+| 4:05 | 8 | B | Vybraný model má tři části a je pomalejší, asi [[latency shipped]] milisekundy. | Dlaždice vybraného modelu. Dokud není změřeno, říkej: asi 0,18 milisekundy, zatím odhad z podobného postupu na vytíženém počítači. |
+| 4:13 | 16 | B | Obojí je hluboko pod rozpočtem jedné až deseti milisekund, výpočet sítě rychlosti nebrání. Ověřili jsme ale jen výpočet sítě, ne sběr signálů, systém reálného času ani zašuměné signály. | Věta pod dlaždicemi. Konec snímku, pohled na A, klik na snímek 6. |
 
 ### Snímek 6: Meze (4:29 až 5:00, 31 s)
 
@@ -128,7 +128,7 @@ Obrázek: žádný obrázek, na snímku je graf chyby osy podle času
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 4:29 | 19 | A | Poctivě slabá místa. Bod u limiteru: vybraný model má na třiceti odložených výbojích chybu 4,55 milimetru radiálně a 8,35 svisle, v jednom procentu řádků až 78 a 92. | Snímek 6. Dlaždice 4,55 mm a 8,35 mm (vybraný model, 30 odložených výbojů). |
+| 4:29 | 19 | A | Poctivě slabá místa. Bod u limiteru: vybraný model má na třiceti odložených výbojích chybu 4,55 milimetru radiálně a 8,35 svisle, v jednom procentu řádků až 78 a 92 milimetrů. | Snímek 6. Dlaždice 4,55 mm a 8,35 mm (vybraný model, 30 odložených výbojů). |
 | 4:48 | 12 | A | Chyba osy roste hlavně na konci výboje: u základní sítě v pěti dělení 0,9 milimetru proti 0,24 uprostřed. | Graf chyby osy podle desetin výboje (základní síť, pět dělení), oranžové sloupce jsou začátek a konec. Kolísání výstupu je jen v poznámce pod čarou. |
 
 ### Snímek 7: Co model neumí (5:00 až 6:16, 76 s)
@@ -140,7 +140,7 @@ Obrázek: žádný obrázek, na snímku jsou dva grafy (šum, počet výbojů)
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
 | 5:00 | 16 | B | Největší slabina je šum. Základní síť naučená na čistých datech má chybu osy 0,38 milimetru na čistých, ale 10,15 na zašuměných datech od organizátorů. | Snímek 7, levý graf, první dva sloupce. Protokol: základní síť, pět dělení po výbojích. |
-| 5:16 | 10 | B | Učení se šumem to srazí na 2,64, ale na čistých datech pak vyjde 2,22. | Třetí sloupec; číslo 2,22 není na grafu, říkáš ho z paměti. |
+| 5:16 | 10 | B | Učení se šumem to srazí na 2,64 milimetru, ale na čistých datech pak vyjde 2,22. | Třetí sloupec; číslo 2,22 není na grafu, říkáš ho z paměti. |
 | 5:26 | 12 | B | Vybraný model na šumu selže, proto bychom použili síť učenou se šumem: osa 2,38 milimetru na třiceti odložených výbojích. | Řádek pod grafem (30 odložených výbojů; proud 4,65 kA je tam také). |
 | 5:38 | 16 | A | Druhá slabina: počet výbojů. S 30 učícími výboji je chyba osy 1,47, se všemi 119 je 0,38, ale s pevným počtem epoch. | Pravý graf, křivka podle počtu učících výbojů (základní síť, pět dělení). |
 | 5:54 | 15 | A | Třetí slabina: neobvyklé tvary. Vynechání rodiny tvarů zvedlo chybu nejvýš třikrát, ale opravdu neobvyklých výbojů je jen 18 ze 149 a samostatně jsme je neověřili. | Spodní text snímku. |
@@ -167,7 +167,7 @@ Obrázek: 07-closing.png
 * Slova základní síť a vybraný model nikdy nezaměňuj. Rychlost 0,0145 milisekundy patří základní síti, nikdy vybranému modelu.
 * Nečti text ze snímku. Dívej se na porotu, na obrazovku jen ukaž.
 * Před začátkem: prohlížeč otevřený na výboji 123, rychlost 1×, zastaveno; druhá záložka nebo adresa s #d=0 připravená; hlasitost a zrcadlení obrazovky vyzkoušené. Den předem přehrát výboje 123 a 0 a zapsat sem čísla, která prohlížeč ukazuje (viz Záloha ukázky).
-* Kontrolní časy: 0:38 snímek 2, 1:06 snímek 3, 1:30 snímek 4, 2:24 ukázka, 3:54 snímek 5, 4:29 snímek 6, 5:00 snímek 7, 6:16 snímek 8, 7:00 konec.
+* Kontrolní časy: 0:38 snímek 2, 1:06 snímek 3, 1:30 snímek 4, 2:24 ukázka, 3:52 snímek 5, 4:29 snímek 6, 5:00 snímek 7, 6:16 snímek 8, 7:00 konec.
 * Neznáš odpověď? Řekni: Tohle jsme neměřili. A pokračuj tím, co jsme měřili. Nikdy nehádej číslo.
 
 ## Záloha, když ukázka selže
@@ -329,12 +329,12 @@ Odpovídá B: Základní síť má 0,993 v pěti dělení, vybraný model 0,9916
 | Snímek 2: Data | 0:38 | 1:06 | 28 | 43 | 48 | 0 | 1.71 | 1.54 |
 | Snímek 3: Metoda | 1:06 | 1:30 | 24 | 38 | 40 | 0 | 1.67 | 1.58 |
 | Snímek 4: Výsledky | 1:30 | 2:24 | 54 | 81 | 91 | 0 | 1.69 | 1.50 |
-| Živá ukázka, mezi snímkem 4 a 5 | 2:24 | 3:54 | 90 | 114 | 122 | 13 | 1.58 | 1.48 |
-| Snímek 5: Rychlost, verdikt pro řízení | 3:54 | 4:29 | 35 | 55 | 59 | 0 | 1.69 | 1.57 |
-| Snímek 6: Meze | 4:29 | 5:00 | 31 | 46 | 52 | 0 | 1.68 | 1.48 |
-| Snímek 7: Co model neumí | 5:00 | 6:16 | 76 | 115 | 126 | 0 | 1.66 | 1.51 |
+| Živá ukázka, mezi snímkem 4 a 5 | 2:24 | 3:52 | 88 | 114 | 122 | 13 | 1.63 | 1.52 |
+| Snímek 5: Rychlost, verdikt pro řízení | 3:52 | 4:29 | 37 | 60 | 64 | 0 | 1.73 | 1.62 |
+| Snímek 6: Meze | 4:29 | 5:00 | 31 | 47 | 53 | 0 | 1.71 | 1.52 |
+| Snímek 7: Co model neumí | 5:00 | 6:16 | 76 | 116 | 127 | 0 | 1.67 | 1.53 |
 | Snímek 8: Závěr | 6:16 | 7:00 | 44 | 68 | 72 | 0 | 1.64 | 1.55 |
-| Total | 0:00 | 7:00 | 420 | 623 | 675 | 13 | 1.66 | 1.53 |
+| Total | 0:00 | 7:00 | 420 | 630 | 682 | 13 | 1.68 | 1.55 |
 
 Counting: words split on spaces; a token with a digit (and each `[[placeholder]]` word) counts twice because Czech numbers are read about 30 % slower than the count says. The target of 1.6 to 1.8 words per second holds on that count for every section; on the plain count the pace is 1.5. Silent seconds are the two "ticho" rows in the demo. This is still an estimate, not a stopwatch reading (M7): read the whole script aloud once and write the real times into `rehearsal-notes.md`.
 
