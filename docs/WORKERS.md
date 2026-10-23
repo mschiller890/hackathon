@@ -71,6 +71,12 @@ verdict, the limits, what the model cannot do. Use plain Czech without English w
 that do not exist yet stay marked `DOPLNIT`. (3) Later: material for the motion reel; the owner starts it after the
 results exist (not before Sat 08:00).
 
+### Decision Fri 18:00: one camera lane, two analyses moved to GPT
+The cloud session `cloud/camera` has real data (116,142 JPEGs, 115,872 matched to rows) and a first development run: R_mag_axis about 2 mm and `is_limited` 98 %
+against 0.38 mm and 99.3 % for the magnetic network, so the camera stays a bonus. The cloud session is the **single camera lane** (colour against black and white,
+shift and rotation, number of images, and the multimodal test on the limiter point). **GPT stops its own camera training after the current run** and takes the two
+analyses in "R next after the camera" (unusual shapes, uncertainty), which matter more for the jury. Lane V (third Claude) takes the video plan and the PDF of the deck.
+
 ### R next after the camera (Fri 17:40): two gaps found by the Lead's review
 1. **Unusual shapes (REQ-B08).** Hold out whole families of shapes instead of random discharges: for example train without the rare high triangularity
    discharges, or without the least elongated ones (cluster the discharges on elongation and triangularity, leave one cluster out), and measure how the
