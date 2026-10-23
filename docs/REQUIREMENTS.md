@@ -56,7 +56,7 @@ sensors".
 | REQ-B05 | Sensitivity of the camera model to camera position and rotation | TODO |
 | REQ-B06 | Robustness to measurement noise and linear drift (`equil_data_noisy.csv`, or drift generated as signal + noise + random coefficient per discharge times t) | IN PROGRESS: `results/ipp1-robustness-findings.md` section 1. The provided noisy file has white noise and no measurable drift; every drift result is synthetic |
 | REQ-B07 | Which image parts or magnetic measurements the model relies on | IN PROGRESS: top-k, IPR only and flux loops only in `results/ipp1-inputs.md`; no per sensor ranking should be presented |
-| REQ-B08 | Behaviour for a new, unusual shape that breaks the correlation between parameters | TODO (lane R: `analysis/ipp1_unusual_shapes.py` planned) |
+| REQ-B08 | Behaviour for a new, unusual shape that breaks the correlation between parameters | DONE, `results/ipp1-unusual-shapes.md` (error 1.0 to 3.0 times larger on a held-out family) |
 
 ## Constraints
 
