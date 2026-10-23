@@ -19,6 +19,7 @@ LOCKED 30 discharges: only for the winner, once, logged; the script refuses a se
 """
 import argparse
 import json
+import os
 import sys
 import time
 from datetime import datetime
@@ -184,7 +185,9 @@ def report(remeasure=False):
         verdict[a] = {"gain": gain, "abs_gain_mm": absg, "c1_gain_15pct": c1, "c2_above_seed_sd": c2, "c3_nothing_else_changes": c3, "c4_latency": c4, "passes": c1 and c2 and c3 and c4}
     half = all(verdict["arm2"]["gain"][t] >= 0.5 * verdict["arm1"]["gain"][t] for t in LIM_NAMES)
     winner = "arm2" if verdict["arm2"]["passes"] and (half or not verdict["arm1"]["passes"]) else "arm1" if verdict["arm1"]["passes"] else "none"
-    (OUT / "ipp1-limiter-swap.json").write_text(json.dumps({"winner": winner, "verdict": verdict, "mae_mm": mm, "latency": lat}, indent=1) + "\n")
+    prev = json.loads(stored.read_text()) if stored.exists() else {}
+    keep = {k: prev[k] for k in ("latency_post_hoc", "post_hoc_winner") if k in prev}    # written by --latency5
+    stored.write_text(json.dumps({"winner": winner, "verdict": verdict, "mae_mm": mm, "latency": lat, **keep}, indent=1) + "\n")
 
     f = lambda v: f"{mean(v):.3g} ({sd(v):.2g})"
     name = {"arm0": "arm 0, `cand`", "arm1": "arm 1, residual limiter network", "arm2": "arm 2, control: own network, weight 1.5, 100 epochs"}
@@ -205,6 +208,15 @@ def report(remeasure=False):
     L += ["", f"Arm 2 gets {', '.join(f'{100 * verdict['arm2']['gain'][t] / verdict['arm1']['gain'][t]:.0f} % of the gain of arm 1 on {t}' for t in LIM_NAMES) if verdict['arm1']['gain']['R_limiter'] > 0 and verdict['arm1']['gain']['Z_limiter'] > 0 else 'no gain to compare'}.",
           "", f"**Winner by the rule: {'arm 2 (the control: only a hyperparameter changes)' if winner == 'arm2' else 'arm 1 (the residual limiter network)' if winner == 'arm1' else 'nobody, `cand` stays'}.**"]
     old = MD.read_text()
+    ph = keep.get("latency_post_hoc")
+    if ph:
+        L += ["", "## Post hoc latency under the amended criterion 4 (5 runs at normal priority, each run measures the three arms one after the other)", "",
+              "| run | load average (1, 5, 15 min) | cand (ms) | arm 1 (ms) | arm 2 (ms) | arm 1 p99 (ms) |", "|---:|---|---:|---:|---:|---:|"]
+        L += [f"| {i + 1} | {r['load']} | {r['arm0']['median_ms']:.4f} | {r['arm1']['median_ms']:.4f} | {r['arm2']['median_ms']:.4f} | {r['arm1']['p99_ms']:.3f} |" for i, r in enumerate(ph["runs"])]
+        mo = ph["median_of_medians_ms"]
+        L += [f"| **median of the 5 runs** | | **{mo['arm0']:.4f}** | **{mo['arm1']:.4f}** | **{mo['arm2']:.4f}** | |", "",
+              f"Amended criterion 4: median latency of arm 1 over the runs {mo['arm1']:.4f} ms against the limit 0.1 ms: **{'passes' if ph['arm1_passes'] else 'does not pass'}**; arm 1 costs {mo['arm1'] / mo['arm0']:.1f} times as much as `cand` "
+              f"({mo['arm1']:.4f} against {mo['arm0']:.4f} ms). " + ("Criteria 1 to 3 hold as before, so arm 1 passes the amended rule (**post hoc**); the formal verdict of the original rule above is unchanged." if "post_hoc_winner" in keep else "")]
     head = old.split(MARKER)[0] + MARKER + "\n"
     reading = ("\n## Reading" + old.split("\n## Reading", 1)[1].split("\n## Locked", 1)[0]) if "\n## Reading" in old else ""   # hand-written, kept
     tail = ("\n## Locked" + old.split("\n## Locked", 1)[1]) if "\n## Locked" in old else ""
@@ -212,9 +224,29 @@ def report(remeasure=False):
     print("\n".join(L))
 
 
+def latency_post_hoc():
+    """The amended criterion 4: five runs of the latency measurement at normal priority, median over the runs; then the report is rewritten."""
+    runs = []
+    for _ in range(5):
+        run = latency()
+        runs.append({"load": [round(v, 1) for v in os.getloadavg()], **run})
+        print({a: round(run[a]["median_ms"], 4) for a in run}, flush=True)
+    med = {a: float(np.median([r[a]["median_ms"] for r in runs])) for a in ("arm0", "arm1", "arm2")}
+    stored = OUT / "ipp1-limiter-swap.json"
+    data = json.loads(stored.read_text())
+    data["latency_post_hoc"] = {"runs": runs, "median_of_medians_ms": med, "arm1_passes": med["arm1"] < 0.1}
+    v = data["verdict"]["arm1"]
+    if data["latency_post_hoc"]["arm1_passes"] and v["c1_gain_15pct"] and v["c2_above_seed_sd"] and v["c3_nothing_else_changes"]:
+        data["post_hoc_winner"] = "arm1"
+    stored.write_text(json.dumps(data, indent=1) + "\n")
+    report()
+
+
 def locked():
     dec = json.loads((OUT / "ipp1-limiter-swap.json").read_text())
-    winner = dec["winner"]
+    winner, post_hoc = dec["winner"], False
+    if winner == "none" and dec.get("post_hoc_winner"):       # accepted explicitly: the Lead amended criterion 4 after the first run (see the md)
+        winner, post_hoc = dec["post_hoc_winner"], True
     done = OUT / "ipp1-limiter-swap-locked.done"
     assert winner in ("arm1", "arm2"), "no winner: the locked set is not used"
     assert not done.exists(), f"the locked set was scored already ({done.read_text().strip()})"
@@ -232,7 +264,7 @@ def locked():
     mae = lambda Q, t: float(np.abs(Q[ml[:, F.J[t]], F.J[t]] - yl[ml[:, F.J[t]], F.J[t]]).mean() * F.UNIT[t][0])
     rows = {t: (mae(cached["clean"], t), mae(P, t)) for t in LIM_NAMES}
     other = [j for j in range(len(F.TARGETS)) if j not in LIM]
-    text = ["", f"## Locked 30 discharges, scored once ({datetime.now():%Y-%m-%d %H:%M}, winner {winner}, trained on the 119 development discharges, seed 0)", "",
+    text = ["", f"## Locked 30 discharges, scored once ({datetime.now():%Y-%m-%d %H:%M}, winner {winner}{' by the POST HOC amended criterion 4, not by the original rule' if post_hoc else ''}, trained on the 119 development discharges, seed 0)", "",
             "| target | `cand` (cached) | winner | change |", "|---|---:|---:|---:|"]
     text += [f"| {t} (mm) | {a:.3g} | {b:.3g} | {100 * (b / a - 1):+.0f} % |" for t, (a, b) in rows.items()]
     text += ["", f"All other columns identical to `cand`: {bool(np.array_equal(P[:, other], cached['clean'][:, other]))}. Pooled over the 8,761 rows of the 30 locked discharges (the limited rows have the target), one seed, clean inputs."]
@@ -246,6 +278,7 @@ if __name__ == "__main__":
     ap.add_argument("--threads", type=int, default=2)
     ap.add_argument("--report", action="store_true")
     ap.add_argument("--locked", action="store_true")
+    ap.add_argument("--latency5", action="store_true", help="the amended criterion 4: 5 runs of the latency measurement at normal priority")
     ap.add_argument("--remeasure", action="store_true", help="measure the latency again in --report")
     a = ap.parse_args()
     assert not F.SMOKE
@@ -253,5 +286,7 @@ if __name__ == "__main__":
         job(a.job, a.threads)
     if a.report:
         report(a.remeasure)
+    if a.latency5:
+        latency_post_hoc()
     if a.locked:
         locked()

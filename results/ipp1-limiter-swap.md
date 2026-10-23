@@ -52,6 +52,8 @@ measures all three arms one after the other); arm 1 passes if the median over th
 nothing else changes, winner choice, the locked set once and only for the winner). If arm 1 passes under the amended criterion it is scored once on the locked 30 discharges, and the script logs that this
 happened on the post hoc pass. If its locked result is worse than `cand` on either limiter target, it is not shipped. Shipping, if any, is a separate decision (a new recipe, not a change of `ipp1_final.py` here).
 
+*Times.* The Lead's message gave the time of the decision as about 20:25; the clock of the machine shows this paragraph committed at 20:16:38 (`git log`), before the five latency runs (about 20:17) and before the locked scoring (20:17, logged below). The order is right, the quoted time is only the Lead's estimate.
+
 <!-- RESULTS BELOW -->
 
 ## Results (119 development discharges, 5 folds x 3 seeds, pooled out-of-fold MAE in mm, mean (SD over seeds))
@@ -63,7 +65,7 @@ happened on the post hoc pass. If its locked result is worse than `cand` on eith
 | arm 2, control: own network, weight 1.5, 100 epochs | 5.11 (0.26) | 12.4 (0.33) | -5 % | -1 % | 0.331 / 0.404 | 0.0312 | 0.669 |
 
 Check of criterion 3: the largest absolute difference of any column other than `R_limiter` and `Z_limiter` to arm 0 is 0 (arm 1) and 0 (arm 2).
-Latency: random weights of the trained shapes, numpy path from 24 raw inputs (differences, standardisation, general network, ridge, gate, limiter network, de-standardisation), one core, load average [10.6, 10.2, 9.2] (`nice` job on a shared laptop, so the tails are pessimistic).
+Latency: random weights of the trained shapes, numpy path from 24 raw inputs (differences, standardisation, general network, ridge, gate, limiter network, de-standardisation), one core, load average [7.4, 8.9, 8.8] (`nice` job on a shared laptop, so the tails are pessimistic).
 
 | arm | gain >= 15 % on both | gain above seed SD | nothing else changes | latency < 0.1 ms | **passes** |
 |---|---|---|---|---|---|
@@ -74,11 +76,33 @@ Arm 2 gets -14 % of the gain of arm 1 on R_limiter, -3 % of the gain of arm 1 on
 
 **Winner by the rule: nobody, `cand` stays.**
 
+## Post hoc latency under the amended criterion 4 (5 runs at normal priority, each run measures the three arms one after the other)
+
+| run | load average (1, 5, 15 min) | cand (ms) | arm 1 (ms) | arm 2 (ms) | arm 1 p99 (ms) |
+|---:|---|---:|---:|---:|---:|
+| 1 | [8.3, 9.4, 9.0] | 0.0301 | 0.0929 | 0.0298 | 0.326 |
+| 2 | [8.3, 9.4, 9.0] | 0.0290 | 0.0872 | 0.0293 | 0.292 |
+| 3 | [8.3, 9.4, 9.0] | 0.0290 | 0.0871 | 0.0283 | 0.304 |
+| 4 | [8.4, 9.4, 9.0] | 0.0290 | 0.0862 | 0.0299 | 0.351 |
+| 5 | [8.4, 9.4, 9.0] | 0.0304 | 0.0982 | 0.0296 | 0.316 |
+| **median of the 5 runs** | | **0.0290** | **0.0872** | **0.0296** | |
+
+Amended criterion 4: median latency of arm 1 over the runs 0.0872 ms against the limit 0.1 ms: **passes**; arm 1 costs 3.0 times as much as `cand` (0.0872 against 0.0290 ms). Criteria 1 to 3 hold as before, so arm 1 passes the amended rule (**post hoc**); the formal verdict of the original rule above is unchanged.
+
 ## Reading
 
-- **By the rule as written: nobody wins, `cand` stays.** The locked 30 discharges were not used. Arm 1 fails only criterion 4 (latency), arm 2 fails criteria 1 and 2.
-- **The control answers the question it was built for: the loss weight 1.5 and the 100 epochs do not give the gain.** Arm 2 (own network, same weight and epochs) is 5 % and 1 % *worse* than `cand` (5.11 and 12.4 mm against 4.85 and 12.2 mm; the SD over seeds is 0.26 and 0.33 mm). Arm 1 differs from arm 2 in the whole network and its training (residual blocks, GELU, cosine schedule, Huber delta 0.36, learning rate 0.0028, weight decay 2e-6, dropout 0.05), so this does not say which of these carries the gain, only that it is not the weight and the epochs.
-- **Arm 1 is a real gain on the limiter point and nothing else moves.** `R_limiter` 4.85 to 2.98 mm and `Z_limiter` 12.2 to 7.44 mm, 39 % in both, with a gain of 1.9 and 4.8 mm against seed SDs of 0.14 to 0.45 mm; all other columns are identical to `cand` (difference 0) and the axis error in the limited rows is unchanged (0.331 and 0.404 mm). It is also the same 39 % that the full residual pipeline gave in `results/ipp1-search-dev.md`, so the gain comes from the limiter network.
-- **Latency is on the limit and depends on how the measurement is run, so the verdict hangs on it.** Five measurements of arm 1 (median, limited path, ms): 0.117 and 0.108 in the two runs of the report (the table shows the second one), both as `nice` jobs at load average 7 to 9, and 0.094, 0.089, 0.093 in three further runs of the same function at normal priority and load 13, made afterwards and not part of the rule. `cand` measured 0.042 and 0.040 in the report runs, 0.030, 0.038, 0.029 afterwards (0.027 ms in the quiet measurement of `results/ipp1-latency-shipped.md`). Arm 1 costs about three times as much as `cand` (a bigger limiter network). The runs at normal priority are below 0.1 ms and the `nice` runs above it, which fits an effect of priority and load, but it was not tested separately; on a quiet machine arm 1 would probably be near 0.08 ms, an extrapolation, not a measurement.
-- **What a change of the rule would mean.** If the latency criterion were applied to the median of repeated runs, arm 1 would pass all four criteria. That is a change made after seeing the result and has to be decided and logged as such (by the Lead, with the owner); this file does not make it. The control rules out the cheap explanation, so shipping arm 1 would change the limiter network, not a hyperparameter.
-- **Limits.** The residual network's hyperparameters came from a search that saw all 149 discharges, and the cross-validation here is inside the 119 development discharges; both arms are optimistic in the same way, but the gain over `cand` is an in-sample-selected configuration against a recipe designed on the same discharges. One configuration, 3 seeds, 5 folds.
+- **Two verdicts, both kept.** By the original rule as written: nobody wins (arm 1 failed criterion 4 in the two `nice` runs, 0.117 and 0.108 ms). By the post hoc amended criterion 4 (5 runs at normal priority, median 0.087 ms): arm 1 passes all four criteria. The amendment was made after the first result was known and is marked as such above; it was written and pushed before the new measurements and the locked scoring.
+- **Development (119 discharges, 5 folds x 3 seeds):** `R_limiter` 4.85 to 2.98 mm and `Z_limiter` 12.2 to 7.44 mm (39 % both), gain 1.9 and 4.8 mm against seed SDs of 0.14 to 0.45 mm. **Locked 30 discharges, scored once, seed 0:** `R_limiter` 4.55 to 3.26 mm (-28 %) and `Z_limiter` 8.35 to 5.55 mm (-34 %). Not worse on either target, so the post hoc condition for shipping is met. The locked gain is smaller than in development (28 and 34 % against 39 %); it is one seed, and the seed SD of `cand` itself on the locked set is about 0.3 and 0.5 mm (`results/ipp1-final-seeds.md`), smaller than the gains of 1.3 and 2.8 mm.
+- **What it does NOT change:** every other column is identical to `cand` (difference 0 on development and on the locked set): axis, X point, strike points, plasma current, `is_limited`, and the axis error in the limited rows (0.331 and 0.404 mm in development). The gate that decides when the limiter network answers is that of `cand`.
+- **What it costs:** the limiter network is the residual network of the best search trial (width 192, depth 4 against 256-256-128), about three times the cost of `cand`'s in the limited path: median 0.087 ms against 0.029 ms (5 runs at normal priority, load average 7 to 9, Apple M5, one core, random weights), still far below the budget of 1 to 10 ms; the diverted path is unchanged (general network only, 0.015 ms). Shipping it changes the limiter network, not a hyperparameter, and would be a new recipe next to `cand`.
+- **The control (arm 2) found no gain** from the loss weight 1.5 and the 100 epochs (+5 % and +1 % worse), so those two settings are not the reason; which other part of the residual network's configuration carries the gain (residual blocks, GELU, cosine schedule, Huber delta 0.36, learning rate 0.0028, weight decay 2e-6, dropout 0.05) was not isolated.
+- **Limits.** The hyperparameters of the residual network come from a search that saw all 149 discharges, including the locked 30, and the design of `cand` was likewise made on all 149 (`docs/review-findings-2.md`, H2); so the locked number is not clean evidence for either model, only a check that the development gain did not vanish. One configuration, one locked seed, latency of random weights.
+
+## Locked 30 discharges, scored once (2026-10-23 20:17, winner arm1 by the POST HOC amended criterion 4, not by the original rule, trained on the 119 development discharges, seed 0)
+
+| target | `cand` (cached) | winner | change |
+|---|---:|---:|---:|
+| R_limiter (mm) | 4.55 | 3.26 | -28 % |
+| Z_limiter (mm) | 8.35 | 5.55 | -34 % |
+
+All other columns identical to `cand`: True. Pooled over the 8,761 rows of the 30 locked discharges (the limited rows have the target), one seed, clean inputs.
