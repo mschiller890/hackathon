@@ -1,11 +1,20 @@
 # Plasma shape viewer
 
-An offline page that shows, for one discharge of the COMPASS data, the true plasma shape against the shape predicted by the network, with the
-parameter table, the error over time, magnifier tiles around the key points and a "measurement noise" mode (plain against hardened network).
+An offline page that shows, for one discharge of the COMPASS data, the true plasma shape against the prediction of the **shipped model** (`cand` of `analysis/ipp1_final.py`, see `results/ipp1-final.md`), with the
+parameter table, the error over time, magnifier tiles around the key points, the latency of the shipped pair and a "measurement noise" mode (the shipped model trained on clean data
+against the baseline network trained with noise, both on the provided noisy inputs).
 
 **CON-001: the page holds IPP data. It never goes to a public site, a deployment service or a chat.** `data.js` and `dist/` are gitignored.
 
 ## Build from a fresh checkout
+
+**Default (shipped model).** `python analysis/make_all.py --missing` builds the cache `out/ipp1-final-cache/` (the 21 `ipp1_final.py --job` steps), then `python analysis/export_viewer_data.py`
+reads it together with `results/ipp1-latency-shipped.md` and writes `viewer/data.js` (`"model": "shipped"`): the 30 locked discharges first (ids in `results/ipp1-locked-test-ids.txt`),
+whose predictions come from the model trained on the 119 development discharges, then the 119 development discharges out of fold. The model predicts 16 targets, so **no predicted outline is
+drawn, only the predicted points**. The latency tile, the CPU name and the per-discharge axis errors in the picker are read from files, none is typed into the page. Then `python viewer/build.py`
+for the one-file `viewer/dist/index.html`.
+
+**Fallback (baseline network, with the predicted outline).** Without the cache the exporter uses the baseline network's out-of-fold predictions, steps 1 to 5 below.
 
 Set `HACKATHON_HOME` to the folder that holds `data/` and `repo/`, and use the environment of the main README (Python 3.12, pandas).
 
@@ -24,10 +33,13 @@ Set `HACKATHON_HOME` to the folder that holds `data/` and `repo/`, and use the e
 
 - Address options: `index.html#d=<discharge>&f=<0..1>&noise=1&play=1` (discharge, position in the discharge, noise mode, autoplay).
 - Space plays, left and right arrows step, Home and End jump; clicking or dragging in the error chart seeks.
-- Predictions are out of fold: every discharge was predicted by a network that never saw it.
+- Every prediction is of a model that never saw the discharge: the 30 set-aside discharges (first in the picker) by the model trained on the other 119, the 119 development discharges out of fold.
+  "Set aside" is not "unseen by the idea": the recipe was designed on cross-validation over all 149 discharges (`docs/review-findings-2.md`, H2).
+- The axis error in the picker is the mean distance between the true and the predicted magnetic axis over the rows the viewer shows (every third row), so it can differ slightly from a mean over all rows.
 
 ## Known limits (show them, do not hide them)
 
 - Start and end of a discharge are less reliable; the opening frame is a divertor mid-discharge frame on purpose.
-- Limited frames: the predicted outline can be off by 25 to 30 mm at the inner side (`Z_inner`, inner squareness); the limiter point is the weakest target.
+- The shipped model has no predicted outline (fallback mode: on limited frames the predicted outline can be off by 25 to 30 mm at the inner side). The limiter point is the weakest target in both modes.
+- In the noise mode the red series is the shipped model trained on clean data, which fails on noisy inputs (hundreds of mm); the green series is the baseline network trained with noise.
 - Tested in Chrome only (the page uses CSS `:has` and `color-mix`).

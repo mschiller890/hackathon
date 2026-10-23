@@ -119,7 +119,7 @@ tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-s
   <span class="pill">IPP úloha 1 · ČVUT ML Hackathon 2026</span>
 </div>
 <div class="toolbar">
-  <div class="group"><label class="k" for="discharge">Výboj</label><select id="discharge" style="width:300px" title="Chyba osy = průměrná chyba polohy magnetické osy ve výboji; lim. = podíl času v limiterové konfiguraci"></select></div>
+  <div class="group"><label class="k" for="discharge">Výboj</label><select id="discharge" style="width:300px" title="Chyba osy = průměrná vzdálenost skutečné a předpovězené magnetické osy ve výboji, z těch snímků, které viewer ukazuje (každý třetí řádek dat); lim. = podíl času v limiterové konfiguraci"></select></div>
   <div class="group">
     <span class="seg">
       <button id="first" title="Na začátek (Home)"><svg viewBox="0 0 14 14"><rect x="1" y="2" width="2" height="10"/><polygon points="12,2 4,7 12,12"/></svg></button>
@@ -135,7 +135,7 @@ tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-s
 </div>
 <main>
   <div class="left">
-    <section class="panel stagepanel"><div class="ph">Tvar plazmatu v řezu tokamakem<span class="sp" id="cfgTag"></span><div class="chips"><label class="chip" style="--c:#0f172a"><input type="checkbox" id="showTrue" checked><span class="g"></span>Skutečnost</label><label class="chip" style="--c:#e5502f"><input type="checkbox" id="showPred" checked><span class="g dash"></span>Předpověď</label><label class="chip" id="chipNoise" style="--c:#0b8f7c"><input type="checkbox" id="showNoise"><span class="g dot"></span>Šum měření</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showPts" checked><span class="g dot"></span>Body</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showGrid" checked><span class="g grid"></span>Mřížka</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showLens" checked><span class="g dot"></span>Lupa</label><button id="export" title="Uložit aktuální průřez jako obrázek (PNG)" aria-label="Uložit PNG"><svg viewBox="0 0 14 14"><path d="M6 1h2v6l2.2-2.2 1.4 1.4L7 10.8 2.4 6.2l1.4-1.4L6 7V1Z"/><rect x="1.5" y="11" width="11" height="2" rx="1"/></svg></button></div></div><div class="legendbar" id="legendbar"></div><div class="stagebody"><aside class="rail" id="rail"></aside><div class="pb"><canvas id="stage"></canvas></div></div></section>
+    <section class="panel stagepanel"><div class="ph">Tvar plazmatu v řezu tokamakem<span class="sp" id="cfgTag"></span><div class="chips"><label class="chip" style="--c:#0f172a"><input type="checkbox" id="showTrue" checked><span class="g"></span>Skutečnost</label><label class="chip" style="--c:#e5502f"><input type="checkbox" id="showPred" checked><span class="g dash"></span><span id="predChip">Předpověď</span></label><label class="chip" id="chipNoise" style="--c:#0b8f7c"><input type="checkbox" id="showNoise"><span class="g dot"></span>Šum měření</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showPts" checked><span class="g dot"></span>Body</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showGrid" checked><span class="g grid"></span>Mřížka</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showLens" checked><span class="g dot"></span>Lupa</label><button id="export" title="Uložit aktuální průřez jako obrázek (PNG)" aria-label="Uložit PNG"><svg viewBox="0 0 14 14"><path d="M6 1h2v6l2.2-2.2 1.4 1.4L7 10.8 2.4 6.2l1.4-1.4L6 7V1Z"/><rect x="1.5" y="11" width="11" height="2" rx="1"/></svg></button></div></div><div class="legendbar" id="legendbar"></div><div class="stagebody"><aside class="rail" id="rail"></aside><div class="pb"><canvas id="stage"></canvas></div></div></section>
     <section class="panel"><div class="ph">Chyba předpovědi v čase <select id="param" aria-label="Parametr"></select><span class="sp" id="chartStats"></span></div><div class="pb"><canvas id="chart"></canvas></div></section>
   </div>
   <section class="panel tablepanel">
@@ -154,6 +154,17 @@ const $ = (s) => document.querySelector(s);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const COL = { true: css("--true"), pred: css("--pred"), grid: css("--grid"), muted: css("--muted"), band: css("--band"), border: css("--border") };
+// The prediction is the shipped model (data.js made from the cache of ipp1_final.py) or, as a fallback, the baseline network (out-of-fold predictions).
+const SHIPPED = D.model === "shipped";
+const TXT = SHIPPED
+  ? { pred: "Vybraný model", chip: "Vybraný model", a: "Vybraný model (učený bez šumu), zašuměná měření", b: "Model učený se šumem, zašuměná měření", an: "vybraný model", bn: "model se šumem", as: "vybraný", bs: "se šumem",
+      legend: "Černá = skutečný tvar plazmatu, červeně = předpověď vybraného modelu z 24 magnetických čidel (body; obrys model nepředpovídá)",
+      legendNoise: "Černá = skutečný tvar, barevně = dva modely na zašuměných měřeních", lens: "Lupa: kde se model liší", axisTile: "Chyba osy, vybraný model", th: "Vybraný model",
+      limWarn: "Limiterový snímek: bod dotyku s limiterem je nejméně přesná veličina." }
+  : { pred: "Předpověď sítě", chip: "Předpověď", a: "Běžná síť, zašuměná měření", b: "Odolná síť, zašuměná měření", an: "běžná síť", bn: "odolná síť", as: "běžná", bs: "odolná",
+      legend: "Černá = skutečný tvar plazmatu, červeně = předpověď sítě z 24 magnetických čidel", legendNoise: "Černá = skutečný tvar, barevně = dvě sítě na zašuměných měřeních",
+      lens: "Lupa: kde se síť liší", axisTile: "Chyba polohy osy", th: "Předpověď", limWarn: "Limiterový snímek: okraj je méně jistý, vnitřní strana se může lišit o 25 až 30 mm." };
+$("#predChip").textContent = TXT.chip;
 const MINUS = "−";
 function fmt(v, d) {
   if (v == null || Number.isNaN(v)) return "–";
@@ -161,12 +172,12 @@ function fmt(v, d) {
   return s.replace(".", ",").replace("-", MINUS);
 }
 const fmtSigned = (v, d) => { if (v == null) return "–"; const s = fmt(v, d); return s[0] === MINUS || /^0[,0]*$/.test(s) ? s : "+" + s; };
-const LATENCY_MS = 0.0145; // median per sample, one CPU thread, results/ipp1-latency.md
+const LAT = D.latency || { medianMs: 0.0145, cpu: "", source: "results/ipp1-latency.md" }; // the shipped pair (results/ipp1-latency-shipped.md) or the baseline network
 const show = { true: true, pred: true, pts: true, grid: true };
 const state = { di: 0, i: 0, pos: 0, playing: false, speed: 1, param: "axis", hover: null, noise: false };
 const TEAL = "#0b8f7c";
 // Prediction sets drawn right now: [column suffix, colour, label]. The noise mode compares a plain and a hardened network on noisy inputs.
-const sets = () => (state.noise ? [["_clean_on_noisy", COL.pred, "Běžná síť, zašuměná měření"], ["_hardened_on_noisy", TEAL, "Odolná síť, zašuměná měření"]] : [["_pred", COL.pred, "Předpověď sítě"]]);
+const sets = () => (state.noise ? [["_clean_on_noisy", COL.pred, TXT.a], ["_hardened_on_noisy", TEAL, TXT.b]] : [["_pred", COL.pred, TXT.pred]]);
 const sfxOf = (pred) => (pred === true ? "_pred" : pred || "");
 
 // Rows of the table: group, label, column, factor, unit, decimals.
@@ -287,9 +298,9 @@ function drawLegendBar() {
     ? `<svg viewBox="0 0 22 12"><line x1="1" y1="6" x2="21" y2="6" stroke="${col}" stroke-width="2.2" ${k === "dash" ? 'stroke-dasharray="6 4"' : ""}/></svg>`
     : `<svg viewBox="0 0 22 12"><g transform="translate(11 6)" stroke="#64748b" stroke-width="1.6" fill="none">${{ circle: '<circle r="4.2"/>', x: '<path d="M-4-4L4 4M4-4L-4 4"/>', tri: '<path d="M-4.4-3.6H4.4L0 4Z"/>', square: '<rect x="-4" y="-4" width="8" height="8"/>' }[k]}</g></svg>`;
   const items = [["line", "Skutečnost", COL.true], ...sets().map(([, col, label]) => ["dash", label, col]), ["circle", "magnetická osa"], ["x", "X-bod"], ["tri", "strike point"], ["square", "bod dotyku s limiterem"]];
-  $("#legendbar").innerHTML = `<span><b>${state.noise ? "Černá = skutečný tvar, barevně = dvě sítě na zašuměných měřeních" : "Černá = skutečný tvar plazmatu, červeně = předpověď sítě z 24 magnetických čidel"}</b></span>` +
+  $("#legendbar").innerHTML = `<span><b>${state.noise ? TXT.legendNoise : TXT.legend}</b></span>` +
     items.map(([k, label, col]) => `<span class="it">${glyph(k, col)}${label}</span>`).join("") +
-    (isLimited(cur().c, state.i, "") ? `<span class="it warn">Limiterový snímek: okraj je méně jistý, vnitřní strana se může lišit o 25 až 30 mm.</span>` : "");
+    (isLimited(cur().c, state.i, "") ? `<span class="it warn">${TXT.limWarn}</span>` : "");
 }
 // Magnifier tiles: the true point in the centre, the predicted points around it, the window sized to the error.
 function drawLenses(ctx) {
@@ -305,7 +316,7 @@ function drawLenses(ctx) {
   const rowsOf = (n) => Math.ceil(n / cols), blockH = (s) => 20 + s + 14 * (ps.length + (s < 130 ? 1 : 0)) + 10;
   let list = tiles;
   while (list.length > 1 && rowsOf(list.length) * blockH(side) > v.h - 44) { if (side > 96) side -= 8; else list = list.slice(0, list.length - 1); }
-  ctx.font = "600 12px -apple-system, 'SF Pro Text', 'Segoe UI', Arial, sans-serif"; ctx.fillStyle = "#101d42"; ctx.textAlign = "left"; ctx.fillText("Lupa: kde se síť liší", freeX, v.y0 + 10);
+  ctx.font = "600 12px -apple-system, 'SF Pro Text', 'Segoe UI', Arial, sans-serif"; ctx.fillStyle = "#101d42"; ctx.textAlign = "left"; ctx.fillText(TXT.lens, freeX, v.y0 + 10);
   list.forEach((q, n) => {
     const bx = freeX + (n % cols) * (side + 10), by = v.y0 + 22 + Math.floor(n / cols) * blockH(side);
     const errs = q.pr.map(([r, z]) => (r == null || z == null ? 0 : Math.hypot(r - q.tr, z - q.tz) * 1000)), want = Math.max(...errs, 0.2) * 1.6;
@@ -370,7 +381,9 @@ function drawStage() {
 // ---- table -------------------------------------------------------------------------------------
 function axisErr(c, i, sfx = "_pred") { return Math.hypot(c.R_mag_axis[i] - c["R_mag_axis" + sfx][i], c.Z_mag_axis[i] - c["Z_mag_axis" + sfx][i]) * 1000; }
 const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
-const latencyTile = () => `<div class="kpi ok"><span>Doba jednoho odhadu</span><b>${fmt(LATENCY_MS, 4)}<small>ms</small></b><em>medián, 1 jádro CPU</em></div>`;
+const latencyTile = () => D.latency
+  ? `<div class="kpi ok" title="Od 24 vstupů po 16 výstupů, limitové plazma (obě sítě, nejpomalejší cesta). Divertor: ${fmt(LAT.divertedMedianMs, 3)} ms. 99 % odhadů do ${fmt(LAT.p99Ms, 2)} ms na vytíženém notebooku. Zdroj: ${LAT.source}"><span>Doba odhadu, vybraný model</span><b>${fmt(LAT.medianMs, 3)}<small>ms</small></b><em>medián, 1 jádro, ${LAT.cpu}</em></div>`
+  : `<div class="kpi ok"><span>Doba jednoho odhadu</span><b>${fmt(LAT.medianMs, 4)}<small>ms</small></b><em>medián, 1 jádro CPU</em></div>`;
 function drawRail() {
   const c = cur().c, i = state.i, d = cur(), lt = isLimited(c, i, false), lp = isLimited(c, i, true);
   const e = d.c.R_mag_axis.map((_, n) => axisErr(d.c, n)), mean = e.reduce((a, b) => a + b, 0) / e.length;
@@ -386,24 +399,24 @@ function drawRail() {
     const cur_ = (s) => { const a = value(c, i, "plasma_current", ""), b = value(c, i, "plasma_current", s); return a == null || b == null ? null : Math.abs(b - a) * 1e-3; };
     const ax = (s) => d.c.R_mag_axis.map((_, n) => axisErr(d.c, n, s));
     $("#rail").innerHTML =
-      tile("Chyba osy, běžná síť", fmt(axisErr(c, i, "_clean_on_noisy"), 2), "mm", `ve výboji Ø ${fmt(avg(ax("_clean_on_noisy")), 2)} mm`, true) +
-      tile("Chyba osy, odolná síť", fmt(axisErr(c, i, "_hardened_on_noisy"), 2), "mm", `ve výboji Ø ${fmt(avg(ax("_hardened_on_noisy")), 2)} mm`, "ok") +
-      tile("Chyba " + key[2] + ", běžná", fmt(kerrOf("_clean_on_noisy"), 1), "mm", "zašuměná měření", true) +
-      tile("Chyba " + key[2] + ", odolná", fmt(kerrOf("_hardened_on_noisy"), 1), "mm", "zašuměná měření", "ok") +
-      tile("Chyba proudu", `${fmt(cur_("_clean_on_noisy"), 1)} / ${fmt(cur_("_hardened_on_noisy"), 1)}`, "kA", "běžná / odolná") + latencyTile();
+      tile("Chyba osy, " + TXT.an, fmt(axisErr(c, i, "_clean_on_noisy"), 2), "mm", `ve výboji Ø ${fmt(avg(ax("_clean_on_noisy")), 2)} mm`, true) +
+      tile("Chyba osy, " + TXT.bn, fmt(axisErr(c, i, "_hardened_on_noisy"), 2), "mm", `ve výboji Ø ${fmt(avg(ax("_hardened_on_noisy")), 2)} mm`, "ok") +
+      tile("Chyba " + key[2] + ", " + TXT.as, fmt(kerrOf("_clean_on_noisy"), 1), "mm", "zašuměná měření", true) +
+      tile("Chyba " + key[2] + ", " + TXT.bs, fmt(kerrOf("_hardened_on_noisy"), 1), "mm", "zašuměná měření", "ok") +
+      tile("Chyba proudu", `${fmt(cur_("_clean_on_noisy"), 1)} / ${fmt(cur_("_hardened_on_noisy"), 1)}`, "kA", TXT.as + " / " + TXT.bs) + latencyTile();
     return;
   }
   const kt = [value(c, i, key[0], false), value(c, i, key[1], false)], kp = [value(c, i, key[0], true), value(c, i, key[1], true)];
   const kerr = kt[0] == null || kp[0] == null || kt[1] == null || kp[1] == null ? null : Math.hypot(kp[0] - kt[0], kp[1] - kt[1]) * 1000;
   $("#rail").innerHTML =
-    tile("Chyba polohy osy", fmt(axisErr(c, i), 2), "mm", `ve výboji Ø ${fmt(mean, 2)} mm`, true) +
+    tile(TXT.axisTile, fmt(axisErr(c, i), 2), "mm", `ve výboji Ø ${fmt(mean, 2)} mm`, true) +
     tile("Chyba " + key[2], kerr == null ? "–" : fmt(kerr, 1), "mm", lt === lp ? "konfigurace správně" : "konfigurace chybně", true) +
     pair("plasma_current", 1e-3, 1, "Proud plazmatem", "kA") + pair("elongation", 1, 3, "Elongace κ", "") + pair("triangularity", 1, 3, "Triangularita δ", "") + latencyTile();
 }
 const unitOf = (g) => { const u = [...new Set(ROWS.filter((r) => r[0] === g).map((r) => r[4]))]; return u.length === 1 && u[0] ? ` (${u[0]})` : ""; };
 function drawTable() {
   const c = cur().c, i = state.i, d = cur(), out = [];
-  $("#th4").textContent = state.noise ? "Δ běžná síť" : "Předpověď"; $("#th5").textContent = state.noise ? "Δ odolná síť" : "Δ";
+  $("#th4").textContent = state.noise ? "Δ " + TXT.an : TXT.th; $("#th5").textContent = state.noise ? "Δ " + TXT.bn : "Δ";
   if (state.noise) {
     const A = "_clean_on_noisy", B = "_hardened_on_noisy", lt = isLimited(c, i, ""), la = isLimited(c, i, A), lb = isLimited(c, i, B);
     out.push(`<tr class="grp"><td colspan="5">Konfigurace</td></tr><tr><td>Typ plazmatu</td><td class="u"></td><td class="n t">${lt ? "limiterové" : "divertorové"}</td><td class="n p">${lt === la ? "shoda" : "rozdíl"}</td><td class="n k">${lt === lb ? "shoda" : "rozdíl"}</td></tr>`);
@@ -416,8 +429,8 @@ function drawTable() {
     }
     $("#rows").innerHTML = out.join("");
     const ea = d.c.R_mag_axis.map((_, n) => axisErr(d.c, n, A)), eb = d.c.R_mag_axis.map((_, n) => axisErr(d.c, n, B));
-    $("#sum").innerHTML = `<div><span>Chyba osy v tomto snímku:</span> běžná <b>${fmt(axisErr(c, i, A), 2)}</b>, odolná <b>${fmt(axisErr(c, i, B), 2)} mm</b></div>` +
-      `<div><span>Ve výboji ${d.id}, průměr:</span> běžná <b>${fmt(avg(ea), 2)}</b>, odolná <b>${fmt(avg(eb), 2)} mm</b></div>`;
+    $("#sum").innerHTML = `<div><span>Chyba osy v tomto snímku:</span> ${TXT.as} <b>${fmt(axisErr(c, i, A), 2)}</b>, ${TXT.bs} <b>${fmt(axisErr(c, i, B), 2)} mm</b></div>` +
+      `<div><span>Ve výboji ${d.id}, průměr:</span> ${TXT.as} <b>${fmt(avg(ea), 2)}</b>, ${TXT.bs} <b>${fmt(avg(eb), 2)} mm</b></div>`;
     return;
   }
   const lt = isLimited(c, i, false), lp = isLimited(c, i, true);
@@ -484,7 +497,7 @@ function drawChart() {
   ctx.fillText("relativní čas ve výboji", L + W / 2, f.h - 3);
   const x = Math.round(px(state.i)) + 0.5; ctx.strokeStyle = "#101d42"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + H); ctx.stroke();
   const stat = (q) => { const a = q.s.filter((v) => v != null).map(Math.abs); return a.length ? `${fmt(avg(a), 2)}` : "–"; };
-  $("#chartStats").textContent = state.noise ? `${signed ? "Δ = předpověď − skutečnost · " : ""}průměr |Δ|: běžná síť ${stat(ss[0])} · odolná síť ${stat(ss[1])}`
+  $("#chartStats").textContent = state.noise ? `${signed ? "Δ = předpověď − skutečnost · " : ""}průměr |Δ|: ${TXT.an} ${stat(ss[0])} · ${TXT.bn} ${stat(ss[1])}`
     : `${signed ? "Δ = předpověď − skutečnost · " : ""}průměr |Δ| ${stat(ss[0])} · největší |Δ| ${fmt(Math.max(...valid.map(Math.abs)), 1)}`;
 }
 function chartSeek(ev) {
@@ -505,8 +518,8 @@ window.addEventListener("mouseup", () => (dragging = false));
 // ---- controls ----------------------------------------------------------------------------------
 function status() {
   const d = cur(), c = d.c, i = state.i;
-  $("#sbFrame").textContent = `Výboj ${d.id} | validační skupina ${d.fold + 1} z 5 | snímek ${i + 1} / ${d.n}`;
-  $("#sbModel").textContent = state.noise ? "Vstupy: zašuměná měření (šum a drift), výboj nebyl v učení" : "Předpověď: neuronová síť, výboj nebyl v učení";
+  $("#sbFrame").textContent = `Výboj ${d.id} | ` + (SHIPPED ? (d.locked ? "odložený výboj, nebyl v učení" : `vývojový výboj, křížová validace ${d.fold + 1} z 5`) : `validační skupina ${d.fold + 1} z 5`) + ` | snímek ${i + 1} / ${d.n}`;
+  $("#sbModel").textContent = state.noise ? "Vstupy: zašuměná měření organizátorů (bílý šum), výboj nebyl v učení" : (SHIPPED ? "Předpověď: vybraný model, výboj nebyl v učení" : "Předpověď: neuronová síť, výboj nebyl v učení");
   $("#sbWall").textContent = D.wall ? "Obrys stěny: načten" : "Obrys stěny: nenačten";
   $("#cfgTag").textContent = `${isLimited(c, i, false) ? "limiterová" : "divertorová"} konfigurace · t = ${fmt(c.time[i], 3)}`;
   $("#tbox").value = `t = ${fmt(c.time[i], 3)}`;
@@ -514,12 +527,18 @@ function status() {
 function render() { if (!state.playing) state.pos = state.i; drawLegendBar(); drawStage(); drawRail(); drawTable(); drawChart(); status(); $("#slider").value = state.i; $("#slider").style.setProperty("--p", (cur().n > 1 ? (100 * state.i) / (cur().n - 1) : 0) + "%"); }
 function selectDischarge(idx) { state.di = idx; state.i = 0; $("#slider").max = cur().n - 1; $("#discharge").value = idx; render(); }
 function init() {
-  $("#discharge").innerHTML = D.discharges.map((d, k) => `<option value="${k}">Výboj ${d.id} · osa ${fmt(d.axisErrMm, 1)} mm · ${Math.round(d.limitedShare * 100)} % lim.</option>`).join("");
+  const opt = (d, k) => `<option value="${k}">Výboj ${d.id} · osa ${fmt(d.axisErrMm, d.axisErrMm < 1 ? 2 : 1)} mm · ${Math.round(d.limitedShare * 100)} % lim.</option>`;
+  const nLocked = D.discharges.filter((d) => d.locked).length;
+  // The shipped model: the discharges that were set aside come first (they are sorted first in data.js), then the development discharges (out of fold).
+  $("#discharge").innerHTML = SHIPPED
+    ? `<optgroup label="${nLocked} odložených výbojů (model je při učení neviděl)">${D.discharges.map((d, k) => (d.locked ? opt(d, k) : "")).join("")}</optgroup>` +
+      `<optgroup label="${D.discharges.length - nLocked} vývojových výbojů (předpověď z křížové validace)">${D.discharges.map((d, k) => (d.locked ? "" : opt(d, k))).join("")}</optgroup>`
+    : D.discharges.map(opt).join("");
   $("#param").innerHTML = PARAMS.map(([v, l]) => `<option value="${v}">${l}</option>`).join("");
   const q = new URLSearchParams(location.hash.slice(1));
   const byId = q.has("d") ? D.discharges.findIndex((d) => d.id === +q.get("d")) : -1;
   // Open on a typical divertor discharge, in the middle of its longest divertor stretch (not on the start or end frames).
-  const div = D.discharges.filter((d) => d.limitedShare < 0.6), med = [...div].sort((a, b) => a.axisErrMm - b.axisErrMm)[Math.floor(div.length / 2)];
+  const div = D.discharges.filter((d) => d.limitedShare < 0.6 && (!SHIPPED || d.locked)), med = [...div].sort((a, b) => a.axisErrMm - b.axisErrMm)[Math.floor(div.length / 2)];
   const midFrame = (d) => { let best = [0, 0], s0 = null; for (let k = 0; k <= d.n; k++) { const dv = k < d.n && d.c.is_limited[k] < 0.5; if (dv && s0 == null) s0 = k; if (!dv && s0 != null) { if (k - s0 > best[1] - best[0]) best = [s0, k]; s0 = null; } } return Math.floor((best[0] + best[1]) / 2); };
   layoutStage(); selectDischarge(byId >= 0 ? byId : D.discharges.indexOf(med));
   if (byId < 0 && !q.get("f")) { state.i = midFrame(cur()); render(); }

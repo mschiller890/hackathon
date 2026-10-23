@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Capture stills and a short clip of the viewer through headless Chrome (DevTools protocol), then cut the clip with ffmpeg.
 
-    ~/.venvs/hackathon/bin/python viewer/record.py --stills presentation/assets --clip out/viewer-demo.mp4 --discharge 123
+    ~/.venvs/hackathon/bin/python viewer/record.py --stills presentation/assets --clip out/viewer-demo.mp4
 
 Needs viewer/data.js (analysis/export_viewer_data.py) and ffmpeg. The images show one discharge of the IPP data: keep them
 inside the team (CON-001). The clip is not committed.
@@ -20,9 +20,18 @@ import websocket
 
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 PAGE = Path(__file__).resolve().parent / "index.html"
-# name, discharge, position in the discharge (0 to 1), noise mode
-STILLS = [("viewer-start-limited", 123, 0.03, False), ("viewer-middle-divertor", 123, 0.5, False),
-          ("viewer-rough-end", 11, 1.0, False), ("viewer-noise", 4, 0.45, True)]
+# name, discharge rule, position in the discharge (0 to 1), noise mode. The rules are evaluated on the data in the page, so no id is typed by hand:
+#   typical    the discharge with the lower median of the mean axis error among the discharges that were set aside (shipped model) or among all
+#   worst_end  the one with the largest axis error on its last frame, the honest weak point
+STILLS = [("viewer-start-limited", "typical", 0.03, False), ("viewer-middle-divertor", "typical", 0.5, False),
+          ("viewer-rough-end", "worst_end", 1.0, False), ("viewer-noise", "typical", 0.45, True)]
+CHOOSE = """(() => {
+  const pool = D.model === "shipped" ? D.discharges.filter((d) => d.locked) : D.discharges;
+  const sorted = [...pool].sort((a, b) => a.axisErrMm - b.axisErrMm || a.id - b.id);
+  const last = (d) => { const k = d.n - 1, c = d.c; return Math.hypot(c.R_mag_axis[k] - c.R_mag_axis_pred[k], c.Z_mag_axis[k] - c.Z_mag_axis_pred[k]) * 1000; };
+  const worst = [...pool].sort((a, b) => last(b) - last(a))[0], typ = sorted[Math.floor((sorted.length - 1) / 2)];
+  return { typical: typ.id, worst_end: worst.id, info: { typical: [typ.id, typ.axisErrMm], worst_end: [worst.id, last(worst), worst.axisErrMm] } };
+})()"""
 
 
 class Page:
@@ -74,20 +83,22 @@ class Page:
 ap = argparse.ArgumentParser()
 ap.add_argument("--stills", help="folder for the still images")
 ap.add_argument("--clip", help="output mp4")
-ap.add_argument("--discharge", type=int, default=123)
+ap.add_argument("--discharge", type=int, default=None, help="discharge of the clip; default the typical one")
 ap.add_argument("--seconds", type=float, default=15)
 args = ap.parse_args()
 page = Page()
 try:
+    chosen = page.js(CHOOSE)
+    print("chosen discharges (id, mean axis error mm; for worst_end also the last-frame error):", chosen["info"])
     if args.stills:
         Path(args.stills).mkdir(parents=True, exist_ok=True)
-        for name, d, frac, noise in STILLS:
-            page.show(d, noise, frac)
+        for name, rule, frac, noise in STILLS:
+            page.show(chosen[rule], noise, frac)
             time.sleep(0.3)
             page.shot(Path(args.stills) / f"{name}.png")
             print("wrote", name)
     if args.clip:
-        page.show(args.discharge)
+        page.show(args.discharge if args.discharge is not None else chosen["typical"])
         frames = page.js("cur().n")
         tmp = Path(tempfile.mkdtemp())
         for i in range(frames):
