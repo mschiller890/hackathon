@@ -123,7 +123,7 @@ Obrázek: 02-minutes-vs-ms.png (zopakovat jako pozadí)
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
 | 4:05 | 8 | B | Jak je to rychlé? Jeden odhad na procesoru trvá 0,0145 milisekundy, to je medián. | Snímek 5. Velká dlaždice 0,0145 ms. Obrázek 02-minutes-vs-ms.png jako pozadí. |
-| 4:13 | 7 | B | Nejhorší naměřený případ je 0,09 milisekundy, tedy více než desetkrát méně než jedna milisekunda. | Dlaždice 0,090 ms. |
+| 4:13 | 7 | B | Typicky 0,0145 milisekundy a v 99 procentech případů do 0,029 milisekundy na procesoru, tedy mnohonásobně pod jednou milisekundou. | Dlaždice p99 0,0288 ms. |
 | 4:20 | 6 | B | Na druhém počítači vyšlo 0,032 milisekundy, pořád hluboko pod limitem. | Malý text pod dlaždicemi. |
 | 4:26 | 6 | B | Grafická karta je pro jeden odhad pomalejší, 0,24 milisekundy, protože síť je malá. | Řádek o grafické kartě. |
 | 4:32 | 8 | B | Verdikt: rychlost nebude překážkou. Změřili jsme jen odhad samotné sítě, napojení na řídicí systém jsme nezkoušeli. | Konec snímku. Pohled na A, klik na snímek 6. |
@@ -240,7 +240,7 @@ Odpovídá A: Správně, osa se v datech hýbe jen se směrodatnou odchylkou 8 m
 ### 8. Podnikatel
 Otázka: Co to znamená v praxi? Dá se to nasadit do řízení?
 
-Odpovídá B: Zatím ne. Změřili jsme jen samotný odhad: 0,0145 milisekundy na procesoru obyčejného počítače, nejhůř 0,09. Mezi dvěma řádky dat uplyne asi 0,6 milisekundy, takže by odhad stíhal. Přenos měření, napojení na řídicí systém a chování ve smyčce jsme ale nezkoušeli. Bez toho a bez odolnosti proti šumu bych to do řízení nedal.
+Odpovídá B: Zatím ne. Změřili jsme jen samotný odhad: 0,0145 milisekundy na procesoru obyčejného počítače, v 99 procentech případů do 0,029; na zatíženém počítači a bez systému reálného času mohou ojedinělé špičky dosáhnout milisekund. Mezi dvěma řádky dat uplyne asi 0,6 milisekundy, takže by odhad stíhal. Přenos měření, napojení na řídicí systém a chování ve smyčce jsme ale nezkoušeli. Bez toho a bez odolnosti proti šumu bych to do řízení nedal.
 
 ### 9. Podnikatel
 Otázka: Komu to pomůže a co dál? Dá se to použít na COMPASS Upgrade?
