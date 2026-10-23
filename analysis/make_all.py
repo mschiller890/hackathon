@@ -10,8 +10,9 @@ failing step.
            recomputing it (today only ipp1_inputs.py, about an hour since it trains the control subsets).
 --missing  skip a step whose outputs all exist.
 --notebooks then execute notebooks/*.ipynb into out/notebooks/, so the committed notebooks are not rewritten.
---viewer   then build the plasma shape viewer: all-31-target predictions for the outline, viewer/data.js and the single
-           file viewer/dist/index.html. Both viewer files hold IPP data and are gitignored (CON-001).
+--viewer   then build the plasma shape viewer: all-31-target baseline predictions, viewer/data.js and the single file
+           viewer/dist/index.html. The viewer's default "shipped" mode reads the ipp1_final.py caches that the steps above
+           write. Both viewer files hold IPP data and are gitignored (CON-001).
 """
 import argparse
 import os
