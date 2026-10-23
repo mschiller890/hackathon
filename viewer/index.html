@@ -43,6 +43,9 @@ button svg { width: 15px; height: 15px; fill: var(--ink); }
 input[type=range] { --p: 0%; -webkit-appearance: none; appearance: none; width: 200px; height: 22px; background: transparent; margin: 0; cursor: pointer; }
 input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--ink) var(--p), #d5dce7 var(--p)); }
 input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6px; border-radius: 50%; background: #fff; border: 2px solid var(--ink); box-shadow: 0 1px 3px rgba(16, 29, 66, 0.3); }
+input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: #d5dce7; }
+input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--ink); }
+input[type=range]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid var(--ink); box-shadow: 0 1px 3px rgba(16, 29, 66, 0.3); }
 input[type=range]:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; border-radius: 4px; }
 .chip { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 13px 0 11px; border: 1px solid var(--border2); border-radius: 999px; background: #fff; color: var(--muted); cursor: pointer; font-weight: 550; transition: all 0.12s; }
 .chip input { position: absolute; opacity: 0; pointer-events: none; }
@@ -64,6 +67,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 12px; pa
 .ph { min-width: 0; overflow: hidden; }
 .stagepanel { grid-template-rows: 36px auto minmax(0, 1fr); }
 .legendbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; padding: 6px 14px; border-bottom: 1px solid var(--border); background: var(--head); font-size: 12px; color: var(--muted); }
+.legendbar .warn { color: #b4361c; font-weight: 600; }
 .legendbar b { color: var(--ink); font-weight: 650; } .legendbar .it { display: inline-flex; align-items: center; gap: 6px; } .legendbar svg { width: 22px; height: 12px; overflow: visible; }
 .ph .chips { display: flex; gap: 6px; align-items: center; margin-left: 12px; }
 .ph .chip { height: 26px; padding: 0 10px 0 9px; font-size: 12px; gap: 6px; }
@@ -284,7 +288,8 @@ function drawLegendBar() {
     : `<svg viewBox="0 0 22 12"><g transform="translate(11 6)" stroke="#64748b" stroke-width="1.6" fill="none">${{ circle: '<circle r="4.2"/>', x: '<path d="M-4-4L4 4M4-4L-4 4"/>', tri: '<path d="M-4.4-3.6H4.4L0 4Z"/>', square: '<rect x="-4" y="-4" width="8" height="8"/>' }[k]}</g></svg>`;
   const items = [["line", "Skutečnost", COL.true], ...sets().map(([, col, label]) => ["dash", label, col]), ["circle", "magnetická osa"], ["x", "X-bod"], ["tri", "strike point"], ["square", "bod dotyku s limiterem"]];
   $("#legendbar").innerHTML = `<span><b>${state.noise ? "Černá = skutečný tvar, barevně = dvě sítě na zašuměných měřeních" : "Černá = skutečný tvar plazmatu, červeně = předpověď sítě z 24 magnetických čidel"}</b></span>` +
-    items.map(([k, label, col]) => `<span class="it">${glyph(k, col)}${label}</span>`).join("");
+    items.map(([k, label, col]) => `<span class="it">${glyph(k, col)}${label}</span>`).join("") +
+    (isLimited(cur().c, state.i, "") ? `<span class="it warn">Limiterový snímek: okraj je méně jistý, vnitřní strana se může lišit o 25 až 30 mm.</span>` : "");
 }
 // Magnifier tiles: the true point in the centre, the predicted points around it, the window sized to the error.
 function drawLenses(ctx) {
