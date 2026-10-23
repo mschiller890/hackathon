@@ -181,6 +181,12 @@ def frame(prs, n, kicker, title, notes, background=None, shade=0.0):
     return s
 
 
+def add_sources(slide, files):
+    """Append the files the screen's numbers come from to its notes, so each number can be checked against its own file."""
+    tf = slide.notes_slide.notes_text_frame
+    tf.text = tf.text + "\nZdroje čísel: " + "; ".join(files)
+
+
 def caption(slide, x, y, w, words):
     text(slide, x, y, w, 0.3, words, size=11, color=MUTED)
 
@@ -259,6 +265,8 @@ def build():
     text(s, 0.6, 6.05, 12.1, 0.5, "Celý výboj trvá podle organizátorů jen 150 až 200 milisekund.", size=20, color=MUTED)
     caption(s, 9.2, 6.6, 3.5, "Ilustrace, ne fotografie.")
 
+    add_sources(s, ['results/ipp1-data.md (150 až 200 ms je údaj organizátorů)'])
+
     # 1 Problem, screen b (0:24 to 0:50): minutes against milliseconds, then the question
     s = frame(prs, 1, "Problém", "Minuty proti milisekundám",
               notes_text(sc[1], "Snímek 1b", start="0:24"), "02-minutes-vs-ms.png", 0.55)
@@ -268,6 +276,8 @@ def build():
     text(s, 0.9, 5.15, 11.5, 1.2, [[("Otázka: ", 24, ORANGE, True),
                                     ("odhadne malá neuronová síť tvar plazmatu z magnetických měření dost přesně "
                                      "a dost rychle?", 24, TEXT, False)]])
+
+    add_sources(s, ['zadání úlohy (minuty, jednotky ms)'])
 
     # 2 Data: tiles left, coil schematic right
     rows, dis = 42972, 149
@@ -280,6 +290,8 @@ def build():
     caption(s, 6.2, 5.95, 6.5, "Schéma, ne skutečný řez. Smyčky toku na něm nejsou.")
     text(s, 6.2, 6.3, 6.5, 0.5, [[("Data jsou důvěrná: ", 14, ORANGE, True),
                                   ("ukazujeme jen souhrnná čísla.", 14, TEXT, False)]])
+
+    add_sources(s, ['results/ipp1-data.md'])
 
     # 3 Method: flow tiles left, principle illustration right
     s = frame(prs, 3, "Metoda", "Malá neuronová síť proti lineárnímu modelu", notes_text(sc[3], "Snímek 3"))
@@ -295,6 +307,8 @@ def build():
     text(s, 0.6, 6.35, 12.1, 0.6, [[("Ověření: ", 16, ORANGE, True),
                                     (f"{b['folds']} různých rozdělení výbojů; chyby vždy na výbojích, které model "
                                      "neviděl.", 16, TEXT, False)]])
+
+    add_sources(s, ['results/ipp1-baseline.md (107 152 parametrů, 5 dělení)'])
 
     # 3b Camera (bonus, KQ-6): not in the timed script yet, so its notes say so
     cm = j["camera"]
@@ -315,6 +329,8 @@ def build():
     tile(s, 9.1, 3.85, 3.6, 1.35, f"{cz(cm['colour_grey'][0], 2)} mm",
          f"osa R barevně, šedá {cz(cm['colour_grey'][1], 2)} mm: barva nepomáhá", BLUE, 32)
     caption(s, 9.1, 5.4, 3.6, "Srovnání je jen orientační: kamera má snímky jen ze 78 výbojů.")
+
+    add_sources(s, ['results/cloud-camera-findings.md (5 dělení, šedá kamera)'])
 
     # 4 Results, screen a (1:45 to 1:54): what we estimate
     s = frame(prs, 4, "Výsledky", "Co odhadujeme", notes_text(sc[4], "Snímek 4a", end="1:54"))
@@ -349,6 +365,8 @@ def build():
           f"{cz(fn['x_worst'][0], 2)} mm. Na zašuměných vstupech nasazujeme síť učenou se šumem "
           f"(osa R {cz(fn['noisy_axis_aug'], 2)} mm).", 12, MUTED, False)]])
 
+    add_sources(s, ['results/ipp1-final.md (zamčená sada, 30 výbojů)'])
+
     # 4 Results, screen c (2:14 to 2:30): how many inputs are needed (pitch script, Lead note 1b)
     runs = inp["runs"]
     topk = sorted((int(k.split()[1]), v) for k, v in runs.items() if k.startswith("top"))
@@ -369,6 +387,8 @@ def build():
     tile(s, 9.1, 3.85, 3.6, 1.35, cz(fl, 3), f"jen 8 smyček toku, {cz(fl / ipr, 1)}krát horší", MUTED, 32)
     text(s, 9.1, 5.4, 3.6, 1.3, "Pořadí důležitosti platí pro naučenou síť, neříká, kolik informace vstup nese.",
          size=13, color=MUTED)
+
+    add_sources(s, ['results/ipp1-inputs.json', 'results/ipp1-inputs.md'])
 
     # Live demo divider (2:30 to 4:05); the presenter switches to the browser
     s = frame(prs, "ukázka", "Živá ukázka", None, notes_text(sc["demo"], "Živá ukázka"))
@@ -407,6 +427,8 @@ def build():
         [(f"Procesor {lat['cpu']}; na systému bez reálného času se ojediněle objeví špičky. Nasazený model se třemi "
           "částmi je pomalejší, asi 0,18 ms (podobný recept, zatížený počítač).", 14, MUTED, False)]])
 
+    add_sources(s, ['results/ipp1-latency.json (procesor, medián, p99, grafická karta)', 'results/ipp1-improve.md (0,18 ms nasazeného receptu)'])
+
     # 6 Limits
     s = frame(prs, 6, "Meze", "Nejslabší je bod u limiteru a konec výboje", notes_text(sc[6], "Snímek 6"))
     tile(s, 0.6, 2.2, 3.6, 2.0, f"{cz(fn['R_limiter'][1], 2)} mm",
@@ -435,6 +457,8 @@ def build():
         [(f"Na souvislých blocích čísel výbojů je chyba {cz(lo, 1)} až {cz(hi, 1)}krát větší než na náhodně "
           "vybraných.", 12, MUTED, False)]])
 
+    add_sources(s, ['results/ipp1-final.md (bod u limiteru, bloky čísel výbojů)', 'results/ipp1-time.json (chyba v čase, kolísání)'])
+
     # 7 What the model cannot do
     s = frame(prs, 7, "Co model neumí", "Zná jen tvary z dat a šum v měření mu vadí nejvíc", notes_text(sc[7], "Snímek 7"))
     nz = j["noise"]
@@ -461,6 +485,8 @@ def build():
           f"tvarů {cz(us['axis'][1], 1)} mm místo {cz(us['axis'][0], 1)} mm. ", 15, TEXT, False),
          ("Tvary mimo rozsah dat neověřeny, jen jeden tokamak, řízení model sám nenahradí.", 15, MUTED, False)]])
 
+    add_sources(s, ['results/ipp1-robustness-findings.md (šum, počet výbojů)', 'results/ipp1-unusual-shapes.md (neviděné tvary)'])
+
     # 8 Close: one number
     s = frame(prs, 8, "Závěr", None, notes_text(sc[8], "Snímek 8") + f"\nK číslu (KQ-7): celý odhad od vstupu po výstup "
               f"medián {cz(e2e['median_ms'], 3)} ms, 99 % pod {cz(e2e['p99_ms'], 2)} ms, procesor {lat['cpu']}.",
@@ -478,6 +504,8 @@ def build():
         text(s, 8.2, y + 0.2, 4.4, 1.3, [[(head, 22, col, True)], [(body, 15, TEXT, False)]])
     text(s, 0.6, 6.1, 12.1, 0.6, "Desetiny milimetru za setiny milisekundy.", size=22, bold=True,
          align=PP_ALIGN.CENTER)
+
+    add_sources(s, ['results/ipp1-latency.json (0,0145 ms, Apple M5)', 'results/ipp1-final.md (přesnost)'])
 
     prs.save(OUT)
     return OUT
