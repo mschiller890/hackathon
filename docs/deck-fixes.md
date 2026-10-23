@@ -230,9 +230,9 @@ Ready to send, not sent. Czech, one message, numbered so that they can answer by
 > 10. Potvrdí kolegové z ÚFP dvě věty z našeho úvodu: protažené plazma je svisle nestabilní a bez rychlého řízení uhne ke stěně; úplná rekonstrukce rovnováhy se počítá po výboji a trvá minuty?
 > 11. Je ve vašem zadání doslova napsáno, že správné odpovědi vznikají numerickou rekonstrukcí rovnováhy, a smíme to takto citovat?
 >
+> 12. Smíme při práci používat nástroje s umělou inteligencí a máte nějaké pravidlo, jak to uvést v odevzdání nebo v prezentaci? Pokud ano, jak to chcete uvést?
+>
 > Děkujeme.
-
-12. Smíme při práci používat nástroje s umělou inteligencí a máte nějaké pravidlo, jak to uvést v odevzdání nebo v prezentaci? Pokud ano, jak to chcete uvést?
 
 Internal, not for the organizers: until questions 1, 2 and 11 are answered the talk says "podle toho, co víme" and never quotes the assignment on the origin of the labels; the answer to 2 also decides whether OQ-005 (real time axis) is opened in `docs/REQUIREMENTS.md` (not edited here); the answers to 3 and 5 change Q&A N3 and N6.
 
