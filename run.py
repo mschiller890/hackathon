@@ -4,6 +4,7 @@
     python run.py            training live, test on unseen discharges, export of the model, a first estimate (about 3 minutes)
     python run.py --full     everything: all analysis steps and all ten notebooks (about 9 minutes)
     python run.py --check    only check the Python packages and the data
+    python run.py --relu-demo   the same, with the second live demo (ReLU network)
 
 The IPP data are confidential and are not in git. Put them in ./data (the layout of data/raw/... is checked below) or set
 HACKATHON_HOME to the folder that holds data/. The live demo prints rows of the data to the terminal: show it in the room, do not record or send it.
@@ -65,6 +66,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--full", action="store_true", help="all analysis steps and all ten notebooks (about 9 minutes)")
     ap.add_argument("--check", action="store_true", help="only check packages and data")
+    ap.add_argument("--relu-demo", action="store_true", help="use the second live demo (ReLU network, 6 cores) instead of mini_pipeline.py")
     a = ap.parse_args()
     print(f"{B}Plasma shape from magnetic measurements (COMPASS, task IPP 1){X}")
     check_packages()
@@ -79,8 +81,11 @@ def main():
         run([py, "-I", "analysis/make_all.py", "--quick", "--notebooks"], env, True)
         print(f"\n{G}Finished.{X} Executed notebooks: {home / 'out' / 'notebooks'}")
         return
-    step("3. Live training and test on discharges the network never saw")
-    run([py, "-u", "analysis/ipp1_live_train_fast.py"], env, True)
+    step("3. Live: the network learns, then estimates a discharge it never saw, then runs at full speed")
+    if a.relu_demo:
+        run([py, "-u", "analysis/ipp1_live_train_fast.py"], env, True)
+    else:
+        run([py, "-I", "-u", "analysis/mini_pipeline.py", "--dump-rows", "0"], env, True)
     step("4. Train the shipped model and export it (model/ipp1-selected.npz)")
     run([py, "-I", "analysis/export_model.py"], env, True)
     step("5. First estimate with the exported model (reference reconstruction against our estimate)")
