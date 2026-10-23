@@ -99,6 +99,10 @@ Teď naživo. Obrys v ukázce je z rekonstrukce ústavu, naše síť odhaduje je
 
 Tmavá čára je tvar z rekonstrukce ústavu, barevné značky jsou odhad sítě. Výboj číslo 85 je z odložených třiceti a je typický.
 
+**2:54   ticho, 6 s**
+
+*(ticho, výboj běží a porota se dívá)*
+
 **3:00   A**
 
 Kroužek je osa, křížek dolní bod X. Vzdálenost osy od rekonstrukce je tu čtvrt milimetru, na začátku i uprostřed.
@@ -107,11 +111,19 @@ Kroužek je osa, křížek dolní bod X. Vzdálenost osy od rekonstrukce je tu �
 
 Teď nejhorší konec: výboj číslo 147, poslední snímek. Osa se liší o třicet čtyři milimetry, bod u limiteru o víc než sto pět, ale v průměru přes celý výboj je to pod milimetrem.
 
+**3:26   ticho, 5 s**
+
+*(ticho, špatný výboj běží)*
+
 **3:31   B**
 
 Takových výbojů je málo: všech třicet odložených má průměrnou vzdálenost osy od rekonstrukce pod milimetrem, medián asi dvě desetiny.
 
-**Konec snímku: cílový čas 3:34 (v hlavičce skriptu je 3:49, součet sekund řádků dává 3:34)**
+**3:45   ticho, 4 s**
+
+*(ticho, přepnutí zpět)*
+
+**Konec snímku: cílový čas 3:49**
 
 ---
 
@@ -129,7 +141,7 @@ Vybraný model má tři části, odhad asi 0,03 milisekundy.
 
 Náš rozpočet je jedna až deset milisekund, výpočet sítě je hluboko pod ním. Neověřili jsme zbytek řetězce: sběr a integraci signálů, jejich chování v provozu, uzavřenou smyčku a systém reálného času.
 
-**Konec snímku: cílový čas 4:14 (v hlavičce skriptu je 4:29, součet sekund řádků dává 4:14)**
+**Konec snímku: cílový čas 4:29**
 
 ---
 
@@ -143,7 +155,7 @@ Bod u limiteru je místo na stěně, kde se plazma dotkne. Medián chyby je 0,73
 
 Chyba osy roste hlavně na konci výboje, 0,9 milimetru proti 0,24 uprostřed, základní síť, pět dělení. Příčinu neznáme.
 
-**Konec snímku: cílový čas 4:48 (v hlavičce skriptu je 5:03, součet sekund řádků dává 4:48)**
+**Konec snímku: cílový čas 5:03**
 
 ---
 
@@ -169,7 +181,7 @@ Třetí slabina: neobvyklé tvary. Osmnáct nejodlišnějších výbojů jsme vy
 
 Platí jen pro jeden tokamak.
 
-**Konec snímku: cílový čas 6:02 (v hlavičce skriptu je 6:17, součet sekund řádků dává 6:02)**
+**Konec snímku: cílový čas 6:17**
 
 ---
 
@@ -191,12 +203,10 @@ Na zašuměných vstupech: chyba osy jednotky milimetrů, bodu u limiteru desít
 
 Na čistých vstupech desetiny milimetru shody s rekonstrukcí, setiny milisekundy výpočtu. Děkujeme.
 
-**Konec snímku: cílový čas 6:45 (v hlavičce skriptu je 7:00, součet sekund řádků dává 6:45)**
-
-POZOR: sekundy řádků dávají 6:45, hlavičky skriptu 7:00. Rozdíl 15 s vzniká už v části "Živá ukázka, mezi snímkem 4 a 5": hlavička udává delší okno, než součet sekund jejích řádků. Řečníci mají tedy na konci rezervu, nebo je třeba v hlavičce opravit čas.
+**Konec snímku: cílový čas 7:00**
 
 ---
 
-Celkem podle `presentation/timing.py`: total written 405 s (6:45); estimated 1.6 w/s -> 7:21, 1.8 w/s -> 6:32, 2.0 w/s -> 5:53.
+Celkem podle `presentation/timing.py`: total written 420 s (7:00); estimated 1.6 w/s -> 7:36, 1.8 w/s -> 6:47, 2.0 w/s -> 6:08.
 
-Sečteno z řádků: 6:45, slov ve všech řádcích 629.
+Sečteno z řádků: 7:00, slov ve všech řádcích 629.

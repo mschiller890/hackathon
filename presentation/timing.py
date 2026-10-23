@@ -22,18 +22,18 @@ def words(text):
 rows = []
 for line in path.read_text(encoding="utf-8").splitlines():
     m = ROW.match(line)
-    if m and not m.group(4).startswith("("):
-        rows.append((m.group(1), int(m.group(2)), m.group(3), words(m.group(4))))
+    if m:  # a row in parentheses is silence: its written seconds count, it has no words
+        rows.append((m.group(1), int(m.group(2)), m.group(3), None if m.group(4).startswith("(") else words(m.group(4))))
 
 tot = {r: 0.0 for r in (1.6, 1.8, 2.0)}
 written = 0
 print(f"{'time':>5} {'written s':>9} {'words':>5} " + " ".join(f"{'s@' + str(r):>7}" for r in tot) + "  flag")
 for t, sec, who, w in rows:
-    est = {r: w / r for r in tot}
+    est = {r: (sec if w is None else w / r) for r in tot}
     for r in tot:
         tot[r] += est[r]
     written += sec
-    flag = "LONG" if est[1.8] > sec * 1.15 else ""
-    print(f"{t:>5} {sec:>9} {w:>5} " + " ".join(f"{est[r]:7.1f}" for r in tot) + f"  {flag}")
+    flag = "silent" if w is None else ("LONG" if est[1.8] > sec * 1.15 else "")
+    print(f"{t:>5} {sec:>9} {(w if w is not None else 0):>5} " + " ".join(f"{est[r]:7.1f}" for r in tot) + f"  {flag}")
 print(f"total written {written} s ({written // 60}:{written % 60:02d}); estimated "
       + ", ".join(f"{r} w/s -> {int(v) // 60}:{int(v) % 60:02d}" for r, v in tot.items()))

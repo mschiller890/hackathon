@@ -2,7 +2,7 @@
 
     python -I analysis/make_read_aloud.py
 
-Only the column 'Co se říká' of the timed rows, in order, with the clock stamp and speaker (A, B) at the start of each
+Only the column 'Co se říká' of the timed rows (silent rows in parentheses with their seconds), in order, with the clock stamp and speaker (A, B) at the start of each
 row and the cumulative target time (sum of the written seconds) at the end of each slide. No table, no screen column,
 no notes. The last line repeats the total of presentation/timing.py. Regenerate after every change of the script.
 """
@@ -37,7 +37,7 @@ for line in body.splitlines():
         sections.append(cur)
         continue
     m = ROW.match(line)
-    if m and cur is not None and not m.group(4).startswith("("):
+    if m and cur is not None:  # rows in parentheses are silence: kept, with their seconds
         cur["rows"].append((m.group(1), int(m.group(2)), m.group(3), m.group(4)))
 
 out = ["# Čti nahlas: sedm minut", "",
@@ -47,9 +47,12 @@ cum, total_words, first_gap = 0, 0, None
 for s in sections:
     out += ["---", "", f"## {s['title']}", ""]
     for stamp, sec, who, txt in s["rows"]:
-        out += [f"**{stamp}   {who.replace('+', ' + ')}**", "", txt, ""]
+        if txt.startswith("("):
+            out += [f"**{stamp}   ticho, {sec} s**", "", f"*{txt}*", ""]
+        else:
+            out += [f"**{stamp}   {who.replace('+', ' + ')}**", "", txt, ""]
         cum += sec
-        total_words += len(txt.split())
+        total_words += 0 if txt.startswith('(') else len(txt.split())
     flag = "" if mmss(cum) == s["end"] else f" (v hlavičce skriptu je {s['end']}, součet sekund řádků dává {mmss(cum)})"
     if flag and first_gap is None:
         first_gap = (s["title"], secs(s["end"]) - cum)
