@@ -88,5 +88,60 @@ absent because architecture and tests are intentionally absent.
 
 ---
 
-_Next entry created when a consequential technical decision is actually made — i.e. once
-the specification determines a problem worth solving._
+## DEC-002 — Choice of task: IPP task 1, plasma shape from magnetic measurements
+
+**Date:** 2026-10-23
+**Status:** Accepted
+**Category:** Scope
+
+### Context
+
+The organizers offered five tasks: IPP 1 (plasma shape), IPP 2 (runaway electrons from synthetic
+infrared images), DCUK 1 (Ústí Region municipalities), DCUK 2 (air quality), DCUK 3 (Elbe level and
+flow). All data together are under 1.4 GB; the only large item is the 876 MB camera archive of IPP 1.
+The team has one day (to Sat 14:00), two people, and a presentation of 7 minutes plus a video.
+
+### Alternatives considered
+
+| Option | Assessment | Outcome |
+|---|---|---|
+| IPP 1, magnetic data first | Objective metrics; a baseline in hours; many bonus findings; 37 MB of data; a clear story (minutes to milliseconds) | **Chosen** |
+| DCUK 3, Elbe forecast | Room for a live application; results harder to measure objectively; 172 MB plus 84 MB weather | Runner-up |
+| IPP 2, runaway electrons | Image network on four datasets of increasing difficulty; heavier training | Rejected for time |
+| DCUK 1, DCUK 2 | Open-ended; the result depends on the insight more than on measurable quality | Rejected |
+
+### Decision and consequences
+
+Work on IPP 1: magnetic route first, required analyses and bonuses next, the camera model last.
+None of the tasks needs a language model API. The raw data stay outside the repository (CON-001).
+
+---
+
+## DEC-003 — Evaluation protocol and baseline for IPP 1
+
+**Date:** 2026-10-23
+**Status:** Accepted
+**Category:** Correctness
+
+### Context (measured with `analysis/ipp1_eda.py`)
+
+`equil_data.csv` has 42,972 rows from 149 discharges (17 to 439 rows each), 24 inputs
+(`IPR01-16`, `FL01-08`) and 31 targets. Rows of one discharge are near copies. 44.2 % of rows are
+limited (no X-point or strike points), 55.8 % divertor (no limiter point). Target spreads are small
+(for example 8 mm for `R_mag_axis`). Two principal components carry 92.8 % of the input variance,
+five carry 99.93 %. Elongation and triangularity lie on one narrow curve.
+
+### Decision
+
+1. Split by whole discharges (`GroupKFold`, 5 folds, grouped by `discharge`); never by rows (CON-002).
+2. Train with a masked loss so structurally missing targets are ignored, and report each target only
+   on the rows where it exists. `is_limited` is predicted as a 0/1 output.
+3. Report errors in physical units (mm, kA) and relative to the spread (nRMSE), plus R squared.
+4. Baselines: ridge regression and a small multi-output neural network (256, 256, 128 units, SiLU,
+   AdamW, one-cycle schedule); measure inference latency per sample on CPU.
+
+### Consequences
+
+Scores are honest but vary by fold; all five folds are reported. Raw R squared alone would hide
+millimetre-level errors, hence the physical units. Results: see the notebooks and
+`docs/PLAN.md` IMPL-3 once recorded.
