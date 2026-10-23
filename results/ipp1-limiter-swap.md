@@ -41,3 +41,32 @@ Results freeze at 01:00.
 Not run yet when this text was committed.
 
 <!-- RESULTS BELOW -->
+
+## Results (119 development discharges, 5 folds x 3 seeds, pooled out-of-fold MAE in mm, mean (SD over seeds))
+
+| arm | R_limiter | Z_limiter | gain R | gain Z | axis in limited rows R / Z | median latency, limited path (ms) | p99 (ms) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| arm 0, `cand` | 4.85 (0.25) | 12.2 (0.45) | | | 0.331 / 0.404 | 0.0399 | 0.436 |
+| arm 1, residual limiter network | 2.98 (0.14) | 7.44 (0.38) | 39 % | 39 % | 0.331 / 0.404 | 0.1077 | 1.490 |
+| arm 2, control: own network, weight 1.5, 100 epochs | 5.11 (0.26) | 12.4 (0.33) | -5 % | -1 % | 0.331 / 0.404 | 0.0312 | 0.669 |
+
+Check of criterion 3: the largest absolute difference of any column other than `R_limiter` and `Z_limiter` to arm 0 is 0 (arm 1) and 0 (arm 2).
+Latency: random weights of the trained shapes, numpy path from 24 raw inputs (differences, standardisation, general network, ridge, gate, limiter network, de-standardisation), one core, load average [10.6, 10.2, 9.2] (`nice` job on a shared laptop, so the tails are pessimistic).
+
+| arm | gain >= 15 % on both | gain above seed SD | nothing else changes | latency < 0.1 ms | **passes** |
+|---|---|---|---|---|---|
+| arm 1, residual limiter network | yes | yes | yes | no | **no** |
+| arm 2, control: own network, weight 1.5, 100 epochs | no | no | yes | yes | **no** |
+
+Arm 2 gets -14 % of the gain of arm 1 on R_limiter, -3 % of the gain of arm 1 on Z_limiter.
+
+**Winner by the rule: nobody, `cand` stays.**
+
+## Reading
+
+- **By the rule as written: nobody wins, `cand` stays.** The locked 30 discharges were not used. Arm 1 fails only criterion 4 (latency), arm 2 fails criteria 1 and 2.
+- **The control answers the question it was built for: the loss weight 1.5 and the 100 epochs do not give the gain.** Arm 2 (own network, same weight and epochs) is 5 % and 1 % *worse* than `cand` (5.11 and 12.4 mm against 4.85 and 12.2 mm; the SD over seeds is 0.26 and 0.33 mm). Arm 1 differs from arm 2 in the whole network and its training (residual blocks, GELU, cosine schedule, Huber delta 0.36, learning rate 0.0028, weight decay 2e-6, dropout 0.05), so this does not say which of these carries the gain, only that it is not the weight and the epochs.
+- **Arm 1 is a real gain on the limiter point and nothing else moves.** `R_limiter` 4.85 to 2.98 mm and `Z_limiter` 12.2 to 7.44 mm, 39 % in both, with a gain of 1.9 and 4.8 mm against seed SDs of 0.14 to 0.45 mm; all other columns are identical to `cand` (difference 0) and the axis error in the limited rows is unchanged (0.331 and 0.404 mm). It is also the same 39 % that the full residual pipeline gave in `results/ipp1-search-dev.md`, so the gain comes from the limiter network.
+- **Latency is on the limit and depends on how the measurement is run, so the verdict hangs on it.** Five measurements of arm 1 (median, limited path, ms): 0.117 and 0.108 in the two runs of the report (the table shows the second one), both as `nice` jobs at load average 7 to 9, and 0.094, 0.089, 0.093 in three further runs of the same function at normal priority and load 13, made afterwards and not part of the rule. `cand` measured 0.042 and 0.040 in the report runs, 0.030, 0.038, 0.029 afterwards (0.027 ms in the quiet measurement of `results/ipp1-latency-shipped.md`). Arm 1 costs about three times as much as `cand` (a bigger limiter network). The runs at normal priority are below 0.1 ms and the `nice` runs above it, which fits an effect of priority and load, but it was not tested separately; on a quiet machine arm 1 would probably be near 0.08 ms, an extrapolation, not a measurement.
+- **What a change of the rule would mean.** If the latency criterion were applied to the median of repeated runs, arm 1 would pass all four criteria. That is a change made after seeing the result and has to be decided and logged as such (by the Lead, with the owner); this file does not make it. The control rules out the cheap explanation, so shipping arm 1 would change the limiter network, not a hyperparameter.
+- **Limits.** The residual network's hyperparameters came from a search that saw all 149 discharges, and the cross-validation here is inside the 119 development discharges; both arms are optimistic in the same way, but the gain over `cand` is an in-sample-selected configuration against a recipe designed on the same discharges. One configuration, 3 seeds, 5 folds.
