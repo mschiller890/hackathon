@@ -34,8 +34,8 @@ Věta: Použili jsme malou neuronovou síť o 107 152 parametrech a porovnali ji
 
 Věta: Síť trefí osu, bod X a dotykové body s chybou 0,06 až 0,4 mm, což je mnohem lépe než lineární model.
 
-* Osa plazmatu: chyba 0,377 mm (radiální) a 0,391 mm (svislá); lineární model 2,4 a 2,66 mm.
-* Bod X: 0,202 mm a 0,195 mm. Dotykové body: od 0,0552 do 0,265 mm.
+* Osa plazmatu: chyba 0,38 mm (radiální) a 0,39 mm (svislá); lineární model 2,4 a 2,66 mm.
+* Bod X: 0,20 mm a 0,20 mm. Dotykové body: od 0,0552 do 0,265 mm.
 * Proud plazmatem: chyba 1,49 kA. Protažení: 0,00569.
 * Zda je plazma opřeno o limiter, určí síť správně v 99,3 % případů.
 * Méně vstupů: se všemi 24 vstupy je souhrnná relativní chyba 0,063, s nejlepšími 12 je 0,077, s nejlepšími 8 je 0,094.

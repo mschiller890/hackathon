@@ -19,7 +19,7 @@ mluvit rychleji, než se vejde. DOPLNIT: skutečný čas po přečtení se stopk
 
 ## Kde je text těžký na sledování
 
-* Snímek 4 má nejvíc čísel (osa, bod X, dotykové body, proud, protažení, vstupy). Říct nahlas jen tři: osa 0,377 mm, bod X 0,202 mm, 99,3 % u limiteru. Zbytek nechat na obrazovce.
+* Snímek 4 má nejvíc čísel (osa, bod X, dotykové body, proud, protažení, vstupy). Říct nahlas jen tři: osa 0,38 mm, bod X 0,20 mm, 99,3 % u limiteru. Zbytek nechat na obrazovce.
 * Snímek 7 míchá šum, množství dat a meze. Mluvit ve třech větách, v tomto pořadí.
 * Slova IPR a FL (snímek 2) nejsou pro posluchače srozumitelná. Říkat "cívky" a "smyčky toku", viz slovníček.
 
