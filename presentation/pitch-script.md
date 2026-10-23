@@ -326,6 +326,10 @@ Odpovídá B: Pracovali jsme ve dvou. Kód, analýzy a texty jsme psali s pomoc�
 
 Odpovídá B: Nejslabší je bod, kde plazma dosedá na limiter: chyba 4,55 a 8,35 milimetru na třiceti odložených výbojích. Zkusili jsme vyměnit jen jeho síť za reziduální z našeho hledání. Ve vývoji snížila chybu o 39 procent, na odložených výbojích o 28 a 34 procent, tedy z 4,55 na 3,26 a z 8,35 na 5,55 milimetru, ostatní výstupy zůstaly stejné. Jako hlavní model ji nepoužíváme: její nastavení vzešlo z hledání, které vidělo všechny výboje, je asi třikrát pomalejší (0,087 proti 0,029 milisekundy) a pravidlo pro rychlost jsme museli upravit dodatečně, což je v protokolu vyznačeno. (`results/ipp1-limiter-swap.md`)
 
+### N16. Odborník na strojové učení: Proč SiLU a ne ReLU?
+
+Odpovídá B: Porovnali jsme SiLU s ReLU a GELU ve stejné síti na vývojových výbojích, tři semínka, spárovaně. ReLU bylo jasně horší: chyba osy 0,35 proti 0,27 milimetru a ve všech třech semínkách. GELU bylo v rozptylu mezi semínky, tak jsme nechali SiLU. Omezení: sítě jsme zkoušeli samotné, bez lineárního modelu pro proud a bez sítě pro limiter, a nastavení bylo laděné pro SiLU. (`results/ipp1-activation.md`)
+
 ## Příloha: deset nejtěžších fyzikálních otázek
 
 Zdroj: `docs/review-physics.md`, část 5 (otázky F1 až F10). Sedm z nich je totéž co otázky výše, proto jsou sloučené a odpověď je tam; tři nové (F2, F4, F5) jsou níže. Čísla jsou jen ze složky `results/`, kde odpověď neví, řekne Neměřili jsme.
