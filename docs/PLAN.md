@@ -61,10 +61,11 @@ Fresh clone at `~/GitHub/hackathon`. Each row is a point where `README.md` alone
 
 | ID | Question | Why it matters |
 |---|---|---|
-| KQ-1 | `docs/claims-corrections.md` is named twice in WORKERS.md (lane K item 2, lane V) but is not in the repository. Is it coming, or does `docs/review-findings.md` take its place? | Lane K item 2 says to apply it to the deck and the outline |
-| KQ-2 | The data facts on slide 2 (42 972 rows, 149 discharges, 24 inputs, 16 targets) and slide 1a (discharge 150 to 200 ms) are not in `results/`. Keep them on the slides, or add a data summary to `results/` (for example from `ipp1-eda.json`)? | Lane K item 2: "every number on a slide appears in `results/`" |
-| KQ-3 | Which file will hold the camera result and the unusual-shape result (lane R item 2), and by when? | Outline and deck slides 3 and 7 keep `DOPLNIT` until then |
-| KQ-4 | RP-12: who edits `presentation/pitch-script.md` lines 4:55 and 5:04, the Lead or lane K? | The deck's speaker notes are read from that file |
+| KQ-1 | `docs/claims-corrections.md` is named twice in WORKERS.md (lane K item 2, lane V) but is not in the repository. Is it coming, or does `docs/review-findings.md` take its place? | Lane K item 2 says to apply it to the deck and the outline | **Answered:** `docs/claims-corrections.md` added in aaf7631. |
+| KQ-2 | The data facts on slide 2 (42 972 rows, 149 discharges, 24 inputs, 16 targets) and slide 1a (discharge 150 to 200 ms) are not in `results/`. Keep them on the slides, or add a data summary to `results/` (for example from `ipp1-eda.json`)? | Lane K item 2: "every number on a slide appears in `results/`" | **Re-asked Fri 18:50, still open:** a small `results/ipp1-data.md` would settle it. |
+| KQ-3 | Which file will hold the camera result and the unusual-shape result (lane R item 2), and by when? | Outline and deck slides 3 and 7 keep `DOPLNIT` until then | **Re-asked Fri 18:50, still open.** |
+| KQ-4 | RP-12: who edits `presentation/pitch-script.md` lines 4:55 and 5:04, the Lead or lane K? | The deck's speaker notes are read from that file | **Answered:** the Lead reworded both lines in 014b16e. |
+| KQ-5 | Some numbers in `docs/claims-corrections.md` exist only in `out/` or the corrections doc, not in `results/`: the spreads (2,4 to 13,7 mm; limiter 90 and 153 mm), the five-component PCA model (2,6 mm axis error) and the noisy file's noise structure (white noise, no drift). Could the Lead copy them into `results/`? | Lane K puts only `results/` numbers on slides; until then they stay in the outline's backup section |
 
 RP-8 is answered by RP-14 (Linux test done, lane K item 3).
 
