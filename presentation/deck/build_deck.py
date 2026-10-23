@@ -372,6 +372,8 @@ def build():
     tile(s, 9.1, 2.45, 3.6, 1.5, f"{cz(cm['current'], 0)} kA", "proud: tato síť ho neurčí", MUTED, 32)
     tile(s, 9.1, 4.1, 3.6, 1.5, f"{cz(cm['colour_grey'][0], 2)} mm", f"osa R barevně, šedá {cz(cm['colour_grey'][1], 2)}",
          LIGHT, 32)
+    # docs/PLAN.md KQ-27: the cloud numbers stay only with this caveat, and come off if the Lead has not confirmed them at G1
+    caption(s, 9.1, 5.8, 3.6, "Měřeno na dvou až pěti dělení, malá síť 48×64.", size=16)
     notes_extra(s, ["Barva nepomáhá. Srovnání je jen orientační: snímky jen ze 78 výbojů, 12 epoch, každý osmý snímek. "
                     "Platí pro tuto malou síť, ne pro kameru jako takovou."])
     add_sources(s, ["results/cloud-camera-findings.md (5 dělení, šedá kamera)"])
@@ -396,7 +398,7 @@ def build():
          f"proud, lineární model (síť {cz(fn['plasma_current'][0], 1)} kA)", BLUE, 32)
     keys = [("R_mag_axis", "osa R"), ("Z_mag_axis", "osa Z"), ("R_x_point", "bod X R"), ("R_strike_point_1", "dotyk 1 R")]
     bv, nv = [fn[k][0] for k, _ in keys], [fn[k][1] for k, _ in keys]
-    chart_title(s, 4.6, 2.35, 8.1, "Průměrná chyba (mm), 30 odložených výbojů")
+    chart_title(s, 4.6, 2.35, 8.1, "Průměrná chyba (mm), 30 výbojů odložených před výběrem")
     c = chart(s, 4.5, 2.8, 8.3, 4.2, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
               [("základní síť", bv), ("vybraný model", nv)], [LIGHT, ORANGE])
     style_chart(c, size=14)
@@ -513,13 +515,18 @@ def build():
     dec = tm["mae_by_time_decile"]["R_mag_axis"]
     cats = [f"{i * 10 + 5} %" for i in range(10)]  # middle of each tenth of the discharge
     chart_title(s, 4.6, 2.2, 8.1, "Základní síť: chyba osy R (mm) podle času výboje")
-    c = chart(s, 4.5, 2.65, 8.3, 3.8, XL_CHART_TYPE.COLUMN_CLUSTERED, cats, [("osa R", dec)], [BLUE])
+    c = chart(s, 4.5, 2.65, 8.3, 2.9, XL_CHART_TYPE.COLUMN_CLUSTERED, cats, [("osa R", dec)], [BLUE])
     style_chart(c, legend=False, size=14)
     c.plots[0].gap_width = 40
     highlight(c, (0, 8, 9))
     label_points(c.plots[0].series[0], dec, 2, TEXT, 13)
     c.value_axis.visible = False
-    caption(s, 4.6, 6.5, 8.1, "Vodorovně čas výboje v procentech jeho délky; 5 dělení po výbojích.")
+    caption(s, 4.6, 5.55, 8.1, "Vodorovně čas výboje v procentech jeho délky; 5 dělení po výbojích.")
+    # docs/PLAN.md KQ-21 and KQ-23, the Lead's wording; numbers from results/ipp1-distribution.md and ipp1-signcanon.md
+    text(s, 4.6, 6.0, 8.1, 1.0, [
+        [("Obrácená polarita: 7 procent řádků a 78 procent kvadratické chyby osy R; kanonizaci znaménka jsme zkoušeli a "
+          "nenasadili, na běžné polaritě stojí asi 20 procent.", 15, TEXT, False)],
+        [("Pro čisté a zašuměné vstupy máme dva modely; přepínání mezi nimi jsme netestovali.", 15, TEXT, False)]])
     # Range over every target except the limiter outputs, not the most favourable one (claims-corrections.md item 2);
     # the limiter point sits near 0,5 because its truth jumps between wall contacts.
     jr = [v for k, v in tm["jitter_ratio"].items() if "limit" not in k]
@@ -532,7 +539,9 @@ def build():
         f"Na souvislých blocích čísel výbojů je chyba základní sítě {cz(lo, 1)} až {cz(hi, 1)}krát větší než na náhodně "
         "vybraných."])
     add_sources(s, ["results/ipp1-final.md (bod u limiteru, bloky čísel výbojů)",
-                    "results/ipp1-time.json (chyba v čase, kolísání)"])
+                    "results/ipp1-time.json (chyba v čase, kolísání)",
+                    "results/ipp1-distribution.md (obrácená polarita 7,4 % řádků, 77,8 % kvadratické chyby osy R)",
+                    "results/ipp1-signcanon.md (kanonizace znaménka, asi 20 % na běžné polaritě)"])
 
     # 7 What the model cannot do (deck-fixes 13, visual QA 1, 2, 3 and screen 13)
     s = frame(prs, "Co model neumí", "Šum mu vadí nejvíc; tvary mimo rozsah dat jsme neověřili", notes_text(sc[7], "Snímek 7"))
@@ -599,8 +608,8 @@ def build():
     text(s, 0.6, 3.25, 6.9, 1.2, f"Jeden odhad, procesor {lat['cpu']}. Klasický výpočet trvá minuty; obojí je pod naším "
                                  "rozpočtem 1 až 10 ms.", size=20, color=TEXT)
     for i, (head, body, col) in enumerate([
-            ("Přesnost", f"osa {cz(fn['R_mag_axis'][1], 2)} mm; bod u limiteru {cz(fn['R_limiter'][1], 2)} a "
-                         f"{cz(fn['Z_limiter'][1], 2)} mm; se šumem osa {cz(nf['axis'], 2)} mm", BLUE),
+            ("Přesnost osy", f"čisté vstupy {cz(fn['R_mag_axis'][1], 2)} mm, zašuměné vstupy {cz(nf['axis'], 2)} mm "
+                             "(síť učená se šumem)", BLUE),
             ("Zbývá", "bod u limiteru, neobvyklé tvary, šum, napojení na řízení", MUTED)]):
         y = 1.6 + i * 2.15
         box(s, 7.9, y, 4.8, 1.95, fill=PANEL)
