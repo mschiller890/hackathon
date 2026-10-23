@@ -1,14 +1,14 @@
 # Osnova prezentace: tvar plazmatu z magnetických měření
 
 Celkem 7 minut (420 sekund), 8 snímků a živá ukázka. U každého snímku je čas a jedna věta, kterou musí říct. Časy a mluvený text jsou v souboru pitch script, tady jsou věty a podklady. Úpravy obrazovky jsou v `docs/deck-fixes.md`.
-Čísla pocházejí jen ze složky results. Kde číslo ještě neexistuje, stojí v dvojitých hranatých závorkách, například `[[latency shipped]]`.
+Čísla pocházejí jen ze složky results. Kde číslo ještě neexistuje, stojí v dvojitých hranatých závorkách, například `[[chyba osy výboje 0]]`.
 Zdroje čísel: soubory ipp1 final, ipp1 baseline, ipp1 inputs, ipp1 time a ipp1 latency ve složce results.
 
 Pravidla pro všechna čísla:
 
 * Dva modely se nezaměňují. Základní síť: 24 vstupů, 107 152 parametrů. Vybraný model: základní síť plus rozdíly sousedních cívek, lineární model pro proud a zvláštní síť pro bod u limiteru. Pro zašuměné vstupy se používá síť učená se šumem.
 * Pod každým číslem přesnosti stojí protokol: 30 odložených výbojů (osa 0,133 mm), křížová validace na 119 výbojích (0,230 mm), novější čísla výbojů (0,397 mm), u základní sítě pět dělení po výbojích (0,377 mm).
-* Každá rychlost má model a procesor: základní síť 0,0145 ms, Apple M5; vybraný model `[[latency shipped]]`, do změření asi 0,18 ms (odhad z podobného postupu na vytíženém počítači).
+* Každá rychlost má model a procesor: základní síť 0,0145 ms, Apple M5; vybraný model medián asi 0,03 ms, 99 % pod 0,1 ms (Apple M5, vytížený počítač, `results/ipp1-latency-shipped.md`).
 * Slova zamčená a nikdo neviděl se nepoužívají. Říká se odložené výboje (odložené před finálním výběrem).
 
 ## Snímek 1: Problém (38 s)
@@ -68,11 +68,11 @@ Věta: V prohlížeči vidíte skutečný a odhadnutý tvar plazmatu vedle sebe 
 
 ## Snímek 5: Verdikt pro řízení v reálném čase (37 s)
 
-Věta: Výpočet sítě rychlosti nebrání: základní síť 0,0145 ms na procesoru Apple M5, vybraný model asi `[[latency shipped]]` ms, rozpočet je 1 až 10 ms; ověřili jsme ale jen výpočet samotné sítě.
+Věta: Výpočet sítě rychlosti nebrání: základní síť 0,0145 ms na procesoru Apple M5, vybraný model asi 0,03 ms, rozpočet je 1 až 10 ms; ověřili jsme ale jen výpočet samotné sítě.
 
 * Základní síť, procesor Apple M5, jeden vzorek: medián 0,0145 ms, 99 % měření pod 0,0209 ms. Stroj byl sdílený a vytížený, takže čas závisí na zatížení; na jiném procesoru (AMD Ryzen 5 7535HS) vyšlo 0,032 ms.
 * Celý odhad základní sítě od surových čísel na vstupu po čísla na výstupu: medián 0,0140 ms, 99 % měření pod 0,0503 ms. Nejvyšší hodnoty se na systému bez reálného času ojediněle objeví až v milisekundách, to není horní mez.
-* Vybraný model (síť s rozdíly cívek, lineární model pro proud a síť pro bod u limiteru) trvá jeden odhad `[[latency shipped]]` ms na klidném stroji; do změření je odhad 0,1775 ms z podobného postupu na vytíženém stroji, asi dvanáctkrát víc než základní síť. Pořád je to hluboko pod rozpočtem 1 až 10 ms.
+* Vybraný model (síť s rozdíly cívek, lineární model pro proud a síť pro bod u limiteru) trvá jeden odhad medián 0,0154 ms, když je plazma divertorové (stačí jedna síť), a 0,0274 ms, když je limitované (obě sítě); 99 % měření pod 0,057 a 0,093 ms. Je to asi dvakrát víc než základní síť v limitovaném případě, ne dvanáctkrát. Stroj nebyl klidný (zatížení asi 7), takže chvosty nejsou horní mez. Dřívější odhad 0,1775 ms se nepodařilo zopakovat.
 * Grafická karta a druhý počítač se nahlas neříkají (škrtnuto kvůli času): grafická karta 0,27 ms, s přenosem dat 0,49 ms, pomalejší než procesor, protože model je malý.
 * Neověřili jsme: sběr a integraci signálů z cívek, nejhorší dobu na systému reálného času a přesnost na skutečně zašuměných signálech. Přepínání mezi modelem pro čisté a pro zašuměné vstupy jsme netestovali.
 * U každého času říkáme, na jakém modelu a procesoru byl měřen.
@@ -104,7 +104,7 @@ Věta: Model je křehký vůči šumu, potřebuje dost výbojů, neobvyklé tvar
 Věta: Přesnost na čistých vstupech je desetiny milimetru, rychlost výpočtu desetiny milisekundy, ale model ještě není připraven pro řízení.
 
 * Přesnost: osa 0,13 mm na 30 odložených výbojích, asi 0,2 mm v křížové validaci (0,40 mm na novějších číslech); na zašuměných vstupech jednotky milimetrů (2,38 mm).
-* Rychlost: základní síť 0,0145 ms (procesor Apple M5), vybraný model asi `[[latency shipped]]` ms; obojí hluboko pod rozpočtem 1 až 10 ms. Výpočet sítě, ne celý řídicí systém.
+* Rychlost: základní síť 0,0145 ms (procesor Apple M5), vybraný model asi 0,03 ms; obojí hluboko pod rozpočtem 1 až 10 ms. Výpočet sítě, ne celý řídicí systém.
 * Upřímně: slabý bod u limiteru, neobvyklé tvary jsme samostatně neověřili a šum mu vadí, pokud se na něj neučí.
 * Sběr signálů a napojení na řídicí systém jsme nezkoušeli. Zbývá napojení na řídicí systém, víc výbojů a odolnost proti šumu.
 * Slogan: desetiny milimetru za desetiny milisekundy (do změření vybraného modelu; pak podle měření).
@@ -123,7 +123,6 @@ Věta: Malá kamerová síť (snímky 48 na 64 bodů) je 1,3 až 13krát horší
 
 ## Chybějící čísla (DOPLNIT)
 
-* `[[latency shipped]]`: čas vybraného modelu na klidném stroji (místní terminál, `results/ipp1-latency-shipped.md`).
 * `[[chyba osy výboje 0]]`: číslo z přehrání v prohlížeči.
 * Kamera: srovnání na stejných řádcích a zbylé běhy z cloudu (čísla z cloudu zatím neprošla kontrolou vedoucího).
 
