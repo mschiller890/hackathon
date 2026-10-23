@@ -179,7 +179,7 @@ function drawGrid(ctx) {
   ctx.lineWidth = 1; ctx.font = "12px -apple-system, Arial"; ctx.fillStyle = COL.muted; ctx.strokeStyle = "#16202d";
   const [R0, R1] = D.view.R, [Z0, Z1] = D.view.Z;
   for (let r = Math.ceil(R0 * 10) / 10; r <= R1; r += 0.1) { ctx.beginPath(); ctx.moveTo(X(r), Y(Z0)); ctx.lineTo(X(r), Y(Z1)); ctx.stroke(); ctx.textAlign = "center"; ctx.fillText(r.toFixed(1).replace(".", ","), X(r), Y(Z0) + 16); }
-  for (let z = Math.ceil(Z0 * 10) / 10; z <= Z1; z += 0.1) { ctx.beginPath(); ctx.moveTo(X(R0), Y(z)); ctx.lineTo(X(R1), Y(z)); ctx.stroke(); ctx.textAlign = "right"; ctx.fillText(z.toFixed(1).replace(".", ","), X(R0) - 8, Y(z) + 4); }
+  for (let z = Math.ceil(Z0 * 10) / 10; z <= Z1; z += 0.1) { ctx.beginPath(); ctx.moveTo(X(R0), Y(z)); ctx.lineTo(X(R1), Y(z)); ctx.stroke(); ctx.textAlign = "right"; ctx.fillText((Math.abs(z) < 1e-9 ? 0 : z).toFixed(1).replace(".", ","), X(R0) - 8, Y(z) + 4); }
   ctx.textAlign = "center"; ctx.fillText("R [m]", X((R0 + R1) / 2), Y(Z0) + 32);
   ctx.textAlign = "left"; ctx.fillText("Z [m]", X(R0) - 36, Y(Z1) - 8);
 }
