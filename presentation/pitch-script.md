@@ -322,6 +322,10 @@ Odpovídá B: Základní síť má 0,993 v pěti dělení, vybraný model 0,9916
 
 Odpovídá B: Pracovali jsme ve dvou. Kód, analýzy a texty jsme psali s pomocí nástrojů s umělou inteligencí, hlavně modelů Claude a GPT, které pracovaly jako pomocníci. Zadání, rozhodnutí a kontrolu každého čísla v repozitáři jsme dělali my. U každého výsledku je zapsán protokol a soubor, aby se dal ověřit. *(Znění potvrdí majitel před vystoupením; otázku na pravidla ke používání AI mají organizátoři v seznamu otázek, číslo 12. Nikdy neříkat, že AI nebyla použita.)*
 
+### N15. Fyzik: Co je nejslabší místo a zkoušeli jste ho zlepšit?
+
+Odpovídá B: Nejslabší je bod, kde plazma dosedá na limiter: chyba 4,55 a 8,35 milimetru na třiceti odložených výbojích. Zkusili jsme vyměnit jen jeho síť za reziduální z našeho hledání. Ve vývoji snížila chybu o 39 procent, na odložených výbojích o 28 a 34 procent, tedy z 4,55 na 3,26 a z 8,35 na 5,55 milimetru, ostatní výstupy zůstaly stejné. Jako hlavní model ji nepoužíváme: její nastavení vzešlo z hledání, které vidělo všechny výboje, je asi třikrát pomalejší (0,087 proti 0,029 milisekundy) a pravidlo pro rychlost jsme museli upravit dodatečně, což je v protokolu vyznačeno. (`results/ipp1-limiter-swap.md`)
+
 ## Příloha: deset nejtěžších fyzikálních otázek
 
 Zdroj: `docs/review-physics.md`, část 5 (otázky F1 až F10). Sedm z nich je totéž co otázky výše, proto jsou sloučené a odpověď je tam; tři nové (F2, F4, F5) jsou níže. Čísla jsou jen ze složky `results/`, kde odpověď neví, řekne Neměřili jsme.
