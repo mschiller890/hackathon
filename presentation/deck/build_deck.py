@@ -71,8 +71,9 @@ def load():
     # Same file, noisy inputs, 30 held-out discharges: the noise-trained baseline that is used there, and the selected
     # model, which collapses on noisy inputs.
     j["noisy_final"] = {"axis": 2.38, "current": 4.65, "limiter": (25.8, 38.9), "selected_axis": 190}
-    # Selected model latency (docs/deck-fixes.md [[latency shipped]]): None until results/ holds a measurement.
-    j["shipped_latency"] = None
+    # results/ipp1-latency-shipped.md: selected model pair, numpy path, one core, Apple M5 on a busy machine (load about 7);
+    # limited case (both networks), the slower one. Wording from docs/PLAN.md KQ-13.
+    j["shipped_latency"] = {"median": 0.0274, "p99": 0.093}
     # results/cloud-camera-findings.md, 5 folds, grey camera CNN MAE against the magnetic baseline; nRMSE ratio range.
     j["camera"] = {"R_mag_axis": (1.70, 0.377), "Z_mag_axis": (2.40, 0.391), "R_x_point": (1.50, 0.202),
                    "R_strike_point_1": (2.25, 0.265), "ratio": (1.3, 13), "colour_grey": (1.79, 1.70), "current": 14.0}
@@ -281,9 +282,10 @@ def build():
     lat, inp, tm = j["latency"], j["inputs"], j["time"]
     one, e2e = lat["cpu_1_thread_single_sample"], lat["cpu_end_to_end_numpy"]
     fn, cm, us, nf = j["final"], j["camera"], j["unusual"], j["noisy_final"]
-    shipped = j["shipped_latency"]  # None until measured (deck-fixes.md, [[latency shipped]])
-    shipped_txt = (f"{cz(shipped, 3)} ms", "vybraný model (3 části), procesor Apple M5") if shipped else \
-        ("asi 0,18 ms", "vybraný model, zatím odhad z podobného postupu na vytíženém počítači, neměřeno")
+    sl = j["shipped_latency"]
+    shipped_txt = (f"asi {cz(sl['median'], 2)} ms", f"vybraný model: medián, 99 % pod {cz(0.1, 1)} ms "
+                   f"(Apple M5, vytížený počítač)")
+    assert sl["p99"] < 0.1  # the label promises p99 under 0,1 ms
     prs = Presentation()
     prs.slide_width, prs.slide_height = W, H
 
@@ -471,8 +473,7 @@ def build():
         [("p99: 99 % odhadů je rychlejších. Na systému bez reálného času se ojediněle objeví špičky.", 13, MUTED,
           False)]])
     add_sources(s, ["results/ipp1-latency.json (procesor, medián, p99, celý odhad)",
-                    "results/ipp1-latency-shipped.md (vybraný model)" if shipped else
-                    "results/ipp1-improve.md (asi 0,18 ms, podobný postup, neměřeno)"])
+                    "results/ipp1-latency-shipped.md (vybraný model, vytížený počítač)"])
 
     # 6 Limits (items 12.1 to 12.3)
     s = frame(prs, "Meze", "Nejslabší je bod u limiteru a konec výboje", notes_text(sc[6], "Snímek 6"))
@@ -559,7 +560,7 @@ def build():
     text(s, 0.6, 1.6, 6.8, 0.5, f"Jeden odhad základní sítě, procesor {lat['cpu']}", size=20, color=MUTED)
     text(s, 0.6, 2.1, 6.8, 1.6, f"{cz(one['median_ms'], 4)} ms", size=88, color=ORANGE, bold=True)
     text(s, 0.6, 3.7, 6.8, 0.6, [[(shipped_txt[0], 26, TEXT, True),
-                                  ("  vybraný model" + ("" if shipped else ", odhad"), 18, MUTED, False)]])
+                                  ("  vybraný model, 99 % pod 0,1 ms", 18, MUTED, False)]])
     text(s, 0.6, 4.45, 6.8, 1.0, "Klasický výpočet trvá minuty. Zadání chce jednotky až desítky milisekund. Obojí je "
                                  "pod rozpočtem 1 až 10 ms.", size=18, color=TEXT)
     for i, (head, body, col) in enumerate([
@@ -571,10 +572,11 @@ def build():
         box(s, 7.9, y, 4.8, 1.85, fill=PANEL)
         box(s, 7.9, y + 0.2, 0.07, 1.45, fill=col)
         text(s, 8.2, y + 0.2, 4.4, 1.55, [[(head, 22, col, True)], [(body, 14, TEXT, False)]])
-    text(s, 0.6, 6.0, 12.1, 0.6, "Desetiny milimetru za desetiny milisekundy.", size=22, bold=True,
+    text(s, 0.6, 6.0, 12.1, 0.6, "Desetiny milimetru za setiny milisekundy.", size=22, bold=True,
          align=PP_ALIGN.CENTER)
     caption(s, 11.6, 6.65, 1.2, "Ilustrace.")
-    add_sources(s, ["results/ipp1-latency.json (0,0145 ms, Apple M5)", "results/ipp1-final.md (přesnost)"])
+    add_sources(s, ["results/ipp1-latency.json (0,0145 ms, Apple M5)", "results/ipp1-latency-shipped.md (vybraný model)",
+                    "results/ipp1-final.md (přesnost)"])
 
     prs.save(OUT)
     return OUT
