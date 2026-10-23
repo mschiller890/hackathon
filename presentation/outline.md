@@ -28,7 +28,7 @@ Věta: Použili jsme malou neuronovou síť o 107 152 parametrech, porovnali ji 
 * Srovnání: lineární model (hřebenová regrese) proti malé neuronové síti.
 * Dále: kolik vstupů opravdu potřebujeme, jak stabilní je výstup v čase, jak rychlá je odpověď, jak síť snáší šum.
 * Pro čisté vstupy jsme pak zkusili vylepšený model: síť s rozdíly sousedních cívek, lineární model pro proud a zvláštní síť pro bod u limiteru.
-* Kamerový model: DOPLNIT (zatím neměřeno).
+* Kamera: malá konvoluční síť na snímcích, samotná je 6 až 8krát horší než magnetická měření na ose (1,54 mm proti 0,24 mm, jen na dvou z pěti dělení, proto srovnáváme jen uvnitř téže tabulky). Černobílý snímek nic nezmění (1,53 mm). Proud plazmatem z kamery určit nejde (chyba 18 kA).
 
 ## Snímek 4: Výsledky (45 s)
 
@@ -44,13 +44,19 @@ Věta: Síť trefí osu, bod X a dotykové body s průměrnou chybou 0,06 až 0,
 * Vylepšený model pro čisté vstupy, závěrečný test na 30 výbojích, které se při vývoji nepoužily: chyba bodu u limiteru 4,55 mm místo 10,6 (radiálně) a 8,35 mm místo 22,5 (svisle), proud 0,035 kA místo 1,20 kA. Několik jednotlivých řádků je ale horších, takže říkáme "lepší v průměru a ve většině řádků", ne "všude".
 * Obrázek: graf chyby podle počtu vstupů (soubor ipp1 inputs ve složce results).
 
+## Živá ukázka mezi snímkem 4 a 5 (95 s)
+
+Věta: V prohlížeči vidíte skutečný a odhadnutý tvar plazmatu vedle sebe a chybu v čase, jednu typickou a jednu špatnou ukázku.
+
+* Posuvník času, skutečná a odhadnutá hranice, tabulka chyb. Podrobný scénář je v souboru pitch script.
+
 ## Snímek 5: Verdikt pro řízení v reálném čase (35 s)
 
-Věta: Výpočet sítě rychlosti nebrání: medián je 0,015 ms na procesoru Apple M5, rozpočet je 1 až 10 ms; ověřili jsme ale jen výpočet samotné sítě.
+Věta: Výpočet sítě rychlosti nebrání: medián je 0,0145 ms na procesoru Apple M5, rozpočet je 1 až 10 ms; ověřili jsme ale jen výpočet samotné sítě.
 
-* Procesor Apple M5, jeden vzorek: medián 0,015 ms, 99 % měření pod 0,042 ms. Na zatíženém stroji vyšel medián 0,0188 ms a 99 % měření pod 0,118 ms.
-* Celý odhad od surových čísel na vstupu po čísla na výstupu: medián 0,0208 ms. Nejvyšší hodnoty se na systému bez reálného času ojediněle objeví až v milisekundách, to není horní mez.
-* Grafická karta pro jeden odhad: medián 0,44 ms s přenosem dat 0,69 ms, pomalejší než procesor, protože model je malý.
+* Procesor Apple M5, jeden vzorek: medián 0,0145 ms, 99 % měření pod 0,0209 ms. Při dřívějším měření na silněji zatíženém stroji vyšel medián 0,0188 ms a 99 % měření pod 0,118 ms, takže čas závisí na zatížení.
+* Celý odhad od surových čísel na vstupu po čísla na výstupu: medián 0,0140 ms. Nejvyšší hodnoty se na systému bez reálného času ojediněle objeví až v milisekundách, to není horní mez.
+* Grafická karta pro jeden odhad: medián 0,27 ms, s přenosem dat 0,49 ms, pomalejší než procesor, protože model je malý.
 * Neověřili jsme: sběr a integraci signálů z cívek, nejhorší dobu na systému reálného času a přesnost na skutečně zašuměných signálech. Síť naučená na čistých datech na šumu selže, síť naučená na šumu dává chybu osy 2,64 mm.
 * U každého času říkáme, na jakém procesoru byl měřen.
 
@@ -71,45 +77,14 @@ Věta: Model je křehký vůči šumu, potřebuje dost výbojů a nezná neobvyk
 * Šum: osa má chybu 0,38 mm na čistých datech, ale 10,15 mm na datech s šumem; učení na zašuměných datech to srazí na 2,64 mm. Vylepšený model pro čisté vstupy na šumu selže úplně, proto pro zašuměné vstupy použijeme síť učenou se šumem.
 * Množství dat: s 30 výboji je chyba osy 1,47 mm (radiální) a 0,95 mm (svislá). Od 30 do 119 výbojů klesá zhruba na polovinu při zdvojnásobení, ale s pevným počtem 60 epoch, takže část zlepšení tvoří víc kroků učení.
 * Neobvyklý tvar, který poruší vztahy mezi veličinami: DOPLNIT (zatím neměřeno).
-* Ověřeno jen na jednom tokamaku. Model odhaduje jen tvar a řízení plazmatu samo nenahrazuje.
-
-## Živá ukázka mezi snímkem 4 a 5 (95 s)
-
-Věta: V prohlížeči vidíte skutečný a odhadnutý tvar plazmatu vedle sebe a chybu v čase, jednu typickou a jednu špatnou ukázku.
-
-* Posuvník času, skutečná a odhadnutá hranice, tabulka chyb. Podrobný scénář je v souboru pitch script.
-
-## Snímek 5: Verdikt pro řízení v reálném čase (35 s)
-
-Věta: Výpočet sítě trvá asi 0,0145 ms na procesoru, tedy mnohonásobně méně než jednotky milisekund, které zadání žádá, ale sběr signálů a běh na systému reálného času jsme neověřovali.
-
-* Procesor, jeden vzorek: medián 0,0145 ms, 99 % měření pod 0,0288 ms (měřeno na počítači vedoucího týmu; na jiném procesoru vychází čas vyšší, proto u čísla vždy říkáme, na jakém počítači bylo měřeno).
-* Grafická karta Apple, jeden vzorek: medián 0,2405 ms, pomalejší než procesor, protože model je malý.
-* Verdikt: výpočet sítě není překážkou. Neověřeno: sběr signálů z čidel, běh na systému reálného času a přesnost na skutečně zašuměných signálech (síť učená na čistých datech na šumu selže, viz snímek 7).
-
-## Snímek 6: Meze (30 s)
-
-Věta: Nejhůř se odhaduje bod u limiteru, kde chyba dosahuje 10,7 mm a 22,2 mm, a na konci výboje chyby rostou u všech veličin.
-
-* Bod u limiteru: radiální chyba 10,7 mm, svislá 22,2 mm, řádově hůř než ostatní veličiny.
-* Na konci výboje chyby rostou u všech sledovaných veličin, například osa 0,9 mm proti 0,24 mm uprostřed. Na začátku roste jen chyba polohy osy.
-* Na čistých vstupech kolísá výstup mezi sousedními časy stejně jako pravda (poměr 0,97 až 1,07 u sedmi veličin; bod u limiteru mezi nimi není).
-* S menším počtem vstupů přesnost klesá: se 4 vstupy je souhrnná chyba 0,204.
-
-## Snímek 7: Co model neumí (60 s)
-
-Věta: Model je křehký vůči šumu, potřebuje dost výbojů a nezná neobvyklý tvar ani řízení plazmatu.
-
-* Šum: osa má chybu 0,38 mm na čistých datech, ale 10,15 mm na datech s šumem; učení na zašuměných datech to srazí na 2,64 mm.
-* Množství dat: od 30 výbojů se chyba osy s každým zdvojením zhruba půlí (1,47; 0,83; 0,38 mm) ale učili jsme vždy 60 epoch, takže část zlepšení tvoří víc kroků učení.
-* Neobvyklý tvar, který poruší vztahy mezi veličinami: DOPLNIT (zatím neměřeno).
+* Kamera: model naučený na nepohnutých snímcích je křehký, posun o 4 pixely ztrojnásobí chybu osy (z 1,54 na 4,95 mm); učení s posuny a otočením to srovná na asi 2 mm za cenu horší přesnosti na nepohnutých snímcích. Kamera a magnetická měření dohromady magnetickou síť nepřekonaly (1,21 mm proti 0,24 mm). Měřeno jen na dvou z pěti dělení.
 * Ověřeno jen na jednom tokamaku. Model odhaduje jen tvar a řízení plazmatu samo nenahrazuje.
 
 ## Snímek 8: Závěr, jedno číslo (50 s)
 
-Věta: Výpočet sítě trvá 0,015 ms na procesoru Apple M5 a chyba osy je desetiny milimetru, ale model ještě není připraven pro řízení.
+Věta: Výpočet sítě trvá 0,0145 ms na procesoru Apple M5 a chyba osy je desetiny milimetru, ale model ještě není připraven pro řízení.
 
-* Velké číslo 0,015 ms (výpočet sítě na procesoru Apple M5, ne celý řídicí systém), vedle něj desetiny milimetru u osy, bodu X a dotykových bodů.
+* Velké číslo 0,0145 ms (výpočet sítě na procesoru Apple M5, ne celý řídicí systém), vedle něj desetiny milimetru u osy, bodu X a dotykových bodů.
 * Upřímně: slabý bod u limiteru, nezná neobvyklé tvary a šum mu vadí, pokud se na něj neučí.
 * Sběr signálů a napojení na řídicí systém jsme nezkoušeli. Zbývá ověřit napojení na řídicí systém, získat víc výbojů a přidat odolnost proti šumu.
 
@@ -119,9 +94,9 @@ Podle rozhodnutí vedoucího (RP 11) platí časy ze souboru pitch script: 50 + 
 
 ## Chybějící čísla (DOPLNIT)
 
-* Výsledky kamerového modelu a srovnání s magnetickým.
+* Kamera: zbylá tři dělení z pěti a nezávislý kamerový model z cloudu.
+* Údaj, že výboj trvá 150 až 200 ms, není ve složce results.
 * Chování pro neobvyklý tvar.
-* Kdo potvrdí napojení na řídicí systém.
 
 ## Do zálohy: dotazy poroty (neříká se nahlas)
 

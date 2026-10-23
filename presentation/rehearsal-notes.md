@@ -29,7 +29,7 @@ Tempo kolem 2 slov za sekundu je rychlé, zvlášť u čísel, která se čtou p
 
 Deset otázek poroty s odpověďmi je v souboru pitch script. Zde jsou moje doplňující odpovědi, všechny z osnovy a z results:
 
-* Proč síť, a ne klasická rekonstrukce? Výpočet sítě trvá 0,015 ms na procesoru Apple M5 proti minutám; průměrná chyba je pod půl milimetru u většiny veličin, ale 99 % řádků osy je pod 3,74 mm a nejhorší řádky mají desítky mm.
+* Proč síť, a ne klasická rekonstrukce? Výpočet sítě trvá 0,0145 ms na procesoru Apple M5 proti minutám; průměrná chyba je pod půl milimetru u většiny veličin, ale 99 % řádků osy je pod 3,74 mm a nejhorší řádky mají desítky mm.
 * Co když čidla mají šum? Na čistých datech učený model je křehký (osa 0,38 mm na 10,15 mm). Učení na šumu to srazí na 2,64 mm za cenu horších čistých dat (2,22 mm).
 * Jak víte, že to funguje na nových výbojích? Dělili jsme po celých výbojích, pětkrát jinak.
 * Je 149 výbojů dost? Od 30 výbojů se chyba osy s každým zdvojením zhruba půlí ale učili jsme vždy 60 epoch, takže část zlepšení tvoří víc kroků učení; víc dat by zřejmě pomohlo.
@@ -37,4 +37,4 @@ Deset otázek poroty s odpověďmi je v souboru pitch script. Zde jsou moje dopl
   * Záloha: zkusili jsme zvláštní model pro bod u limiteru. Na čistých datech chybu půlí (10,7 na 5,7 mm radiálně, 22,2 na 11,7 mm svisle), ale na zašuměných datech selže úplně, proto ho zatím nepoužíváme. Platí, dokud vedoucí nerozhodne, který model se v talku ukáže (RP 9); osnova zůstává na základním modelu.
 * Dá se to nasadit do řízení? Výpočet sítě je rychlý; sběr signálů, systém reálného času a skutečně zašuměné signály jsme neověřovali.
 * Co neobvyklý tvar? Neměřeno (DOPLNIT, nebo přiznat jako mez).
-* Co kamera? DOPLNIT, dokud nejsou výsledky.
+* Co kamera? Samotná je 6 až 8krát horší než magnetická měření na ose (1,54 proti 0,24 mm) a proud plazmatem určit nejde. Měřeno jen na dvou z pěti dělení, kamera zůstává bonus.
