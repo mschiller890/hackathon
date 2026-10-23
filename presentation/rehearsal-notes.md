@@ -29,3 +29,7 @@ Deset zlých otázek a třináct dalších od kritika 2 s upřímnými odpověď
 ## Časový odhad od vedoucího (nástroj presentation/timing.py)
 
 Odhad 7:20 při 1,8 slova za sekundu, 8:15 při 1,6, 6:36 při 2,0. Napsané sekundy dávají dohromady 6:45. Majitel čte přednášku nahlas se stopkami dnes asi ve 22:30, vedoucí rozhoduje o škrtech. Pořadí škrtů: řádek o grafické kartě, řádek o druhém počítači, detail šumu na snímku 7, vysvětlivka na snímku 8. Kamerový snímek je už skrytý.
+
+## Co říct nahlas o slově odložené
+
+Odložených 30 výbojů je odloženo před posledním výběrem modelu. Nejsou zcela nezávislé: náměty na úpravy modelu vznikly na všech 149 výbojích. Říct to jednou, hned při prvním čísle z odložených výbojů (snímek 4).
