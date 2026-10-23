@@ -189,7 +189,7 @@ def build():
     # 2 Data
     rows, dis = 42972, 149
     s = frame(prs, 2, "Data", f"{cz(rows, 0)} okamžiků ze {dis} výbojů tokamaku COMPASS", notes)
-    tile(s, 0.6, 2.4, 3.8, 2.0, "24", "magnetických měření: 16 cívek IPR, 8 smyček toku FL", accent=BLUE)
+    tile(s, 0.6, 2.4, 3.8, 2.0, "24", "magnetických měření: 16 cívek a 8 smyček toku", accent=BLUE)
     tile(s, 4.75, 2.4, 3.8, 2.0, "16", "hledaných veličin tvaru: osa, bod X, dotykové body, protažení", accent=ORANGE)
     tile(s, 8.9, 2.4, 3.8, 2.0, str(dis), "výbojů; učení a test dělíme vždy po celých výbojích", accent=BLUE)
     text(s, 0.6, 4.9, 12.1, 1.6, [
