@@ -1,0 +1,316 @@
+[
+ {
+  "id": "Q1",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Čemu říkáte pravda?",
+  "a": "Porovnáváme se správnými odpověďmi od ústavu, což je numerická rekonstrukce rovnováhy. Chyba 0,13 milimetru je proti ní, ne proti skutečnému plazmatu. Přesnost těch odpovědí jsme neměřili.",
+  "full": "",
+  "src": "ipp1-final.md"
+ },
+ {
+  "id": "Q2",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": true,
+  "q": "Co když bude tvar nový?",
+  "a": "Nevíme. Vynechání celé rodiny tvarů zvedlo chybu nejvýš třikrát. Opravdu neobvyklých výbojů je jen 18 ze 149 a samostatně jsme je nevynechali. Mimo rozsah dat tomu věřit nelze.",
+  "full": "",
+  "src": "ipp1-unusual-shapes.md"
+ },
+ {
+  "id": "Q3",
+  "also": [
+   "N1"
+  ],
+  "who": "IPP fyzik",
+  "danger": true,
+  "q": "Na šumu se síť zhroutí; jak přesní jste na skutečných čidlech?",
+  "a": "Síť naučená na čistých datech má na šumu osu 10,15 milimetru. Síť učená se šumem má na 30 odložených výbojích osu 2,38. Zda šum v souboru odpovídá skutečným čidlům, nevíme.",
+  "full": "",
+  "src": "ipp1-robustness-findings.md, ipp1-final.md, ipp1-data-checks.md"
+ },
+ {
+  "id": "Q7",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Hodnoty se skoro nehýbou.",
+  "a": "Správně, u osy a bodu X je rozptyl jen 2,4 až 13,7 milimetru. Proto uvádíme i chybu vztaženou k rozptylu: u osy 0,139 u základní sítě, pět dělení po výbojích.",
+  "full": "",
+  "src": "ipp1-baseline.md, ipp1-data-checks.md"
+ },
+ {
+  "id": "N5",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": true,
+  "q": "Jakou rychlost uvádíte, vybraného modelu?",
+  "a": "0,0145 milisekundy patří základní síti. Vybraný model od 24 čísel po výstup: medián 0,015, s limiterem 0,027 milisekundy, devadesát devět procent pod 0,1, na vytíženém notebooku. Obojí pod rozpočtem 1 až 10.",
+  "full": "",
+  "src": "ipp1-latency-shipped.md, ipp1-latency.md"
+ },
+ {
+  "id": "N6",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Jak jste na zánicích a startu?",
+  "a": "Nejhůř na koncích: v posledních dvou procentech je osa 0,58 milimetru proti 0,11 uprostřed. Náhlé zániky v datech ani v našich zkouškách nejsou.",
+  "full": "",
+  "src": "ipp1-final.md"
+ },
+ {
+  "id": "N8",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Proč nezprůměrovat řádky?",
+  "a": "Zkusili jsme tři: na šumu klesla chyba osy z 2,64 na 2,33, na čistých vstupech se zhoršila z 0,38 na 0,57 milimetru. Delší okna jsme nezkoušeli.",
+  "full": "",
+  "src": "ipp1-robustness-findings.md"
+ },
+ {
+  "id": "N9",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Přežije se výpadek cívky?",
+  "a": "Netestovali jsme. Samotných 16 cívek dává souhrnnou chybu 0,066 proti 0,063 se všemi 24 vstupy. Žádné čidlo nejmenujeme, pořadí není stabilní.",
+  "full": "",
+  "src": "ipp1-inputs.md, ipp1-inputs-controls.md"
+ },
+ {
+  "id": "N11",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Zadání má 17 parametrů, vy 16.",
+  "a": "Vybraný model předpovídá 16 hlavních sloupců z 31 v souboru. Ostatních patnáct jsou doplňkové veličiny pro obrys; ty předpovídá jen základní síť a čísla pro ně zatím nepublikujeme.",
+  "full": "",
+  "src": "ipp1-data.md"
+ },
+ {
+  "id": "Q4",
+  "also": [],
+  "who": "ML",
+  "danger": false,
+  "q": "Proč je u proudu lineární model lepší?",
+  "a": "Je, a vybraný model ho používá: 0,035 kiloampéru proti 1,2 u sítě. Proud je skoro lineární funkce vstupů, není to úspěch sítě a nepočítáme to do zisku.",
+  "full": "",
+  "src": "ipp1-final.md, ipp1-baseline.md"
+ },
+ {
+  "id": "Q5",
+  "also": [
+   "N2"
+  ],
+  "who": "ML",
+  "danger": true,
+  "q": "Je validace poctivá? Ladili jste na testu?",
+  "a": "Částečně. Návrh běžel na křížové validaci přes všech 149 výbojů, takže odložených 30 v ní bylo. Po odložení se nepřeučovalo. Proto obě čísla: 0,13 odložené, 0,23 vývojové.",
+  "full": "",
+  "src": "ipp1-final.md, ipp1-improve.md"
+ },
+ {
+  "id": "Q6",
+  "also": [],
+  "who": "ML",
+  "danger": false,
+  "q": "Zkoušeli jste jiné modely?",
+  "a": "Širší a hlubší sítě, jinou ztrátu, rozdíly cívek, soubory sítí i stromy. Nejvíc pomohla zvláštní síť pro limiter: 4,55 proti 10,6 milimetru. Rozdíly pod 15 až 20 procent bereme jako šum.",
+  "full": "",
+  "src": "ipp1-improve.md, ipp1-final.md"
+ },
+ {
+  "id": "N3",
+  "also": [],
+  "who": "ML",
+  "danger": false,
+  "q": "Je odložená sada reprezentativní?",
+  "a": "Ne zcela. Jen 2 z 30 výbojů mají opačný proud a tam je osa 0,45 milimetru, čtyřikrát víc. Interval osy je 0,10 až 0,18. Na opačnou polaritu je to málo.",
+  "full": "",
+  "src": "ipp1-final.md"
+ },
+ {
+  "id": "N4",
+  "also": [],
+  "who": "ML",
+  "danger": false,
+  "q": "Kolik z vylepšení je skutečné?",
+  "a": "Pět semen: vybraný model je lepší v pěti z pěti u všech sedmi veličin, osa o 42 až 60 procent. U bodu X jen o 21, tam říkáme o něco lepší.",
+  "full": "",
+  "src": "ipp1-final-seeds.md"
+ },
+ {
+  "id": "N7",
+  "also": [],
+  "who": "ML",
+  "danger": false,
+  "q": "Model, který musí znát druh vstupu?",
+  "a": "Dodáváme dva: vybraný pro čisté vstupy, síť učenou se šumem pro zašuměné. Jeden vítěz není, učená se šumem je na čistých horší, 1,56 proti 0,31. Přepínání jsme netestovali.",
+  "full": "",
+  "src": "ipp1-final.md"
+ },
+ {
+  "id": "N10",
+  "also": [],
+  "who": "ML",
+  "danger": false,
+  "q": "Je kamera k ničemu?",
+  "a": "Je to malá síť na snímcích 48 na 64 z 78 výbojů, 1,3 až 13krát horší než cívky. Ukazuje to na tuto síť, ne že kamera nenese informaci.",
+  "full": "",
+  "src": "cloud-camera-main.md, cloud-camera-findings.md"
+ },
+ {
+  "id": "N12",
+  "also": [],
+  "who": "ML",
+  "danger": false,
+  "q": "A na nejnovějších výbojích?",
+  "a": "Učení na 60 nejnižších číslech, test na 59 nejvyšších: osa 0,40 milimetru, při náhodném dělení 0,22. Že čísla sledují čas, jsme neověřili.",
+  "full": "",
+  "src": "ipp1-final.md"
+ },
+ {
+  "id": "Q8",
+  "also": [],
+  "who": "organizátor",
+  "danger": true,
+  "q": "Dá se to nasadit do řízení?",
+  "a": "Zatím ne. Změřili jsme jen výpočet sítě. Sběr signálů, napojení, nejhorší dobu a skutečně zašuměné signály ne. A jsou to dva modely, přepínání jsme netestovali.",
+  "full": "",
+  "src": "ipp1-latency-shipped.md, ipp1-final.md"
+ },
+ {
+  "id": "Q9",
+  "also": [],
+  "who": "organizátor",
+  "danger": false,
+  "q": "Pomůže to COMPASS Upgrade?",
+  "a": "Model je naučený jen na COMPASSu, na jiném stroji by se učil znovu. Se 30 učícími výboji je osa 1,47 milimetru; kolik výbojů potřebuje nový stroj, nevíme.",
+  "full": "",
+  "src": "ipp1-robustness-findings.md"
+ },
+ {
+  "id": "Q10",
+  "also": [],
+  "who": "organizátor",
+  "danger": false,
+  "q": "Co když se plete a neřekne to?",
+  "a": "Pět sítí s různým začátkem: na deseti procentech nejnejistějších řádků je chyba 8krát větší a nesou 47 procent celé chyby. Je to varování, ne pravděpodobnost.",
+  "full": "",
+  "src": "ipp1-uncertainty.md"
+ },
+ {
+  "id": "N13",
+  "also": [],
+  "who": "organizátor",
+  "danger": false,
+  "q": "Proč věřit 99,3 procenta?",
+  "a": "Základní síť má 0,993 v pěti dělení, vybraný model 0,9916 na odložených výbojích. Chyby jsou posuny o pár řádků na přechodu mezi konfiguracemi.",
+  "full": "",
+  "src": "ipp1-baseline.md, ipp1-final.md, ipp1-distribution.md"
+ },
+ {
+  "id": "F1",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Porovnáváte se skutečným plazmatem, nebo s výpočtem? Jak přesné je 0,13 milimetru?",
+  "a": "Porovnáváme se s rekonstrukcí rovnováhy, kterou dodal ústav. Na třiceti odložených výbojích se od ní vybraný model liší v radiální poloze osy průměrně o 0,133 milimetru, interval přes výboje je 0,099 až 0,177, medián je 0,061.",
+  "full": "Porovnáváme se s rekonstrukcí rovnováhy, kterou dodal ústav. Na třiceti odložených výbojích se od ní vybraný model liší v radiální poloze osy průměrně o 0,133 milimetru, interval přes výboje je 0,099 až 0,177, medián je 0,061. Jak přesná je sama rekonstrukce, jsme neměřili a nezávislé měření polohy plazmatu nemáme. Ověřit by to šlo jiným měřením téhož výboje, například zkalibrovanou kamerou, nebo výpočtem, kde skutečný tvar známe.",
+  "src": "docs/review-physics.md §5"
+ },
+ {
+  "id": "F2",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Rekonstrukce potřebuje proudy v cívkách pole a model komory. Vy máte jen 24 čidel. Jak je to možné?",
+  "a": "Nevíme, co všechno rekonstrukce použila. Jako vstup máme jen těch 24 čidel. To, že to funguje, ukazuje, že v těchto 149 výbojích jsou ostatní veličiny téměř určeny čidly, tedy že výboje patří do úzké rodiny scénářů.",
+  "full": "Nevíme, co všechno rekonstrukce použila. Jako vstup máme jen těch 24 čidel. To, že to funguje, ukazuje, že v těchto 149 výbojích jsou ostatní veličiny téměř určeny čidly, tedy že výboje patří do úzké rodiny scénářů. Prvních pět hlavních složek nese 99,93 procenta rozptylu vstupů, ale síť jen s pěti složkami má chybu osy 2,63 milimetru místo 0,41. Dvanáct vybraných čidel dává souhrnnou chybu 0,065 proti 0,063 se všemi 24, ale tam se síť učila znovu na podmnožině; výpadek čidla za běhu jsme netestovali. Když jsme při učení vynechali celou rodinu tvarů, byla chyba osy 1,0 až 3,0krát větší.",
+  "src": "docs/review-physics.md §5"
+ },
+ {
+  "id": "F3",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Proč je proud lineární? Je to úspěch sítě?",
+  "a": "Není. Součet částečných Rogowského cívek po celém obvodu je podle Ampérova zákona úměrný proudu uvnitř obvodu, takže lineární model stačí: 0,035 kiloampéru na odložených výbojích proti 1,2 u sítě, což je 0,03 procenta rozptylu proudu, který je 114 kiloampérů.",
+  "full": "Není. Součet částečných Rogowského cívek po celém obvodu je podle Ampérova zákona úměrný proudu uvnitř obvodu, takže lineární model stačí: 0,035 kiloampéru na odložených výbojích proti 1,2 u sítě, což je 0,03 procenta rozptylu proudu, který je 114 kiloampérů. Takto přesná shoda spíše znamená, že proud v datech je odvozen z týchž signálů, než že je změřen nezávisle. To jsme ale neověřili.",
+  "src": "docs/review-physics.md §5"
+ },
+ {
+  "id": "F4",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Co znamená chyba bodu u limiteru 4,55 milimetru?",
+  "a": "Bod u limiteru je místo na stěně, kde se plazma dotkne, ne spojitá veličina. Většinou ho trefíme, medián radiální chyby je 0,73 milimetru.",
+  "full": "Bod u limiteru je místo na stěně, kde se plazma dotkne, ne spojitá veličina. Většinou ho trefíme, medián radiální chyby je 0,73 milimetru. Průměr táhnou řádky, kde síť vybere jiné místo dotyku: v jednom procentu řádků je chyba přes 78 milimetrů, nejhorší řádek má 357. Vzdálenost plazmatu od stěny, na které řízení záleží, jsme neměřili.",
+  "src": "docs/review-physics.md §5"
+ },
+ {
+  "id": "F5",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Pro svislou stabilizaci potřebuji rychlost změny polohy. Jak dobrá je?",
+  "a": "Rychlost změny jsme neměřili. Máme jen krok chyby mezi sousedními řádky. U základní sítě na čistých vstupech je ve svislé ose 1,46 milimetru, zatímco skutečná osa se mezi řádky posune o 2,53 milimetru, v radiální ose 0,45 proti 2,5.",
+  "full": "Rychlost změny jsme neměřili. Máme jen krok chyby mezi sousedními řádky. U základní sítě na čistých vstupech je ve svislé ose 1,46 milimetru, zatímco skutečná osa se mezi řádky posune o 2,53 milimetru, v radiální ose 0,45 proti 2,5. Na zašuměných vstupech je krok chyby základní sítě naučené na čistých datech 8,4krát větší než skutečný pohyb osy v radiálním směru a 3,1krát ve svislém; po učení se šumem 1,7 a 1,4krát. Tedy výstup kolísá víc, než se plazma hýbe, a rychlost z něj vzít nejde. Časový odstup řádků neznáme.",
+  "src": "docs/review-physics.md §5"
+ },
+ {
+  "id": "F6",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Co je to opačný směr proudu? Je to zrcadlový obraz?",
+  "a": "V souboru má šestnáct ze 149 výbojů kladné znaménko proudu, 7,4 procenta řádků. Konvenci znaménka a vztah ke směru toroidálního pole neznáme.",
+  "full": "V souboru má šestnáct ze 149 výbojů kladné znaménko proudu, 7,4 procenta řádků. Konvenci znaménka a vztah ke směru toroidálního pole neznáme. Signály se při obrácení znaménka zrcadlí: střední rozdíl mezi skupinami je 2,00 směrodatné odchylky vstupu a po vynásobení znaménkem součtu cívek IPR 0,13. Ten součet je v podstatě Rogowského cívka po celém obvodu, proto se jeho znaménko shoduje se znaménkem proudu na všech řádcích vývojové i odložené sady. Chyba osy na kladných výbojích je 1,73 proti 0,269 milimetru (základní síť, pět dělení) a u vybraného modelu na dvou odložených výbojích 0,454 proti 0,110. Je to 591 řádků, na jistý závěr málo. Sjednocení znaménka zlepší výboje s kladným proudem o 64 procent a zhorší většinu o 20, proto ho zatím nepoužíváme, rozhodnutí je otevřené (KQ-11).",
+  "src": "docs/review-physics.md §5"
+ },
+ {
+  "id": "F7",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Jsou váš šum a posun realistické?",
+  "a": "Nevíme. Soubor se šumem má bílý šum se směrodatnou odchylkou 16 procent směrodatné odchylky signálu u cívek a 9 procent u smyček toku, sousední řádky spolu nekorelují (minus 0,004) a posun v něm není.",
+  "full": "Nevíme. Soubor se šumem má bílý šum se směrodatnou odchylkou 16 procent směrodatné odchylky signálu u cívek a 9 procent u smyček toku, sousední řádky spolu nekorelují (minus 0,004) a posun v něm není. Rozsah poměru je jen 0,086 až 0,167, což vypadá spíš na šum přidaný úměrně signálu než na změřený; to usuzujeme a neověřili jsme. Posun jsme vyrobili sami jako lineární v relativním čase výboje; skutečný posun integrátoru roste s absolutním časem. Se šumem a posunem vyjde osa 3,77 milimetru u sítě naučené se šumem a 15,1 u sítě naučené na čistých datech. Chyby kalibrace nebo výpadek čidla jsme netestovali.",
+  "src": "docs/review-physics.md §5"
+ },
+ {
+  "id": "F8",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Co zánik plazmatu, začátek a konec výboje?",
+  "a": "Nejhůř jsme na koncích. V posledních dvou procentech výboje je u vybraného modelu radiální chyba osy 0,578 milimetru proti 0,114 uprostřed, svislá 1,33 proti 0,14, v prvních dvou procentech 0,538.",
+  "full": "Nejhůř jsme na koncích. V posledních dvou procentech výboje je u vybraného modelu radiální chyba osy 0,578 milimetru proti 0,114 uprostřed, svislá 1,33 proti 0,14, v prvních dvou procentech 0,538. U základní sítě v pěti dělení nese posledních 2 procenta řádků 77,9 procenta čtverce chyby svislé osy a největší chyba jednoho řádku je 284 milimetru, přitom rozptyl svislé osy je 13,7. Příčinu neznáme: může to být síť, ale i rekonstrukce, která je při malém proudu a rychlých změnách nejhůř určená. Zda data obsahují zánik plazmatu, jsme nevyhodnotili.",
+  "src": "docs/review-physics.md §5"
+ },
+ {
+  "id": "F9",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Co když se změní scénář, nebo řízení uzavře smyčku?",
+  "a": "Nezkoušeli jsme to. Nejbližší měření: při vynechání celé rodiny tvarů je chyba osy 1,0 až 3,0krát větší, obvykle 1,2 až 2,4krát, ale opravdu neobvyklých výbojů je 18 ze 149 a samostatně jsme je nevynechali.",
+  "full": "Nezkoušeli jsme to. Nejbližší měření: při vynechání celé rodiny tvarů je chyba osy 1,0 až 3,0krát větší, obvykle 1,2 až 2,4krát, ale opravdu neobvyklých výbojů je 18 ze 149 a samostatně jsme je nevynechali. Na nejnovějších číslech výbojů (učení na 60 nejnižších, test na 59 nejvyšších) je u vybraného modelu osa 0,397 milimetru místo 0,216. S 30 učícími výboji je u základní sítě chyba osy 1,47 milimetru. V uzavřené smyčce řízení samo změní proudy v cívkách a tím vstupy, což jsme netestovali. Neshoda pěti sítí varuje na běžných výbojích, kde 10 procent nejnejistějších řádků nese 47 procent chyby, na neobvyklých tvarech a na šumu jsme ji nezkoušeli.",
+  "src": "docs/review-physics.md §5"
+ },
+ {
+  "id": "F10",
+  "also": [],
+  "who": "IPP fyzik",
+  "danger": false,
+  "q": "Co kromě času sítě musí řízení zvládnout?",
+  "a": "Měřili jsme jen výpočet: základní síť má medián 0,0145 milisekundy a 99 procent odhadů pod 0,021, vybraný model 0,0154 milisekundy při divertoru a 0,0274 při limiteru, 99 procent pod 0,057 a 0,093; jedno jádro procesoru Apple M5, vytížený počítač.",
+  "full": "Měřili jsme jen výpočet: základní síť má medián 0,0145 milisekundy a 99 procent odhadů pod 0,021, vybraný model 0,0154 milisekundy při divertoru a 0,0274 při limiteru, 99 procent pod 0,057 a 0,093; jedno jádro procesoru Apple M5, vytížený počítač. Na systému bez reálného času se objevují špičky: dřívější měření dalo p99 0,65 milisekundy a největší 21. Neměřili jsme sběr a integraci signálů, to, zda signály za provozu vypadají jako data, uzavřenou smyčku, chování při výpadku čidla a nejhorší dobu na systému reálného času.",
+  "src": "docs/review-physics.md §5"
+ }
+]
