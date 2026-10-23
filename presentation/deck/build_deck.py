@@ -470,8 +470,8 @@ def build():
         [("Neověřeno: ", 18, ORANGE, True),
          ("sběr signálů z cívek, nejhorší doba na systému reálného času a přesnost na skutečně zašuměných "
           "signálech.", 18, TEXT, False)],
-        [("p99: 99 % odhadů je rychlejších. Na systému bez reálného času se ojediněle objeví špičky.", 13, MUTED,
-          False)]])
+        [("p99: 99 % odhadů je rychlejších. Na systému bez reálného času se ojediněle objeví špičky. Vybraný model: "
+          "numpy, náhodné váhy stejného tvaru, měří se jen čas.", 13, MUTED, False)]])
     add_sources(s, ["results/ipp1-latency.json (procesor, medián, p99, celý odhad)",
                     "results/ipp1-latency-shipped.md (vybraný model, vytížený počítač)"])
 
@@ -506,7 +506,7 @@ def build():
                     "results/ipp1-time.json (chyba v čase, kolísání)"])
 
     # 7 What the model cannot do (items 13.1 to 13.5)
-    s = frame(prs, "Co model neumí", "Zná jen tvary z dat a šum v měření mu vadí nejvíc", notes_text(sc[7], "Snímek 7"))
+    s = frame(prs, "Co model neumí", "Šum mu vadí nejvíc; tvary mimo rozsah dat jsme neověřili", notes_text(sc[7], "Snímek 7"))
     nz = j["noise"]
     text(s, 0.6, 2.05, 6.3, 0.5, "Chyba polohy osy (mm) při šumu v měření; základní síť, 5 dělení po výbojích",
          size=12, color=MUTED)
