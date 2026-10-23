@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+"""Regenerate every file the notebooks read, in dependency order, then optionally execute the notebooks.
+
+    HACKATHON_HOME=<hackathon folder> ~/.venvs/hackathon/bin/python -I analysis/make_all.py [--quick] [--missing] [--notebooks]
+
+Runs the existing analysis scripts unchanged with this interpreter and writes to $HACKATHON_HOME/out. Stops at the first
+failing step.
+--quick    for a step that takes longer than 10 minutes, copy its committed aggregate from results/ into out/ instead of
+           recomputing it (today only ipp1_inputs.py, about an hour since it trains the control subsets).
+--missing  skip a step whose outputs all exist.
+--notebooks then execute notebooks/*.ipynb into out/notebooks/, so the committed notebooks are not rewritten.
+"""
+import argparse
+import os
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+
+# (script, outputs that later steps or the notebooks read, wall time on a Ryzen 5 7535HS laptop CPU, Fri 23 Oct).
+# ipp1_time.py needs ipp1_oof.py's predictions and adds the noisy-input rows of results/ipp1-time.md only when
+# ipp1_oof_noise.py ran first.
+STEPS = [
+    ("ipp1_eda.py", ["ipp1-eda.json"], "2 s"),
+    ("ipp1_baseline.py", ["ipp1-baseline.json"], "1 min"),
+    ("ipp1_oof.py", ["ipp1-predictions.csv"], "45 s"),
+    ("ipp1_oof_noise.py", ["ipp1-predictions-noise.csv"], "1.5 min"),
+    ("ipp1_time.py", ["ipp1-time.json"], "3 s"),
+    ("ipp1_inputs.py", ["ipp1-inputs.json"], "about 1 h"),
+    ("ipp1_latency.py", ["ipp1-latency.json"], "10 s"),
+]
+SLOW = {"ipp1_inputs.py"}  # over 10 minutes: --quick copies results/<output> instead
+# Executing the five notebooks afterwards takes about 2 minutes.
+
+
+def run(cmd, env):
+    t0 = time.time()
+    print("$", " ".join(str(c) for c in cmd), flush=True)
+    rc = subprocess.run(cmd, cwd=REPO, env=env).returncode
+    print(f"  exit {rc}, {time.time() - t0:.0f} s", flush=True)
+    if rc:
+        sys.exit(f"stopped: {cmd[-1]} failed")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--quick", action="store_true", help="copy results/ for steps over 10 minutes instead of rerunning")
+    ap.add_argument("--missing", action="store_true", help="skip steps whose outputs already exist")
+    ap.add_argument("--notebooks", action="store_true", help="execute the notebooks into out/notebooks afterwards")
+    args = ap.parse_args()
+
+    home = os.environ.get("HACKATHON_HOME")
+    if not home:
+        sys.exit("set HACKATHON_HOME to the folder that holds data/raw (see README.md)")
+    home = Path(home).expanduser().resolve()
+    data = home / "data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.csv"
+    if not data.exists():
+        sys.exit(f"missing {data}; unzip uloha_1-magneticka_data.zip into {home / 'data/raw/ipp1-magnetic'}")
+    out = home / "out"
+    out.mkdir(exist_ok=True)  # ipp1_inputs.py and ipp1_latency.py write into it without creating it
+    env = {**os.environ, "HACKATHON_HOME": str(home)}
+
+    for script, outputs, _ in STEPS:
+        if args.missing and all((out / o).exists() for o in outputs):
+            print(f"skip {script}: {', '.join(outputs)} present")
+            continue
+        if args.quick and script in SLOW:
+            for o in outputs:
+                shutil.copyfile(REPO / "results" / o, out / o)
+            print(f"quick: copied results/{', results/'.join(outputs)} instead of running {script}")
+            continue
+        run([sys.executable, "-I", f"analysis/{script}"], env)
+
+    if args.notebooks:
+        nb_out = out / "notebooks"
+        for nb in sorted((REPO / "notebooks").glob("*.ipynb")):
+            run([sys.executable, "-m", "jupyter", "nbconvert", "--to", "notebook", "--execute",
+                 "--ExecutePreprocessor.timeout=1800", "--output-dir", str(nb_out), str(nb.relative_to(REPO))], env)
+    print("done")
+
+
+if __name__ == "__main__":
+    main()
