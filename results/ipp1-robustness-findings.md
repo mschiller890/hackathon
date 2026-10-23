@@ -35,7 +35,12 @@ Gaussian slope per discharge and coil, `t` the relative time; drift runs add noi
 - Our augmentation (original plus one noise 0.15 and drift 0.15 copy) is no better than training on the provided noisy file:
   on the provided noisy test the R axis error is 2.74 against 2.64 mm, worse in 4 of 5 folds; under strong drift it is
   slightly better (3.48 against 3.77 mm, limiter Z 48.5 against 50.4 mm). Its use is that it does not need a noisy file.
-- Drift hurts less than noise of the same size: slope SD 0.3 adds about 1 mm to the noisy-trained axis error.
+- Drift of slope SD 0.3 (on top of noise 0.15) adds about 1 mm to the axis error of the network trained on the provided
+  noisy file (2.64 to 3.77 mm) and about 4.7 mm to that of the network trained on clean data (synthetic noise 0.15 alone
+  10.4 mm, with drift 15.1 mm). The amplitudes of drift and noise are not comparable, so no statement of the kind
+  "drift hurts less than noise of the same size" is made.
+- The provided `equil_data_noisy.csv` itself contains white noise only (no measurable drift; lag 1 autocorrelation of
+  the noise about -0.005). Every drift row above is synthetic.
 
 ## 2. Amount of training data (`ipp1-learning_curve.png`)
 
@@ -50,8 +55,9 @@ Fixed 60 epochs, so smaller sets also get fewer optimizer updates.
 | 60 | 0.83 | 0.60 | 0.38 | 0.0086 | 28.8 | 99.1 % |
 | 119 | 0.38 | 0.39 | 0.20 | 0.0057 | 22.2 | 99.3 % |
 
-From 30 discharges up, the axis error roughly halves with every doubling and has not flattened at the full set (1.47,
-0.83, 0.38 mm), so more discharges would still help; the limiter point improves slowest (34, 29, 22 mm). About 30 discharges already give about 1 mm on the axis.
+From 30 discharges up, the axis error roughly halves with every doubling (1.47, 0.83, 0.38 mm for R) but with a fixed 60
+epochs, so part of the improvement is more optimizer updates and the slope is overstated; the limiter point improves
+slowest (34, 29, 22 mm). With 30 discharges the axis error is 1.47 mm (R) and 0.95 mm (Z), not "about 1 mm" for both.
 
 ## 3. Time context (`ipp1-temporal.png`)
 
@@ -69,7 +75,7 @@ constant prediction cannot win by being smooth).
 - With noisy inputs three rows are better in all 5 folds for R axis, Z axis, elongation, limiter Z and the error step:
   Z axis 2.01 to 1.51 mm, jitter 1.84 to 1.15 mm. The history averages the noise out.
 - With clean inputs three rows are worse for the axis (0.38 to 0.57 mm, worse in 5 of 5 folds for R) and better only for
-  the limiter Z (22.2 to 19.5 mm, 5 of 5 folds). The larger input layer overfits where there is no noise to remove.
+  the limiter Z (22.2 to 19.5 mm, 5 of 5 folds). The reason is not established: the larger input layer overfitting is one hypothesis, three nearly identical stacked rows giving collinear inputs is another (not tested; feeding x(t) and x(t) minus x(t-1) would tell). A window of 3 rows is a length in samples, not in milliseconds.
 - Real time: the window needs the last two samples only, no future row, so the latency verdict does not change.
 
 ## Limits (state these in the talk)

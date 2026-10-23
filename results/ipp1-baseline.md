@@ -21,3 +21,5 @@
 
 is_limited accuracy: ridge 0.912, MLP 0.993
 Latency (MLP, CPU, one sample): median 0.015 ms, p99 0.042 ms; batch of 4096: 2.3 ms; 107,152 parameters
+
+Note (independent review, Fri 23 Oct 2026): the numbers above are means over 5 folds of randomly chosen held-out discharges. Radial axis error: median 0.153 mm, p99 3.74 mm, worst row 64 mm; limited rows 2.3 times worse than divertor rows. On contiguous blocks of discharge numbers the axis error is about 1.5 times larger. Plasma current: the ridge model gives 0.0346 kA against 1.49 kA for the network, so use ridge for that target. The latency line was measured on an idle Apple M5 CPU; see `ipp1-latency.md` for the conditions.

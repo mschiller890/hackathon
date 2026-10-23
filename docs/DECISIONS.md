@@ -126,10 +126,18 @@ None of the tasks needs a language model API. The raw data stay outside the repo
 ### Context (measured with `analysis/ipp1_eda.py`)
 
 `equil_data.csv` has 42,972 rows from 149 discharges (17 to 439 rows each), 24 inputs
-(`IPR01-16`, `FL01-08`) and 31 targets. Rows of one discharge are near copies. 44.2 % of rows are
-limited (no X-point or strike points), 55.8 % divertor (no limiter point). Target spreads are small
-(for example 8 mm for `R_mag_axis`). Two principal components carry 92.8 % of the input variance,
-five carry 99.93 %. Elongation and triangularity lie on one narrow curve.
+(`IPR01-16`, `FL01-08`) and 31 targets. Rows of neighbouring times in one discharge are almost copies.
+44.2 % of rows are limited (no X-point or strike points), 55.8 % divertor (no limiter point). Target
+spreads (standard deviation) are small only for the axis, X-point and strike points (2.4 to 13.7 mm, for
+example 8 mm for `R_mag_axis`); the limiter point has 90 and 153 mm (a discrete wall contact, 66 and 111
+distinct values) and the plasma current 114 kA. Two principal components carry 92.8 % of the input
+*variance*, five carry 99.93 %; that is variance, not information: a network fed only the 5 leading components
+has a radial axis error of 2.65 mm against 0.377 mm (measured Fri 23 Oct, 5 folds, same protocol). Elongation and
+triangularity lie on one narrow curve. The discharge numbers appear to be ordered in time (not confirmed with the
+organizers). `equil_data_noisy.csv` contains only white Gaussian noise (9 % of an input's standard deviation for the
+flux loops, 15 % for the IPR coils, about 31 % of the within-discharge deviation; lag 1 autocorrelation of the
+noise -0.005) and no measurable drift; every drift result in this repository is synthetic. One row (discharge
+24, time 0.7068) has an empty plasma current, elongation and triangularity; the masks handle it.
 
 ### Decision
 
@@ -143,5 +151,17 @@ five carry 99.93 %. Elongation and triangularity lie on one narrow curve.
 ### Consequences
 
 Scores are honest but vary by fold; all five folds are reported. Raw R squared alone would hide
-millimetre-level errors, hence the physical units. Results: see the notebooks and
-`docs/PLAN.md` IMPL-3 once recorded.
+millimetre-level errors, hence the physical units. Results: `results/ipp1-baseline.md` and the other
+files in `results/`, summarised in `docs/PLAN.md` IMPL-3 and IMPL-4.
+
+Qualifiers added after the independent review (`docs/review-findings.md`):
+
+- GroupKFold by discharge measures accuracy on *randomly chosen new discharges*. Because the numbers look chronological,
+  neighbouring discharges sit in training; on contiguous blocks of discharge numbers the radial axis error is about
+  1.5 times larger (0.56 mm against 0.38 mm in a rerun by another worker, 0.57 mm measured by the review). GroupKFold
+  stays the primary protocol (the assignment asks for it); the block number is quoted next to it.
+- The headline means hide the tails: radial axis median 0.153 mm, p99 3.74 mm, worst row 64 mm; limited rows are
+  2.3 times worse than divertor rows. A locked test set was promised in `WORKERS.md` and does not exist yet.
+- No validation split exists, so epochs and hyperparameters were not chosen inside the training data; every
+  training result is one seed per fold (seed noise 8 to 19 % per the review), so differences under about 10 to 15 %
+  are noise.
