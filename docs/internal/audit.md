@@ -63,7 +63,7 @@ history would publish both gmail addresses. History must not be rewritten (`AGEN
 
 ### H-3 (Low) The owner's home path in 8 tracked files
 
-`/Users/bladed/...` in `docs/PLAN.md`, `docs/WORKERS.md`, `docs/GOAL-BRIEF.md`, `docs/SUBMISSION.md`,
+`/Users/bladed/...` in `docs/PLAN.md`, `docs/internal/WORKERS.md`, `docs/internal/GOAL-BRIEF.md`, `docs/SUBMISSION.md`,
 `results/ipp1-camera-local-findings.md`, `results/ipp1-uncertainty.md`, `results/ipp1-unusual-shapes.md` and as a test string in
 `analysis/make_submission.py:67-68` (intended). A local account name, not a secret. **Fix:** in the three `results/` files replace
 `HACKATHON_HOME=/Users/bladed/Documents/AIprogramy/hackathon` by `HACKATHON_HOME=<hackathon folder>` (`sed -i`).
@@ -207,7 +207,7 @@ Environment: Linux x86, Python 3.12.3, fresh `git clone` of `main` into `.../hh/
 | `python -I analysis/ipp1_latency.py` | **fails without data although it needs none** ("Data folder not found"): `ipp1_common` checks the folder at import (`ipp1_common.py:20-24`) |
 | `python -I results/ipp1-robustness-checks.py` ("4 tests, OK", synthetic fixtures only) | **4 errors, exit 1**, same cause |
 | `python -I analysis/make_submission.py --out <dir>` | works: exit 0, 87 files |
-| `python -I analysis/check_claims.py` | runs, but **overwrites `docs/claims-audit.md` in the working tree** (I restored it with `git restore`) |
+| `python -I analysis/check_claims.py` | runs, but **overwrites `docs/internal/claims-audit.md` in the working tree** (I restored it with `git restore`) |
 | `python -I analysis/profile_data.py` | usage error: needs a path argument (README does not mention it) |
 | `analysis/make_pdf.py`, `viewer/record.py` | need `markdown`, headless Chrome, ffmpeg, `websocket-client`: not in the README list; not run |
 | `viewer/build.py` | needs `viewer/data.js` (data, gitignored): fails on a clean clone by design |

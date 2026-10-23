@@ -6,7 +6,7 @@ the deck, script or results was edited; there is no data and no Apple M5 here. E
 ## 0. How to read this
 
 **What was read.** `README.md`, `presentation/pitch-script.md` (the spoken text), `presentation/outline.md`, `docs/deck-fixes.md`,
-`docs/deck-visual-qa.md`, `docs/demo-facts.md`, `results/ipp1-final.md`, `docs/hackathon-rules.md`, `docs/REHEARSAL.md`, `docs/SUBMISSION.md`,
+`docs/internal/deck-visual-qa.md`, `presentation/demo-facts.md`, `results/ipp1-final.md`, `docs/hackathon-rules.md`, `presentation/REHEARSAL.md`, `docs/SUBMISSION.md`,
 `docs/REQUIREMENTS.md`, `results/ipp1-traintest-gap.md`, the first and last markdown cell of each of the eight notebooks, and the deck itself
 (`presentation/deck/slides.pptx`, rendered to PDF with LibreOffice and read with python-pptx). `docs/HANDOUT.md` does not exist, so there is no
 leave-behind sheet for the jury.
@@ -66,7 +66,7 @@ what is new.
   equilibrium reconstruction and control in COMPASS-D" as "good prior-art line for a slide". My grep of `presentation/pitch-script.md` and `outline.md` for
   Windsor, EFIT, "předchozí", "literatur" finds nothing. Slide 2 reads "Otázka: odhadne malá neuronová síť tvar plazmatu ... dost přesně a dost rychle?" as if
   nobody had asked it on this very machine.
-- **The "shape" is four points.** README and `docs/demo-facts.md`: it "predicts 16 of 31 targets, so it draws predicted POINTS ... not a predicted outline". The pitch says so
+- **The "shape" is four points.** README and `presentation/demo-facts.md`: it "predicts 16 of 31 targets, so it draws predicted POINTS ... not a predicted outline". The pitch says so
   honestly ("Celý obrys neodhadujeme"), but the title of the work is "tvar plazmatu".
 - Noise: the provided file has "bílý šum a žádný měřitelný posun" (Q3), so drift, the thing that really hurts integrated Rogowski coils, was tested only on
   self-made data. The talk says that, but 2,38 mm on white noise says little about a real campaign.
@@ -182,7 +182,7 @@ Ordered by my judgement of gain per hour (estimates of effort are mine; no measu
    five numbers fewer). Ask organisers (OQ-002) whether the slot really is 7 minutes or 15; if 15, use the spare time for a longer demo, not for more numbers. Gain: removes the most probable loss (see 5.4 item 1).
 4. **Make the fallback real (about 45 minutes, owner).** Record the 60 s clip, export the PDF of the deck (both listed as missing), copy `viewer/dist/index.html` to a second device, bring HDMI and USB-C adapters, unhide slide 10 before the talk (the "klávesa H" fallback works only in PowerPoint; the owner uses a Mac with Cmd+Tab), and ask the
    organisers how a laptop connects (unknown). Reorder the demo so the first thing the room sees is the bad end of discharge 147 (14 s) and then the typical discharge; a layperson then knows what "good" looks like. Gain: turns the demo from single point of failure to a nuisance, and gives J3 a moment he understands.
-5. **Clean up the self-contradictions in what the team will say and rehearse from (about 40 minutes, Lead).** See section 6: N11 in the script says the other columns "nepředpovídali jsme je" while `docs/bonus-gaps.md` says they are predicted; `docs/REHEARSAL.md` still scripts discharge 123 and "Vidíte základní síť"; the script says the 60 s clip is done while three
+5. **Clean up the self-contradictions in what the team will say and rehearse from (about 40 minutes, Lead).** See section 6: N11 in the script says the other columns "nepředpovídali jsme je" while `docs/internal/bonus-gaps.md` says they are predicted; `presentation/REHEARSAL.md` still scripts discharge 123 and "Vidíte základní síť"; the script says the 60 s clip is done while three
    other files say it is not; `presentation/assets/failure-gallery.md` uses the banned word "zamčená sada". Add the train against held-out gap (factor 2,4 to 3,8) as one prepared answer. Gain: no contradiction on stage when a question lands on a stale answer.
 
 A sixth item that I would do only if time remains: a one-page leave-behind sheet (the five headline numbers with their protocols, the limits in one box, the three-models picture). The committee decides after the last team; the deck PDF does not exist yet and the repository is private (`docs/SUBMISSION.md` OQ-S2).
@@ -203,9 +203,9 @@ Ranked by my guess of probability times damage (judgement, not measurement).
 
 | # | What | Where (quoted) |
 |---|---|---|
-| 1 | N11 answer claims the other 15 columns were not predicted | `presentation/pitch-script.md` N11: "ostatní jsou doplňkové a nepředpovídali jsme je"; `docs/REHEARSAL.md` N11 and `docs/bonus-gaps.md` section 0 item 2: "They are predicted" |
-| 2 | 60 s fallback clip: done or not | `pitch-script.md` backup: "Záznam hotový: `out/viewer-demo.mp4` (60 s ...)"; `docs/demo-facts.md`: "the 60 s clip is not recorded yet"; `docs/REHEARSAL.md`: "Missing today: the 60 s clip (only the 15 s ... exists)" |
-| 3 | Rehearsal sheet scripts the old demo | `docs/REHEARSAL.md` section 1: "Vidíte základní síť, ne vybraný model" and discharge 123, 0; `pitch-script.md` rows 2:29 to 3:45: discharge 85 and 147, selected model (`docs/deck-fixes.md` "For lane K" also lists REHEARSAL Q6, Q9 as stale) |
+| 1 | N11 answer claims the other 15 columns were not predicted | `presentation/pitch-script.md` N11: "ostatní jsou doplňkové a nepředpovídali jsme je"; `presentation/REHEARSAL.md` N11 and `docs/internal/bonus-gaps.md` section 0 item 2: "They are predicted" |
+| 2 | 60 s fallback clip: done or not | `pitch-script.md` backup: "Záznam hotový: `out/viewer-demo.mp4` (60 s ...)"; `presentation/demo-facts.md`: "the 60 s clip is not recorded yet"; `presentation/REHEARSAL.md`: "Missing today: the 60 s clip (only the 15 s ... exists)" |
+| 3 | Rehearsal sheet scripts the old demo | `presentation/REHEARSAL.md` section 1: "Vidíte základní síť, ne vybraný model" and discharge 123, 0; `pitch-script.md` rows 2:29 to 3:45: discharge 85 and 147, selected model (`docs/deck-fixes.md` "For lane K" also lists REHEARSAL Q6, Q9 as stale) |
 | 4 | Banned word in a jury-facing file | `presentation/assets/failure-gallery.md`: "výboj 147 (zamčená sada 30 výbojů)"; `docs/deck-fixes.md` 0.2 and `pitch-script.md` rules ban "zamčené" |
 | 5 | Notebook count | `README.md` structure table: "Five Jupyter notebooks"; the folder has eight (01 to 05, 07, 08, 09); `docs/SUBMISSION.md` plans "5 `.ipynb`"; `analysis/make_submission.py` copies all `*.ipynb` |
 | 6 | Time budget | `docs/hackathon-rules.md` "At most 15 minutes per team" against the 7 minutes of `docs/SUBMISSION.md` "come from the owner" |

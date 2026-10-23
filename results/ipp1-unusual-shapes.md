@@ -42,7 +42,7 @@ a rare shape**.
 ## Limits (say these in the talk)
 
 - The random split is itself optimistic: discharge ids are chronological, so neighbours of every test discharge are in training
-  (`docs/review-findings.md`). The factors measure the loss from removing a whole family, not the total error on a new tokamak scenario.
+  (`docs/internal/review-findings.md`). The factors measure the loss from removing a whole family, not the total error on a new tokamak scenario.
 - Only 18 discharges are truly unusual and they were never held out alone (cluster 0 and the low elongation group mix them with 16 and 5 ordinary ones),
   and the extreme elongation near 1.0 was never tested as an unseen extreme. The result says nothing about shapes outside the range of the data.
 - One initialization per group, no repeated runs; with 23 to 43 discharges per group a factor of 1.1x to 1.3x is within noise.

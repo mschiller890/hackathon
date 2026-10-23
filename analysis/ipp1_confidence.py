@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""The complete per-target confidence table (docs/bonus-gaps.md, item A). Nothing is trained: it reads out-of-fold predictions that already exist.
+"""The complete per-target confidence table (docs/internal/bonus-gaps.md, item A). Nothing is trained: it reads out-of-fold predictions that already exist.
 
 Sources
   baseline, 31 targets   out/ipp1-predictions-full.csv (analysis/ipp1_oof_full.py): out-of-fold predictions of the BASIC network for all 31 targets, 5 random group folds over all 149 discharges

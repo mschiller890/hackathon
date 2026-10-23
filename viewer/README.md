@@ -34,7 +34,7 @@ Set `HACKATHON_HOME` to the folder that holds `data/` and `repo/`, and use the e
 - Address options: `index.html#d=<discharge>&f=<0..1>&noise=1&play=1` (discharge, position in the discharge, noise mode, autoplay).
 - Space plays, left and right arrows step, Home and End jump; clicking or dragging in the error chart seeks.
 - Every prediction is of a model that never saw the discharge: the 30 set-aside discharges (first in the picker) by the model trained on the other 119, the 119 development discharges out of fold.
-  "Set aside" is not "unseen by the idea": the recipe was designed on cross-validation over all 149 discharges (`docs/review-findings-2.md`, H2).
+  "Set aside" is not "unseen by the idea": the recipe was designed on cross-validation over all 149 discharges (`docs/internal/review-findings-2.md`, H2).
 - The axis error in the picker is the mean distance between the true and the predicted magnetic axis over the rows the viewer shows (every third row), so it can differ slightly from a mean over all rows.
 
 ## Known limits (show them, do not hide them)

@@ -6,8 +6,8 @@ A 22 hour hackathon: **CVUT ML Hackathon 2026**, task **IPP 1, plasma shape from
 It ends **Sat 24 Oct 2026 at 14:00** (feature freeze Sat 10:00). Several agents and two students work at
 the same time, so follow this order before you touch anything:
 
-1. `git pull --rebase origin main`. Read `README.md`, `docs/PLAN.md`, `docs/REQUIREMENTS.md`, `docs/WORKERS.md`.
-2. Find your lane in `docs/WORKERS.md` (L Lead, U viewer, R robustness, K colleague). If it is not clear which one is
+1. `git pull --rebase origin main`. Read `README.md`, `docs/PLAN.md`, `docs/REQUIREMENTS.md`, `docs/internal/WORKERS.md`.
+2. Find your lane in `docs/internal/WORKERS.md` (L Lead, U viewer, R robustness, K colleague). If it is not clear which one is
    yours, ask your user. Work only in the paths of your lane.
 3. The user is a Czech student: talk to the user in Czech, write files and code in English. The presentation text
    (lane K) is written in plain Czech, without English words and without dashes.
@@ -18,7 +18,7 @@ the same time, so follow this order before you touch anything:
 
 ## Lane K, the colleague's Claude: your first steps
 
-1. Set up Python 3.12 and the packages in `README.md` ("Setup and run"). Ask your user for the link to the organizers'
+1. Set up Python 3.12 and the packages in `README.md` ("Run it"). Ask your user for the link to the organizers'
    Google Drive folder of IPP task 1 and download `uloha_1-magneticka_data.zip` (37 MB) yourself. Unzip it into its own
    new folder so the layout is `hackathon/data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.csv`.
    Set `HACKATHON_HOME` to the `hackathon/` folder that holds `data/` and `repo/`.

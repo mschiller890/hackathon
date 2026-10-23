@@ -70,7 +70,7 @@ Unknown? "Tohle jsme neměřili." and continue with what was measured. Never gue
 | Q10 | Co když se plete a neřekne to? | "Pět sítí s různým začátkem: na deseti procentech nejnejistějších řádků je chyba 8krát větší a nesou 47 procent celé chyby. Je to varování, ne pravděpodobnost." | `ipp1-uncertainty.md` |
 | N13 | Proč věřit 99,3 procenta? | "Základní síť má 0,993 v pěti dělení, vybraný model 0,9916 na odložených výbojích. Zda jsou chyby u přechodu mezi konfiguracemi, jsme zvlášť nevyhodnotili." | `ipp1-baseline.md`, `ipp1-final.md`, `ipp1-distribution.md` |
 
-Ids: Q1 to Q10 from `pitch-script.md`; N1 to N13 from `docs/review-findings-2.md` (it lists 13, not 10). Q3 and N1, Q5 and N2 share one answer.
+Ids: Q1 to Q10 from `pitch-script.md`; N1 to N13 from `docs/internal/review-findings-2.md` (it lists 13, not 10). Q3 and N1, Q5 and N2 share one answer.
 
 **Wording fixed with the Lead's decisions (23 Oct, after the physics rewrite of the pitch)**
 1. Slogan: "Desetiny milimetru shody s rekonstrukcí, setiny milisekundy výpočtu." Measured: selected model 0,027 ms limited and 0,015 ms diverted, basic network 0,0145 ms (`results/ipp1-latency-shipped.md`, `results/ipp1-latency.md`). Say "vybraný model" for the viewer tile; the old 0,1775 ms estimate is not used.

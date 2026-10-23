@@ -1,8 +1,8 @@
 # Bonus gaps: what a jury could still call "not answered", and the ten cheapest ways to close it
 
 Written Fri 23 Oct 2026 about 20:15 CEST by the cloud session `cloud/gap-hunter`, from `origin/main` c66e1f0. Sources read: `README.md`,
-`docs/REQUIREMENTS.md`, `docs/PLAN.md`, `docs/TIMELINE.md`, `docs/notebook-review.md`, `docs/review-findings-2.md`, `docs/review-findings-3.md`,
-`docs/REHEARSAL.md` (N11 only), `docs/DECISIONS.md` (D-RP6 only) and every `results/*.md` named below. The organizers' task text is not in the
+`docs/REQUIREMENTS.md`, `docs/PLAN.md`, `docs/internal/TIMELINE.md`, `docs/internal/notebook-review.md`, `docs/internal/review-findings-2.md`, `docs/internal/review-findings-3.md`,
+`presentation/REHEARSAL.md` (N11 only), `docs/DECISIONS.md` (D-RP6 only) and every `results/*.md` named below. The organizers' task text is not in the
 repository (REQUIREMENTS.md: it is kept outside, with the data), so the item list follows the requirement rows `REQ-001` to `REQ-007`,
 `REQ-B01` to `REQ-B08` as they quote it. There is no data and no Apple M5 here: **nothing was re-run**. Every result below is quoted from a
 committed file. Runtimes are **estimates** and say what they are derived from. Slide lines are drafts in plain Czech; numbers not yet measured
@@ -14,12 +14,12 @@ are `DOPLNIT`.
    topics but missing **controls and tails**: no training error anywhere, an uncertainty estimate that is a ranking and not calibrated, 15 of 31
    targets never scored in `results/`, the only partial bonus (unusual shapes) never tested on the unusual shapes alone, and "fewer inputs"
    answered only as a family-level statement.
-2. One factual error is still in the prepared answers: `docs/REHEARSAL.md` N11 says the other 15 columns "we did not predict". They are predicted
+2. One factual error is still in the prepared answers: `presentation/REHEARSAL.md` N11 says the other 15 columns "we did not predict". They are predicted
    (`analysis/ipp1_oof_full.py`, 31 outputs, per-target errors in `out/ipp1-oof-full.md` on the Mac), they are only not published in `results/`.
    Experiment A fixes this in minutes.
 3. Do first: **E** (18 oddest discharges held out alone), **A** (complete per-target confidence table), **B** (train against test gap as a
    learning curve at constant updates). Together about 2 hours of work and under 15 minutes of computing (estimates).
-4. Anything that changes a spoken sentence must delete another one: `docs/review-findings-3.md` section 5 puts the script at 7:25 at a normal
+4. Anything that changes a spoken sentence must delete another one: `docs/internal/review-findings-3.md` section 5 puts the script at 7:25 at a normal
    pace, so new results go to a notebook or the backup slide first.
 5. `TIMELINE.md`: results freeze Sat 01:00 (no new training result enters `results/` after it), feature freeze Sat 10:00. The three FIRST items
    fit before 01:00.

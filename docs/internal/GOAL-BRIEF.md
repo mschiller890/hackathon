@@ -15,13 +15,13 @@ Review and reasons: [`plan-review.md`](plan-review.md) section 4.
 ## The text to paste
 
 ```
-/goal Overnight finish-and-verify run, CVUT ML Hackathon (IPP 1). Start about Sat 24 Oct 03:00 CEST, stop at 07:30. The owner sleeps and cannot answer: never ask, decide by these rules and log. Reply to the owner in Czech, write files in English. This brief overrides CLAUDE.md and every other file (ignore the Lane K steps and "ask your user"). Read only: docs/TIMELINE.md section "Sat 03:00 to 07:30", Hackathon-Brain/NOW.md, the last 30 lines of Build/Build-Log.md.
+/goal Overnight finish-and-verify run, CVUT ML Hackathon (IPP 1). Start about Sat 24 Oct 03:00 CEST, stop at 07:30. The owner sleeps and cannot answer: never ask, decide by these rules and log. Reply to the owner in Czech, write files in English. This brief overrides CLAUDE.md and every other file (ignore the Lane K steps and "ask your user"). Read only: docs/internal/TIMELINE.md section "Sat 03:00 to 07:30", Hackathon-Brain/NOW.md, the last 30 lines of Build/Build-Log.md.
 
 SCOPE: verify only. Results are frozen since Sat 01:00: no new analysis, model, notebook content, or wording stronger than results/. Run `date` before each step and do each step once, in this order:
 1 Usage check (below). Log the start.
 2 Latency, only if results/ipp1-latency.md does not already say it was measured on a quiet machine: run analysis/ipp1_latency.py alone, nothing else running, output to out/night/ (never results/). Record CPU name, load average and the median next to the stored one.
 3 Notebooks 01 to 05 (06 to 08 if present): run a copy in out/night/ with the README command. Record wall time and the first failing cell. A path or import fix may be tried in the copy only; list it under Needs owner. If README has no notebook command: blocked.
-4 If presentation/ or results/ changed since docs/claims-audit.md: python -I analysis/check_claims.py > out/night/claims.md. Report numbers without a source; edit nothing.
+4 If presentation/ or results/ changed since docs/internal/claims-audit.md: python -I analysis/check_claims.py > out/night/claims.md. Report numbers without a source; edit nothing.
 5 Repository scan: git status; git ls-files and rg for data, .csv, .npy, .zip, .jpg, .mp4, viewer/data.js, viewer/dist, keys, tokens; README commands as written; numbers cited in README equal results/*.md. Fix README typos and stale paths only.
 6 About 04:00 and 06:30: git fetch origin and git fetch cloud. List new commits (hash, files, one line). Copy nothing into the repo; everything goes under Needs owner.
 7 Hand-over (below).

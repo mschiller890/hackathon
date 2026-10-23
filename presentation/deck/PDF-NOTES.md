@@ -8,7 +8,7 @@ Source: `presentation/deck/slides.pptx` as on main 5a9a2d9 (last change to the f
 - LibreOffice 24.2.7.2 was already installed (`soffice --version`).
 - `slides.pdf`: `soffice --headless --convert-to pdf --outdir out presentation/deck/slides.pptx`.
   LibreOffice skips hidden slides by default: **12 pages** (screens 5 and 10 left out).
-- `slides-all.pdf`: the same with the filter option
+- `slides-all.pdf` (removed from the repository in the tidy-up, so only `slides.pdf` and `slides.pptx` remain; make it again with this option): the same with the filter option
   `--convert-to 'pdf:impress_pdf_Export:{"ExportHiddenSlides":{"type":"boolean","value":"true"}}'`:
   **14 pages**, in deck order. `pdfinfo`: 960 x 540 pt (16:9, 13.33 x 7.5 in), text stays selectable.
 - The pptx has 14 slides; `python-pptx` shows `show="0"` on slide 5 (bonus: camera) and slide 10 (backup: stored

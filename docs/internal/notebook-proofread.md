@@ -1,8 +1,8 @@
 # Notebook proofread and patch list (Fri 23 Oct 2026, evening)
 
 Reviewer: a cloud session that read every notebook cell by cell (markdown, code comments, stored outputs, figure titles and
-axis labels, read with `nbformat`) against `docs/claims-corrections.md`, `docs/review-physics.md`, `docs/review-findings-2.md`,
-`docs/review-findings-3.md`, `docs/notebook-review.md` and the aggregates in `results/`. There are no IPP data in this
+axis labels, read with `nbformat`) against `docs/claims-corrections.md`, `docs/internal/review-physics.md`, `docs/internal/review-findings-2.md`,
+`docs/internal/review-findings-3.md`, `docs/internal/notebook-review.md` and the aggregates in `results/`. There are no IPP data in this
 mirror, so **nothing was executed**; every number below was read from a stored notebook output or a file in `results/`, and
 every replacement sentence uses only numbers I saw there. I did not edit any notebook, script, result file or other
 document (only this file and one row of `docs/PLAN.md`). The notebooks belong to lane K (`01` to `05`, `07`, `08`) and
@@ -26,8 +26,8 @@ same change in several places (listed).
    What remains there: the word "locked" and "nobody trained on" as design claims in `09`, "later campaigns" resting on
    unconfirmed chronological ids, "reversed polarity" without a sign convention in `07`, "fair stand-in" for the noise in `08`,
    "true" in `07` figure labels.
-2. **`01` to `05` still carry every item of `docs/notebook-review.md`** (I checked each one against the current files: none was
-   applied) **and none of the wording of `docs/review-physics.md`.** The main High items are: `03` c17 "The coils carry almost all
+2. **`01` to `05` still carry every item of `docs/internal/notebook-review.md`** (I checked each one against the current files: none was
+   applied) **and none of the wording of `docs/internal/review-physics.md`.** The main High items are: `03` c17 "The coils carry almost all
    the information", `04` c20 "The output is as smooth as the truth" and "Smoothing in time does not help", `05` c14 verdict and
    its "saved quiet run" numbers, and `02`/`04` calling the labels "truth" and the agreement "accuracy".
 3. **Wording rule for all notebooks** (physics H1, M2, claims-corrections 4): the targets are the institute's reference
@@ -312,7 +312,7 @@ Replace: "16 of the 149 discharges have a positive plasma current in the file, a
 
 **07-6 (Low, c7 plot, 1-line).** `axes[1].set_ylabel("limited rows [%]")` for two bars (share of the rows, share of the squared error) -> `axes[1].set_ylabel("share of all rows or of the squared error [%]")`. Title "44 % of the rows, most of the error" is hard-coded: fine, it is checked by the c15 assertion.
 
-**07-7 (Low, c24, 1-line).** Remove the internal reference "(docs/review-findings-2.md, H2)": a reader of the notebook has no use for it; say "(see section 4.1, development against kept-aside nRMSE below)".
+**07-7 (Low, c24, 1-line).** Remove the internal reference "(docs/internal/review-findings-2.md, H2)": a reader of the notebook has no use for it; say "(see section 4.1, development against kept-aside nRMSE below)".
 
 **07-8 (Low, c1 `numeric`).** Empty unit cells: G-5(d).
 
@@ -378,7 +378,7 @@ c24 bullet 4: "- **Later campaigns are harder.** Trained on the lower half ..." 
 
 **09-12 (Medium, new cell, G-4). Answer.** "**Answer.** On 30 discharges set aside before the final choice, the shipped model differs from the institute's reference reconstruction by a mean of 0.133 mm on the radial axis position (95 % interval 0.099 to 0.177 mm; 0.23 mm in cross-validation on the other 119 discharges, 0.40 mm when it trains on the lower-numbered half and is tested on the upper half), 0.035 kA on the plasma current and 4.5 mm on the limiter point, about 2.3 times closer than the baseline network on the axis (ratio 0.43). These 30 discharges are easier than the average, the ideas behind the recipe were tried on all 149 discharges, and on the provided noisy inputs the shipped model fails (190 mm), where the noise-trained baseline gives 2.4 mm."
 
-## 11. Status of the items of `docs/notebook-review.md` on current main
+## 11. Status of the items of `docs/internal/notebook-review.md` on current main
 
 All items for `01` to `05` are still open; the Critical item F-01 (missing notebooks) is done for `07`, `08`, `09` and waits for gate G1 for `06`.
 
@@ -398,7 +398,7 @@ All items for `01` to `05` are still open; the Critical item F-01 (missing noteb
 
 ## 12. Inconsistencies in other documents found on the way (not notebook edits)
 
-1. `docs/notebook-review.md` N-02-02 contradicts itself: it asks for "on contiguous blocks the radial axis error is about 1.5 times larger, about 0.6 mm" and cites "blocked 1.23 against 0.448 mm", which is 2.7 times. The 0.6 mm figure is a reviewer's own block-wise 5-fold run (in `docs/claims-corrections.md` 8; its log is in a scratchpad, not in the repository). The committed measurement is `results/ipp1-final.md` (train on the 60 lowest, 1.23 against 0.448 mm, with a smaller training set). Quote only the committed one (02-3 does).
+1. `docs/internal/notebook-review.md` N-02-02 contradicts itself: it asks for "on contiguous blocks the radial axis error is about 1.5 times larger, about 0.6 mm" and cites "blocked 1.23 against 0.448 mm", which is 2.7 times. The 0.6 mm figure is a reviewer's own block-wise 5-fold run (in `docs/claims-corrections.md` 8; its log is in a scratchpad, not in the repository). The committed measurement is `results/ipp1-final.md` (train on the 60 lowest, 1.23 against 0.448 mm, with a smaller training set). Quote only the committed one (02-3 does).
 2. `docs/claims-corrections.md` 1 says the 0.090 ms maximum was measured "na nezatíženém počítači" (idle). `results/ipp1-latency.md` now says its run was on a busy machine (load 5.67, 14.52, 29.34) with a maximum of 0.148 ms; the 0.090 ms is from an older run that is not committed. Deck and outline owners: say "největší hodnota z 5 000 měření byla 0,148 milisekundy na vytíženém počítači" or drop the maximum.
 3. `docs/claims-corrections.md` 5 says the five-component network is "asi 7krát" worse (2.6 against 0.38 mm); `results/ipp1-data-checks.md` has 2.631 against 0.4065 mm, 6.47 times (same seed and folds). Use 6.5 times or "2,63 proti 0,41 milimetru".
 4. `results/ipp1-data-checks.md` quotes the correlation of the noise with time as 0.049; notebook 01 prints 0.050 (0.0497 in `docs/claims-corrections.md`). Use 0.050 in both.

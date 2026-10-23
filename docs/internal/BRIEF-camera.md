@@ -5,7 +5,7 @@ The magnetic model is done (0.06 to 0.4 mm on most parameters, `results/ipp1-bas
 Another agent (GPT, lane R) also works on it locally; you are an independent second attempt, so write only new files named
 `cloud_camera*` and work on your own branch `cloud/camera`.
 
-1. Read `CLAUDE.md`, `README.md`, `docs/PLAN.md`, `docs/REQUIREMENTS.md`, `docs/WORKERS.md`. Use `analysis/ipp1_common.py`
+1. Read `CLAUDE.md`, `README.md`, `docs/PLAN.md`, `docs/REQUIREMENTS.md`, `docs/internal/WORKERS.md`. Use `analysis/ipp1_common.py`
    (load, group_folds, fit_mlp, score, TARGETS, UNIT). Protocol: 5-fold GroupKFold by whole discharges, masked loss for targets
    that exist in one configuration only, errors in mm and kA and relative to the spread.
 2. Data (confidential, IPP, only for this hackathon): never commit it, never print raw rows, never send it anywhere.

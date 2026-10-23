@@ -5,7 +5,7 @@ Hackathon: CVUT ML Hackathon 2026, ends Sat 24 Oct 2026 14:00 CEST. Task IPP 1: 
 parameters; weakest are the limiter point R_limiter 10.7 mm and Z_limiter 22 mm. The Lead tries a few improvements locally;
 you run a much larger search with more compute. Write only new files named `cloud_search*` on your own branch `cloud/search`.
 
-1. Read `CLAUDE.md`, `README.md`, `docs/PLAN.md`, `docs/REQUIREMENTS.md`, `docs/WORKERS.md`, `results/*.md`. Use
+1. Read `CLAUDE.md`, `README.md`, `docs/PLAN.md`, `docs/REQUIREMENTS.md`, `docs/internal/WORKERS.md`, `results/*.md`. Use
    `analysis/ipp1_common.py` (load, group_folds, fit_mlp, fit_ridge, score, TARGETS, UNIT, Net). Keep the protocol: 5-fold
    GroupKFold by whole discharges, masked loss, errors in mm and kA and relative to the spread, the same score function.
 2. Data (confidential, IPP, only for this hackathon): never commit it, never print raw rows, never send it anywhere. Download

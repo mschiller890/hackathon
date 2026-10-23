@@ -2,7 +2,7 @@
 
 Reviewer: a cloud session reading as a tokamak physicist who knows equilibrium reconstruction, the Grad-Shafranov equation, divertor and limiter configurations. Earlier critics were ML and presentation focused (`review-findings.md`, `review-findings-2.md`, `review-findings-3.md`); I did not repeat their items, I refer to them where a physicist would add a reason they did not give.
 
-Read: `README.md`, `docs/REQUIREMENTS.md`, `docs/demo-facts.md`, `presentation/pitch-script.md` (all of it), `presentation/outline.md`, `presentation/slovnicek.md`, `results/ipp1-{data,data-checks,final,distribution,unusual-shapes,signcanon,inputs,inputs-controls,time,latency,latency-shipped,uncertainty,claim-support,baseline,robustness-findings}.md`, `results/ipp1-baseline.json`, and the scripts where a definition was needed. `ipp1-eda.json` is not in git (it is written to `out/`). There is no data here, so nothing was re-run, and I have not seen the organizers' task text or their notebook: everything I say about the origin of the labels is inference and is marked so. Statements that come from my general knowledge of tokamaks, not from the data or from `results/`, are marked **(general knowledge)** and must be checked with ÚFP before anyone repeats them on stage.
+Read: `README.md`, `docs/REQUIREMENTS.md`, `presentation/demo-facts.md`, `presentation/pitch-script.md` (all of it), `presentation/outline.md`, `presentation/slovnicek.md`, `results/ipp1-{data,data-checks,final,distribution,unusual-shapes,signcanon,inputs,inputs-controls,time,latency,latency-shipped,uncertainty,claim-support,baseline,robustness-findings}.md`, `results/ipp1-baseline.json`, and the scripts where a definition was needed. `ipp1-eda.json` is not in git (it is written to `out/`). There is no data here, so nothing was re-run, and I have not seen the organizers' task text or their notebook: everything I say about the origin of the labels is inference and is marked so. Statements that come from my general knowledge of tokamaks, not from the data or from `results/`, are marked **(general knowledge)** and must be checked with ÚFP before anyone repeats them on stage.
 
 Edited: this file and one row of `docs/PLAN.md`. Nothing else.
 
@@ -47,7 +47,7 @@ Units: the file is in metres and amperes (`ipp1_common.UNIT` converts to mm and 
 
 ### H2. The talk says "tvar", the shipped model gives sixteen numbers and no boundary
 
-- Where: `pitch-script.md` line 95 (live demo main sentence "Skutečný a odhadnutý tvar vedle sebe"), line 87 ("Odhadujeme osu, bod X a dva dotykové body, kam dopadá okraj plazmatu"), line 64 ("16 veličin tvaru"), slide 1 question "odhadne malá neuronová síť tvar plazmatu"; `docs/demo-facts.md` (the shipped model "predicts POINTS … not a predicted outline").
+- Where: `pitch-script.md` line 95 (live demo main sentence "Skutečný a odhadnutý tvar vedle sebe"), line 87 ("Odhadujeme osu, bod X a dva dotykové body, kam dopadá okraj plazmatu"), line 64 ("16 veličin tvaru"), slide 1 question "odhadne malá neuronová síť tvar plazmatu"; `presentation/demo-facts.md` (the shipped model "predicts POINTS … not a predicted outline").
 - Problem: of the 31 columns the shipped model predicts 16: the axis, the lower X-point, two strike points, the limiter point, κ, δ (three), the current and a flag. It predicts none of the 15 geometry columns (`a`, `R_geom`, `Z_geom`, four extreme points, four squarenesses) that define the boundary in the organizers' plot. The boundary of the plasma, the thing a physicist means by "shape", is not an output. The pitch rows 2:24 to 3:48 also still describe the older viewer (baseline network, orange line = prediction, discharge 123 and 0), while `demo-facts.md` (later) says the viewer shows the shipped model, points only, with other discharges. The Lead must reconcile the two; the physics fix applies to both. "Dotykový bod" is also misdescribed: a strike point is where the separatrix meets the divertor target, not where "the plasma edge lands" (a physicist would say that field lines of the scrape-off layer land there).
 - Fix, spoken:
   - 0:46 (line 64): "V každém okamžiku 24 měření z cívek a smyček toku a 16 veličin, které popisují polohu a tvar plazmatu: polohu osy, dolní bod X, dva dotykové body, bod u limiteru, protažení, trojúhelníkovost, proud plazmatem a údaj, zda se plazma opírá o limiter."
@@ -165,7 +165,7 @@ Units: the file is in metres and amperes (`ipp1_common.UNIT` converts to mm and 
   - "Smyčka toku: drát kolem komory, který měří magnetický tok" → "Smyčka toku: závit, jehož napětí po integraci dává magnetický tok jím obepnutý."
   - "Bod X: místo, kde se magnetické siločáry kříží a kde se hranice plazmatu zalamuje." → "Bod X: místo, kde je poloidální magnetické pole nulové a kde se kříží hranice plazmatu, neboli separatrix."
   - Slide 2 (line 64) "veličin tvaru": the 16 include the current and a flag (fixed in H2).
-  - "Odhad" instead of "předpověď" (the network estimates a quantity at the same time, it does not predict the future); `Předpověď` still appears in the viewer legend (`docs/viewer-qa.md`).
+  - "Odhad" instead of "předpověď" (the network estimates a quantity at the same time, it does not predict the future); `Předpověď` still appears in the viewer legend (`docs/internal/viewer-qa.md`).
 
 ---
 

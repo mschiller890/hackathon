@@ -1,6 +1,6 @@
 # Deck fixes for `presentation/deck/slides.pptx`
 
-For the colleague who owns the deck. Source: `docs/review-findings-2.md` (Kritik 2), `docs/review-findings-3.md` (Kritik 3), `docs/review-physics.md` (the physicist, section 16 below) and the pitch script `presentation/pitch-script.md` as corrected after review 3. Nothing here edits the deck for you; each item says the slide, what to change, and the exact Czech text. Slide numbers are the deck's 14 screens. State of the deck: `slides.pptx` and `deck/build_deck.py` (deck v4, commit 32717a7) already carry most items of review 2; what is still wrong in `build_deck.py` after review 3 is listed with line numbers in section 15, and the lines of `outline.md` and `rehearsal-notes.md` in the last section, For lane K. The shipped model is now measured (`results/ipp1-latency-shipped.md`): every former `[[odezva vybraného modelu]]` and "asi 0,18 ms" below is replaced by the measured numbers. The name `[[odezva vybraného modelu]]` is reserved for a number that would wait for another file and is not used.
+For the colleague who owns the deck. Source: `docs/internal/review-findings-2.md` (Kritik 2), `docs/internal/review-findings-3.md` (Kritik 3), `docs/internal/review-physics.md` (the physicist, section 16 below) and the pitch script `presentation/pitch-script.md` as corrected after review 3. Nothing here edits the deck for you; each item says the slide, what to change, and the exact Czech text. Slide numbers are the deck's 14 screens. State of the deck: `slides.pptx` and `deck/build_deck.py` (deck v4, commit 32717a7) already carry most items of review 2; what is still wrong in `build_deck.py` after review 3 is listed with line numbers in section 15, and the lines of `outline.md` and `rehearsal-notes.md` in the last section, For lane K. The shipped model is now measured (`results/ipp1-latency-shipped.md`): every former `[[odezva vybraného modelu]]` and "asi 0,18 ms" below is replaced by the measured numbers. The name `[[odezva vybraného modelu]]` is reserved for a number that would wait for another file and is not used.
 
 Vocabulary to use on every slide: **základní síť** (24 vstupů, 107 152 parametrů), **vybraný model** (základní síť + rozdíly sousedních cívek + lineární model pro proud + zvláštní síť pro bod u limiteru), **odložené výboje** (30 výbojů odložených před posledním výběrem modelu; náměty na úpravy vznikly na všech 149). Never "nasazený model", "zamčené", "nikdo neviděl".
 
@@ -87,13 +87,13 @@ Second line under the title (smaller): "v křížové validaci na 119 výbojích
 
 ## 9. Slide 9 (Živá ukázka)
 
-9.1 Superseded by the viewer facts of `docs/demo-facts.md` and by section 16.5. The old second line ("V ukázce je základní síť ... Výboje 123 a 0") is wrong now: the viewer plays the selected model on the 30 set-aside discharges and shows points, not an outline. Use the texts of 16.5.
+9.1 Superseded by the viewer facts of `presentation/demo-facts.md` and by section 16.5. The old second line ("V ukázce je základní síť ... Výboje 123 a 0") is wrong now: the viewer plays the selected model on the 30 set-aside discharges and shows points, not an outline. Use the texts of 16.5.
 
 9.2 Add to the speaker notes: "Klávesa H: skrytý snímek 10 se stopkami (jen PowerPoint)." (0.4)
 
 ## 10. Slide 10 (hidden, stills)
 
-Stays hidden. Add the caption under the three pictures: "Obrázky z prohlížeče, výboj 85 a 147, vybraný model, odložené výboje. Tmavá čára je rekonstrukce ústavu." (the old caption "Základní síť, výboj 123" is stale, `docs/demo-facts.md`) (The viewer tile also has to say "základní síť" instead of the latency of an unnamed model; that is the viewer owner's job, not the deck's.)
+Stays hidden. Add the caption under the three pictures: "Obrázky z prohlížeče, výboj 85 a 147, vybraný model, odložené výboje. Tmavá čára je rekonstrukce ústavu." (the old caption "Základní síť, výboj 123" is stale, `presentation/demo-facts.md`) (The viewer tile also has to say "základní síť" instead of the latency of an unnamed model; that is the viewer owner's job, not the deck's.)
 
 ## 11. Slide 11 (Výpočet sítě rychlosti nebrání) (H1, H3, M7)
 
@@ -169,7 +169,7 @@ The strings of review 3 for X5 and X6 (the old lines 368, 430 and 499 with "zam�
 
 After the edits rebuild and check, in the speaker notes: no `0,18`, no `zamčen`, no `[[odezva vybraného modelu]]`, slide 14 closing line "setiny", slide 11 third tile "0,027 ms", the heads of the three notes of slide 4 add to 63 s.
 
-## 16. Physics review pass (`docs/review-physics.md`, branch `cloud/pitch-fix-3`)
+## 16. Physics review pass (`docs/internal/review-physics.md`, branch `cloud/pitch-fix-3`)
 
 The deck is not edited here. Strings and line numbers are those of `presentation/deck/build_deck.py` on main at commit 2fb3f86 (check with `grep -n` on the quoted old text). The rule behind all of it: the numbers are an agreement of the network with the institute's reconstruction (the labels are probably the output of a reconstruction code, not confirmed), never "přesnost polohy plazmatu" and never "skutečný".
 
@@ -179,7 +179,7 @@ The deck is not edited here. Strings and line numbers are those of `presentation
 
 16.3 **Slide 3 Data (line 314).** Tile "hledaných veličin tvaru: osa, bod X, dotykové body, protažení" becomes "veličin polohy a tvaru: osa, dolní bod X, dotykové body, bod u limiteru, protažení, trojúhelníkovost, proud, údaj o limiteru" (the 16 include the current and a flag). Add one line under the tiles, small print: "Vstup: jen magnetická čidla. Proudy v cívkách pole a model komory síť nedostává." (H6, spoken at 0:45).
 
-16.4 **Slide 6 Co odhadujeme (line 364 onward).** Add the line "Vybraný model odhaduje jen body (osa, dolní bod X, dotykové body, bod u limiteru), obrys ne." (H2; the 15 supplementary columns are predicted by the basic network only and their numbers are not published, `docs/bonus-gaps.md`).
+16.4 **Slide 6 Co odhadujeme (line 364 onward).** Add the line "Vybraný model odhaduje jen body (osa, dolní bod X, dotykové body, bod u limiteru), obrys ne." (H2; the 15 supplementary columns are predicted by the basic network only and their numbers are not published, `docs/internal/bonus-gaps.md`).
 
 16.5 **Slide 7 and slide 9 (lines 372, 376, 384, 442).**
 * line 372 title: "Na 30 odložených výbojích se osa liší od rekonstrukce o 0,13 mm"
@@ -208,7 +208,7 @@ The deck is not edited here. Strings and line numbers are those of `presentation
 
 16.10 **Speaker notes.** Rebuild after the edits (the notes are copied from `pitch-script.md`; the row times of this pass are 0:11, 0:29 (slide 1), 0:45, 0:59 (slide 2), 1:56 and 2:05 (slide 4), 4:01 and 4:10 (slide 5), 4:51 (slide 6), 5:23, 5:37, 5:54 (slide 7); the boundaries used by `notes_text` stay 0:21, 1:33 and 2:17, so the heads of slide 4 are still 7 s, 44 s, 12 s).
 
-16.11 **Viewer (outside this list, for its owner).** Toggle labels "Skutečnost" and "Předpověď" become "Rekonstrukce ústavu" and "Odhad sítě"; the legend that says "obrys model nepředpovídá" becomes "obrys model neodhaduje, ukazuje jen označené body"; `docs/viewer-qa.md` still says "Předpověď". Until it is changed the speaker does not say those two words (pitch row 2:42).
+16.11 **Viewer (outside this list, for its owner).** Toggle labels "Skutečnost" and "Předpověď" become "Rekonstrukce ústavu" and "Odhad sítě"; the legend that says "obrys model nepředpovídá" becomes "obrys model neodhaduje, ukazuje jen označené body"; `docs/internal/viewer-qa.md` still says "Předpověď". Until it is changed the speaker does not say those two words (pitch row 2:42).
 
 16.12 **Pictures.** `presentation/assets/prompts.md` holds the prompt of the melting-wall picture; the physicist asks to drop it (H3). Not edited here.
 
@@ -268,9 +268,9 @@ Lines the colleague must change in the files he owns (the script is already corr
 * "Rychlost 0,0145 ms patří vždy základní síti" stays; add "Vybraný model 0,03 ms (0,027 limitované)".
 * "DOPLNIT: skutečný čas po přečtení se stopkami" stays open.
 
-`docs/REHEARSAL.md` (not mine, for whoever owns it): the answers Q6 ("rozdíly pod 15 až 20 procent") and Q9 (COMPASS Upgrade) carry the old text; Q5 and Q8 should follow the script. 
+`presentation/REHEARSAL.md` (not mine, for whoever owns it): the answers Q6 ("rozdíly pod 15 až 20 procent") and Q9 (COMPASS Upgrade) carry the old text; Q5 and Q8 should follow the script. 
 
-### Physics review pass (branch `cloud/pitch-fix-3`, `docs/review-physics.md`)
+### Physics review pass (branch `cloud/pitch-fix-3`, `docs/internal/review-physics.md`)
 
 Line numbers are those of `presentation/outline.md` and `presentation/slovnicek.md` after the merge of main c2b5bba (check with `grep -n` on the quoted text). Already applied on main and therefore not listed again: the slide 4 sentence (line 44), the slide 8 sentence (line 103), the slogan (line 109) and the placeholder `[[chyba osy výboje 0]]` (lines 4 and 125). The pitch script is already changed; the row times of its slides 1, 2, 4, 5, 6 and 7 moved (see 16.10), no section length changed (still 420 s: 38 + 28 + 20 + 63 + 80 + 40 + 34 + 74 + 43). Wording rule for every line: the model reproduces the institute's reconstruction from 24 signals; do not write "přesnost polohy plazmatu", "skutečný", "skutečnost", "předpověď".
 
@@ -309,7 +309,7 @@ Open on lane K's side, not a wording change: the definitions of elongation and t
 
 Added by the Vizualizace session after review 4 and the Czech edit (23 Oct). Lane K owns `presentation/deck/build_deck.py`, `presentation/outline.md` and `presentation/slovnicek.md`; the Lead's two files (`pitch-script.md`, this file) are already changed. Facts, numbers and protocol words must not change in any row.
 
-### A. From `docs/review-findings-4.md` (line numbers of the files on 23 Oct)
+### A. From `docs/internal/review-findings-4.md` (line numbers of the files on 23 Oct)
 
 | Where | Old | New | Item |
 |---|---|---|---|
@@ -326,9 +326,9 @@ Added by the Vizualizace session after review 4 and the Czech edit (23 Oct). Lan
 | `outline.md:13`, `:39` | před finálním výběrem | odložené před posledním výběrem modelu | M24 |
 | `build_deck.py:316` first tile | jednotky ms | jednotky až desítky ms | M27 |
 
-Exact wording of the other items (M03 banned words in the deck, M16, M18, M19, M20, M25, M26, M28) is in `docs/review-findings-4.md`; the old seconds of the outline and the rehearsal notes (M18) follow the timed script of `pitch-script.md`.
+Exact wording of the other items (M03 banned words in the deck, M16, M18, M19, M20, M25, M26, M28) is in `docs/internal/review-findings-4.md`; the old seconds of the outline and the rehearsal notes (M18) follow the timed script of `pitch-script.md`.
 
-### B. From `docs/czech-edit.md` (rows for the deck builder and the glossary)
+### B. From `docs/internal/czech-edit.md` (rows for the deck builder and the glossary)
 
 | Row (file and line) | Old | New | Why |
 |---|---|---|---|

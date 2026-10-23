@@ -66,7 +66,7 @@ empty or unchanged.
 - [ ] Confirm the target branch and remote before publishing.
 
 **Verified repository state (update this block when it changes):** the build, test, lint,
-and run commands live in `README.md` (usage) and `docs/TESTING.md` (verification) — they
+and run commands live in `README.md` (usage) and `TESTING.md` (verification) — they
 are **not** duplicated here. As of this commit the repository contains no source, no
 manifests, and no `TESTING.md`, so **no such commands exist yet**; they are recorded once
 the assignment's stack is chosen.
@@ -119,7 +119,7 @@ Order work into milestones adapted to the assignment, for example:
 4. Project setup + foundation
 5. Core functionality
 6. Integration + testing
-7. Performance analysis/refinement (if relevant)
+7. Performance analysis and refinement (if relevant)
 8. Docs, final verification, delivery
 
 Keep statuses current. Record blockers and what would resolve them. **A task is DONE
@@ -193,8 +193,8 @@ content across files — link to it instead.
 | `README.md` | *What* the project is and how a human uses it. |
 | `docs/PLAN.md` | *What work remains* — the single task tracker. |
 | `docs/REQUIREMENTS.md` | *What must be delivered* — requirement IDs + traceability. |
-| `docs/ARCHITECTURE.md` | *How the solution works* — modules, flow, algorithms. |
-| `docs/TESTING.md` | *How correctness is verified* — commands, strategy, evidence. |
+| `ARCHITECTURE.md` | *How the solution works* — modules, flow, algorithms. |
+| `TESTING.md` | *How correctness is verified* — commands, strategy, evidence. |
 | `docs/DECISIONS.md` | *Why* significant technical choices were made. |
 
 Current tree:
@@ -297,7 +297,7 @@ memory, scalability, numerical stability, or edge-case behavior. Distinguish **c
 bugs** from **suspected issues**, **accepted limitations**, **environmental constraints**,
 and **optional improvements**. Never present an unconfirmed hypothesis as a root cause.
 If the `docs/PLAN.md` tracker is too coarse for the issue volume, promote a proportional
-checklist to `docs/ISSUES.md` — not before. Add a regression test when fixing a bug.
+checklist to `ISSUES.md` — not before. Add a regression test when fixing a bug.
 
 ---
 

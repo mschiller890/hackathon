@@ -5,7 +5,7 @@ tags:
 
 # Pitch: 7 minut pro porotu
 
-Stav: přepsáno v pátek 23. října večer podle `docs/review-findings-2.md` (Kritik 2) a `docs/claims-corrections.md`, potom opraveno podle `docs/review-findings-3.md` (Kritik 3) a naposledy podle `docs/review-physics.md` (fyzik, větev `cloud/pitch-fix-3`): každé číslo přesnosti je shoda s rekonstrukcí ústavu, ne přesnost polohy skutečného plazmatu. Každá mluvená věta souhlasí se souborem v `results/` a s obrazovkou po úpravách z `docs/deck-fixes.md`. Pod každým číslem přesnosti říkáme, na jakých výbojích bylo změřeno. Čas vybraného modelu je změřený (`results/ipp1-latency-shipped.md`). Na přehrání čeká jen `0,22 milimetru` (číslo z prohlížeče den předem; bez něj se říká věta bez čísla). Název (zástupný text pro latenci, už nepoužitý) je rezervovaný pro číslo, které by čekalo na další soubor; teď se nepoužívá. Pořadí snímků sedí s `repo/presentation/outline.md`; co má změnit sazeč decku, je v `docs/deck-fixes.md`. Formát tabulek se nesmí měnit, čte ho `deck/build_deck.py` (nadpisy `### Snímek N`, řádek `Hlavní věta:` a řádky `| m:ss | sek. | kdo | text | obrazovka |`).
+Stav: přepsáno v pátek 23. října večer podle `docs/internal/review-findings-2.md` (Kritik 2) a `docs/claims-corrections.md`, potom opraveno podle `docs/internal/review-findings-3.md` (Kritik 3) a naposledy podle `docs/internal/review-physics.md` (fyzik, větev `cloud/pitch-fix-3`): každé číslo přesnosti je shoda s rekonstrukcí ústavu, ne přesnost polohy skutečného plazmatu. Každá mluvená věta souhlasí se souborem v `results/` a s obrazovkou po úpravách z `docs/deck-fixes.md`. Pod každým číslem přesnosti říkáme, na jakých výbojích bylo změřeno. Čas vybraného modelu je změřený (`results/ipp1-latency-shipped.md`). Na přehrání čeká jen `0,22 milimetru` (číslo z prohlížeče den předem; bez něj se říká věta bez čísla). Název (zástupný text pro latenci, už nepoužitý) je rezervovaný pro číslo, které by čekalo na další soubor; teď se nepoužívá. Pořadí snímků sedí s `repo/presentation/outline.md`; co má změnit sazeč decku, je v `docs/deck-fixes.md`. Formát tabulek se nesmí měnit, čte ho `deck/build_deck.py` (nadpisy `### Snímek N`, řádek `Hlavní věta:` a řádky `| m:ss | sek. | kdo | text | obrazovka |`).
 
 ## Jak je to postavené
 
@@ -101,10 +101,10 @@ Obrázek: žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html)
 | 2:29 | 13 | A | Teď naživo. Obrys v ukázce je z rekonstrukce ústavu, naše síť odhaduje jen označené body, na třiceti výbojích, které jsme odložili. | Cmd+Tab do prohlížeče. Okno je předem otevřené na výboji 85, rychlost 1×, zastaveno. Dlaždice říká vybraný model. |
 | 2:42 | 12 | A | Tmavá čára je tvar z rekonstrukce ústavu, barevné značky jsou odhad sítě. Výboj číslo 85 je z odložených třiceti a je typický. | Ukázat na dva přepínače. V prohlížeči mají stát Rekonstrukce ústavu a Odhad sítě; dokud tam stojí Skutečnost a Předpověď, tato dvě slova nahlas neříkej (docs/deck-fixes.md, viewer). Mezerník spustí přehrávání. |
 | 2:54 | 6 | A | (ticho, výboj běží a porota se dívá) | Nech výboj proběhnout dvakrát. |
-| 3:00 | 12 | A | Kroužek je osa, křížek dolní bod X. Vzdálenost osy od rekonstrukce je tu čtvrt milimetru, na začátku i uprostřed. | Ukázat na značky a tabulku. Čísla z prohlížeče: začátek 0,22 mm, střed 0,25 mm, vzdálenost v R i Z (docs/demo-facts.md); 0,13 mm na slajdech je jen radiální osa R. |
-| 3:12 | 14 | A | Teď nejhorší konec: výboj číslo 147, poslední snímek. Osa se liší o třicet čtyři milimetry, bod u limiteru o víc než sto pět, ale v průměru přes celý výboj je to pod milimetrem. | Výboj 147 z nabídky, poslední snímek (t 1,0). Čísla: osa 33,7 mm, bod u limiteru asi 105 mm, průměr výboje 0,85 mm (docs/demo-facts.md). |
+| 3:00 | 12 | A | Kroužek je osa, křížek dolní bod X. Vzdálenost osy od rekonstrukce je tu čtvrt milimetru, na začátku i uprostřed. | Ukázat na značky a tabulku. Čísla z prohlížeče: začátek 0,22 mm, střed 0,25 mm, vzdálenost v R i Z (presentation/demo-facts.md); 0,13 mm na slajdech je jen radiální osa R. |
+| 3:12 | 14 | A | Teď nejhorší konec: výboj číslo 147, poslední snímek. Osa se liší o třicet čtyři milimetry, bod u limiteru o víc než sto pět, ale v průměru přes celý výboj je to pod milimetrem. | Výboj 147 z nabídky, poslední snímek (t 1,0). Čísla: osa 33,7 mm, bod u limiteru asi 105 mm, průměr výboje 0,85 mm (presentation/demo-facts.md). |
 | 3:26 | 5 | A | (ticho, špatný výboj běží) | Ukázat na místo, kde se čáry rozcházejí. |
-| 3:31 | 14 | B | Takových výbojů je málo: všech třicet odložených má průměrnou vzdálenost osy od rekonstrukce pod milimetrem, medián asi dvě desetiny. | Protokol: vybraný model, odložených 30 a vývojové výboje mimo učení, vzdálenost osy (docs/demo-facts.md); dva výboje nad 5 mm, obě vývojové (id 0 a 11); pod milimetrem je 135 ze 149 výbojů, nahlas se neříká. |
+| 3:31 | 14 | B | Takových výbojů je málo: všech třicet odložených má průměrnou vzdálenost osy od rekonstrukce pod milimetrem, medián asi dvě desetiny. | Protokol: vybraný model, odložených 30 a vývojové výboje mimo učení, vzdálenost osy (presentation/demo-facts.md); dva výboje nad 5 mm, obě vývojové (id 0 a 11); pod milimetrem je 135 ze 149 výbojů, nahlas se neříká. |
 | 3:45 | 4 | A | (ticho, přepnutí zpět) | Cmd+Tab zpět do prezentace, klik na snímek 5. Dlaždici latence v prohlížeči neukazovat ani neříkat (číslo zazní na snímku 5). |
 
 ### Snímek 5: Rychlost, verdikt pro řízení (3:49 až 4:29, 40 s)
@@ -165,7 +165,7 @@ Obrázek: 07-closing.png
 * Slova základní síť a vybraný model nikdy nezaměňuj. Rychlost 0,0145 milisekundy patří základní síti, nikdy vybranému modelu. Vybraný model má asi 0,03 milisekundy, u limitovaného plazmatu medián 0,027, u divertorového 0,015.
 * Rozpočet jedné až deseti milisekund je náš; zadání chce jednotky až desítky milisekund (to říkej v odpovědi na otázku 8, řádek 4:10 říká jen náš rozpočet). Neříkej, že rozpočet dalo zadání.
 * Nečti text ze snímku. Dívej se na porotu, na obrazovku jen ukaž.
-* Před začátkem: prohlížeč otevřený na výboji 85, rychlost 1×, zastaveno; výboj 147 připravený v nabídce; hlasitost a zrcadlení obrazovky vyzkoušené. Čísla z prohlížeče jsou v docs/demo-facts.md; den předem je jednou porovnat s tím, co prohlížeč ukazuje.
+* Před začátkem: prohlížeč otevřený na výboji 85, rychlost 1×, zastaveno; výboj 147 připravený v nabídce; hlasitost a zrcadlení obrazovky vyzkoušené. Čísla z prohlížeče jsou v presentation/demo-facts.md; den předem je jednou porovnat s tím, co prohlížeč ukazuje.
 * Kontrolní časy: 0:38 snímek 2, 1:06 snímek 3, 1:26 snímek 4, 2:29 ukázka, 3:49 snímek 5, 4:29 snímek 6, 5:03 snímek 7, 6:17 snímek 8, 7:00 konec.
 * Neznáš odpověď? Řekni: Tohle jsme neměřili. A pokračuj tím, co jsme měřili. Nikdy nehádej číslo.
 
@@ -173,7 +173,7 @@ Obrázek: 07-closing.png
 
 * Po první větě ukázky (2:29) řekni: Ukázka se nespustila, ukážu uložené obrázky. Pak ukaž tři obrázky z tlačítka Uložit PNG (začátek, střed a konec, výboj 85 a 147) a řádky ukázky o osách a tabulce. Zkrať to na 45 sekund a zbytek času dorovnej tím, že vynecháš řádky se špatným výbojem. Skrytý snímek 10 se z prezentace otevře klávesou H (nebo napsat 10 a Enter); klávesa H funguje jen v PowerPointu, protože skrytý snímek 10 následuje hned po snímku 9. V Keynote ani v Google Slides klávesa H není: tam před vystoupením odkrýt snímek 10 nebo mít záložní kopii s odkrytým snímkem a vyzkoušet, jak se na něj přejde.
 * Záznam hotový: `out/viewer-demo.mp4` (60 s, výboj 85, jen na počítači, mimo git). Zkopírovat ho a `viewer/dist/index.html` na druhý notebook. Plynulejší verze: `viewer/record.py --seconds 20`.
-* Den před vystoupením: jednou přehrát výboje 85 a 147 a porovnat s docs/demo-facts.md. Dřívější čísla pro výboje 123, 0 a 11 pocházela ze základní sítě a nepoužívají se.
+* Den před vystoupením: jednou přehrát výboje 85 a 147 a porovnat s presentation/demo-facts.md. Dřívější čísla pro výboje 123, 0 a 11 pocházela ze základní sítě a nepoužívají se.
 
 ## Záloha: kamera (skrytý snímek 5 v decku)
 
@@ -197,7 +197,7 @@ Slov: 106, s čísly počítanými dvakrát 116. Přibližně 60 sekund (odhad p
 
 ## Deset zlých otázek a upřímné odpovědi
 
-Každá odpověď říká i mez a u čísla protokol. Poznámky k zdrojům a k tomu, co ještě chybí, jsou v části Lead notes. Odpovědi 4, 5, 6 a 8 byly po kontrole Kritika 2 přepsány, protože původní znění už neplatilo (tvrdilo, že vybraný model nepoužívá lineární model pro proud, že se architektura neladila podle testu, že silnější modely se teprve zkoušejí a že rychlost 0,0145 milisekundy patří vybranému modelu). Po kontrole fyzika (`docs/review-physics.md`, větev `cloud/pitch-fix-3`) se přepsaly odpovědi 1, 2, 3, 4, 7, 8, 9 a N1, N3, N6, N8, N13 (rekonstrukce ústavu místo skutečného plazmatu, Ampérův zákon, šum a posun, celý řetězec řízení, relativní čas, konec výboje, polarita) a přibyly otázky F2, F4 a F5; všech deset nejtěžších fyzikálních otázek F1 až F10 je dohledatelných v části Příloha: deset nejtěžších fyzikálních otázek. Po kontrole Kritika 3 se opravily ještě 5 (rozptyl mezi dělením 0,12 v žádném souboru není, použit je rozptyl semen), 6 (zkoušeli jsme stromy), 8 a N5 (změřená rychlost) a 9 (věta o COMPASS Upgrade nemá zdroj v repozitáři) a 10 (náhradní věta bez čísla).
+Každá odpověď říká i mez a u čísla protokol. Poznámky k zdrojům a k tomu, co ještě chybí, jsou v části Lead notes. Odpovědi 4, 5, 6 a 8 byly po kontrole Kritika 2 přepsány, protože původní znění už neplatilo (tvrdilo, že vybraný model nepoužívá lineární model pro proud, že se architektura neladila podle testu, že silnější modely se teprve zkoušejí a že rychlost 0,0145 milisekundy patří vybranému modelu). Po kontrole fyzika (`docs/internal/review-physics.md`, větev `cloud/pitch-fix-3`) se přepsaly odpovědi 1, 2, 3, 4, 7, 8, 9 a N1, N3, N6, N8, N13 (rekonstrukce ústavu místo skutečného plazmatu, Ampérův zákon, šum a posun, celý řetězec řízení, relativní čas, konec výboje, polarita) a přibyly otázky F2, F4 a F5; všech deset nejtěžších fyzikálních otázek F1 až F10 je dohledatelných v části Příloha: deset nejtěžších fyzikálních otázek. Po kontrole Kritika 3 se opravily ještě 5 (rozptyl mezi dělením 0,12 v žádném souboru není, použit je rozptyl semen), 6 (zkoušeli jsme stromy), 8 a N5 (změřená rychlost) a 9 (věta o COMPASS Upgrade nemá zdroj v repozitáři) a 10 (náhradní věta bez čísla).
 
 ### 1. Fyzik
 Otázka: Čemu říkáte pravda? Porovnáváte se skutečným plazmatem, nebo s výpočtem? Jak přesné je 0,13 milimetru? (F1)
@@ -251,7 +251,7 @@ Odpovídá B: Síť sama vydá jen číslo. Zkusili jsme pět sítí s různým 
 
 ## Příloha: dalších třináct otázek od Kritika 2
 
-Kritik 2 sepsal třináct nových otázek; prvních deset je hlavní sada, N11 až N13 jsou krátké doplňky. Číslo N odpovídá pořadí v `docs/review-findings-2.md` (část Ten new hostile questions).
+Kritik 2 sepsal třináct nových otázek; prvních deset je hlavní sada, N11 až N13 jsou krátké doplňky. Číslo N odpovídá pořadí v `docs/internal/review-findings-2.md` (část Ten new hostile questions).
 
 ### N1. Fyzik
 Otázka: Vaše nejlepší číslo je pro signály bez šumu. Skutečné sondy šum mají. Jak přesní jste na nich?
@@ -336,7 +336,7 @@ Odpovídá B: Zkusili jsme větší síť na obrázcích (96 krát 128 bodů) a 
 
 ## Příloha: deset nejtěžších fyzikálních otázek
 
-Zdroj: `docs/review-physics.md`, část 5 (otázky F1 až F10). Sedm z nich je totéž co otázky výše, proto jsou sloučené a odpověď je tam; tři nové (F2, F4, F5) jsou níže. Čísla jsou jen ze složky `results/`, kde odpověď neví, řekne Neměřili jsme.
+Zdroj: `docs/internal/review-physics.md`, část 5 (otázky F1 až F10). Sedm z nich je totéž co otázky výše, proto jsou sloučené a odpověď je tam; tři nové (F2, F4, F5) jsou níže. Čísla jsou jen ze složky `results/`, kde odpověď neví, řekne Neměřili jsme.
 
 | F | Téma | Kde je odpověď |
 |---|---|---|
@@ -393,7 +393,7 @@ If the stopwatch says over, cut in this order (written-out words saved): the sen
 
 | Finding | Fix in this file |
 |---|---|
-| H1 shipped model, speed and demo | Two latencies, always named: basic network 0,0145 ms (Apple M5), selected model about 0,03 ms, median 0,027 ms limited and 0,015 ms diverted (`results/ipp1-latency-shipped.md`, review 3 X1; the old 0,18 ms is gone). The slogan stays "desetiny milimetru za setiny milisekundy" (review 3 X1; the review 2 change to "desetiny" is withdrawn). The demo no longer says the viewer latency (row 3:08 cut). (Superseded by `docs/demo-facts.md`: the viewer now plays the selected model; the 2:29 row says so.) |
+| H1 shipped model, speed and demo | Two latencies, always named: basic network 0,0145 ms (Apple M5), selected model about 0,03 ms, median 0,027 ms limited and 0,015 ms diverted (`results/ipp1-latency-shipped.md`, review 3 X1; the old 0,18 ms is gone). The slogan stays "desetiny milimetru za setiny milisekundy" (review 3 X1; the review 2 change to "desetiny" is withdrawn). The demo no longer says the viewer latency (row 3:08 cut). (Superseded by `presentation/demo-facts.md`: the viewer now plays the selected model; the 2:29 row says so.) |
 | H2 favourable protocol, "nikdo neviděl" | Slide 4 gives three protocols (30 set aside 0,13; cross-validation on 119 0,23; newer ids 0,40). "Zamčené" and "nikdo neviděl" are gone. Review 3: the spoken line 1:33 said "před finálním výběrem" and the audience hears "held out from design"; now it says "před posledním výběrem modelu; náměty na úpravy ale vznikly na všech 149". Design on all 149 discharges is also answered in N2. |
 | H3 script against screen, slides 4 to 7 | Rows rewritten to the numbers on the screen: 0,133 / 0,307, 4,55 / 10,6, 0,035 / 1,2 (slide 4); two speeds (slide 5); 4,55 and 8,35, chart marked as basic network (slide 6; review 3: 77,5 and 92,2 are the p99 of `ipp1-final.md` (rows 128 and 129), so the clause says "v jednom procentu řádků je chyba přes 77 a přes 92", not "až 78 a 92", which read as a maximum; the worst rows are 357 and 485 mm and stay on the screen); learning-curve wording of `claims-corrections.md` section 10 (slide 7). "Cívky nesou skoro všechno", "rychlost nebude překážkou", 0,029, 0,24 ms and 0,032 ms are removed. |
 | H4 slide 13 against the speaker | One sentence for both: leaving out a family raised the error at most threefold; the 18 really unusual discharges were never held out alone. |
@@ -402,7 +402,7 @@ If the stopwatch says over, cut in this order (written-out words saved): the sen
 | M2 camera | Hidden backup, no seconds, 20 s line, title 1,3 až 13krát, "malá síť" wording. |
 | M3 labelled noise numbers | Protocol said with every number; the 2,33 bar is not spoken and is deleted from the slide (deck-fixes). |
 | M4 stale answers | Q4, Q5, Q6, Q8 rewritten, plus Q2, Q3, Q7, Q10 refreshed; N2, N4, N7 give the sources. Review 3: Q5 uses the seed spread of `ipp1-final-seeds.md` (0,133 SD 0,006 and 0,289 SD 0,011) instead of "0,12" (in no file); Q6 says trees were tried for the limiter point (`ipp1-improve.md:37-40`) and the noise line is "10 až 15 procent" (`ipp1-inputs-controls.md`); Q8 and N5 give the measured speed; Q9 lost the COMPASS Upgrade sentence (no source in the repository). |
-| M5 demo facts | Frame count and "5,7 mm" removed; the demo numbers now come from `docs/demo-facts.md`; 3:00 now says what the chart shows for one discharge (still unchecked, to be verified in the rehearsal); Q10 has the same fallback as 3:12 (review 3). 128 of 149 (85,9 percent) is verified in `results/ipp1-claim-support.md`. |
+| M5 demo facts | Frame count and "5,7 mm" removed; the demo numbers now come from `presentation/demo-facts.md`; 3:00 now says what the chart shows for one discharge (still unchecked, to be verified in the rehearsal); Q10 has the same fallback as 3:12 (review 3). 128 of 149 (85,9 percent) is verified in `results/ipp1-claim-support.md`. |
 | M6 demo single point of failure | Backup section now says: key H opens the hidden slide and works in PowerPoint only (review 3), record the 60 s clip, copy the viewer to the second laptop. Still to do by a person. |
 | M7 nobody read it aloud | Recounted after review 3 (table above): written-out count 730 words, 7:24 at a normal pace, 7:01 only at 1.8 words per second. Cut already: demo speed sentence, "Typický výboj sedí", "Zbývá napojení", "U každého čísla řeknu". Emergency cuts in the section above. GPU and second computer lines are gone. No stopwatch reading yet. |
 | X1 stale latency lines (review 3) | 4:02, 6:27, the main sentence of slide 5, Q8, N5, Lead notes: measured numbers; slogan "setiny"; the 30 s version says "setiny milisekundy". (zástupný text pro latenci, už nepoužitý) is gone from this file. |
@@ -412,7 +412,7 @@ If the stopwatch says over, cut in this order (written-out words saved): the sen
 | L4 jargon | "zamčených" gone; "p99" is said as "devadesát devět procent odhadů je rychlejších"; "vybraný model" is explained on slide 3. |
 | L5 how many inputs | "Samotné cívky stačí na skoro stejnou souhrnnou chybu, osm nejlepších už ne." |
 | Physics review H1 (labels are the institute's reconstruction) | H1 spoken replacements were already in; this pass finished the leftovers: header, "Jak je to postavené", slogan, speech rules (no "přesnost", "skutečný", "předpověď"), Q1 now says "podle toho, co víme" (the sentence "podle zadání" is not in any file), screen column of 2:42 (viewer toggles to be renamed, deck-fixes), slide 8 main sentence and tile, 30 and 60 second versions. Remaining old words only in the jury's own questions (Q1, N1, N4). |
-| Physics review H2 (points, not a boundary) | 1:26 says axis, lower X point, strike points on the divertor plates and "Celý obrys neodhadujeme"; 2:29 says outline is the institute's reconstruction; main sentence of the demo; N11 follows `docs/REHEARSAL.md` (the 15 supplementary columns are predicted by the basic network only). Glossary line for Dotykový bod: lane K (deck-fixes). |
+| Physics review H2 (points, not a boundary) | 1:26 says axis, lower X point, strike points on the divertor plates and "Celý obrys neodhadujeme"; 2:29 says outline is the institute's reconstruction; main sentence of the demo; N11 follows `presentation/REHEARSAL.md` (the 15 supplementary columns are predicted by the basic network only). Glossary line for Dotykový bod: lane K (deck-fixes). |
 | Physics review H3 (opening) | Already applied by the Lead. This pass cut the 150 to 200 ms sentence from the stage (the time column is relative and 439 rows at 0,6 ms would be 263 ms, M3; it stays in Q8 as the organizers' statement), kept the instability claim (ÚFP to confirm, deck-fixes questions) and shortened the question so slide 1 fits 38 s. Picture 04-wall-damage.png: deck-fixes slide 1. |
 | Physics review H4 (real time) | 4:10 now lists what is not tested: acquisition and integration, how the signals look in operation, closed loop, real-time system; Q8 adds the derivative, the relative time and the 0,65 and 21 ms spikes; slide 8 says the chain from the sensors and a closed loop test are missing. |
 | Physics review H5 (noise) | 5:03 says the weakness is robustness to sensor faults, that the noise is the organizers' and the drift is ours; Q3 gives the standard deviation wording (not "rozptyl"), says the ratio hints at proportional noise (inference) and that real integrator drift grows with absolute time; calibration error and a dead sensor were not tested. |
@@ -464,12 +464,12 @@ If the stopwatch says over, cut in this order (written-out words saved): the sen
 | Share of errors split by configuration (`is_limited`) | 49,3 percent of the squared error on limited rows, 50,7 percent on diverted | `results/ipp1-distribution.md` |
 | Camera | 5 folds, 78 discharges, 48x64; axis R 1,79 (grey 1,70) against 0,377; 1,3 to 13 times; fused 1,21 against 0,24 on 2 folds | `results/cloud-camera-main.md`, `results/cloud-camera-findings.md`, `results/ipp1-camera-local-findings.md` |
 
-The demo now plays the selected model on the 30 set-aside discharges (viewer e50b1ee); typical discharge 85, rough end discharge 147; numbers in `docs/demo-facts.md`. Discharges 0, 11 and 123 belong to the development set.
+The demo now plays the selected model on the 30 set-aside discharges (viewer e50b1ee); typical discharge 85, rough end discharge 147; numbers in `presentation/demo-facts.md`. Discharges 0, 11 and 123 belong to the development set.
 
 ### Still pending (needs a person or a machine)
 
 * Latency of the selected model: done (`results/ipp1-latency-shipped.md`, busy laptop, random weights, numpy). Caveats a physicist can raise, not closed: no file checks that the numpy path reproduces the trained network (a 100-row comparison with `predict()` would close it); the noise-trained network needed for noisy inputs was not timed (it has the size of the basic network); the machine was not idle. (zástupný text pro latenci, už nepoužitý) is reserved and unused.
-* Demo numbers: done, taken from the viewer by bladed-85 (`docs/demo-facts.md`); one human replay of discharges 85 and 147 the day before is still advised.
+* Demo numbers: done, taken from the viewer by bladed-85 (`presentation/demo-facts.md`); one human replay of discharges 85 and 147 the day before is still advised.
 * One timed read-aloud with a stopwatch; update `rehearsal-notes.md`.
 * The 60 s screen recording and the copy of the viewer on the second laptop (M6).
 * `build_deck.py` has hard-coded split times for speaker notes (`0:21`, `1:37`, `2:14`); with the timing of this file the last two become `1:33` and `2:17`, see `docs/deck-fixes.md` item 0.3 and the section For lane K.

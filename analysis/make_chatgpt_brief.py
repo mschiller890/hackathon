@@ -62,7 +62,7 @@ PLAN = """
 
 
 def numbers_section():
-    text = strip_h1(read(ROOT / "docs" / "CHEAT-SHEET.md"))
+    text = strip_h1(read(ROOT / "presentation" / "CHEAT-SHEET.md"))
     return "## Čísla k zapamatování a věty, které se nesmí říct\n\n" + text
 
 

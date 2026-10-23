@@ -18,7 +18,7 @@ Finding a number among 10 000 or more source numbers proves little for a short n
 specific (four or more significant digits, or at most 5 matching source numbers), medium (6 to 25) or common (more than 25).
 Only specific matches are real evidence; medium and common ones are listed for reading by hand.
 
-Run: python -I analysis/check_claims.py            (writes docs/claims-audit.md, keeps a hand-written "## Review" section)
+Run: python -I analysis/check_claims.py            (writes docs/internal/claims-audit.md, keeps a hand-written "## Review" section)
 """
 import json
 import re
@@ -28,7 +28,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 TEXTS = [REPO / "presentation/pitch-script.md", REPO / "presentation/outline.md"]
 DECK = REPO / "presentation/deck/slides.pptx"
-AUDIT = REPO / "docs/claims-audit.md"
+AUDIT = REPO / "docs/internal/claims-audit.md"
 
 NUM = r"\d{1,3}(?:[   ]\d{3})+(?:[.,]\d+)?(?![\d])|\d+(?:[.,]\d+)?"
 UNITS = [  # (regex of the word after the number, class)
