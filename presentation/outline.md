@@ -46,7 +46,7 @@ Věta: Síť trefí osu, bod X a dotykové body s chybou 0,06 až 0,4 mm, což j
 
 Věta: Jeden odhad trvá 0,0145 ms na procesoru, tedy mnohonásobně méně než jednotky milisekund, které zadání žádá.
 
-* Procesor, jeden vzorek: medián 0,0145 ms, nejhorší naměřená hodnota 0,090 ms.
+* Procesor, jeden vzorek: medián 0,0145 ms, nejhorší naměřená hodnota 0,090 ms (měřeno na počítači vedoucího týmu; na druhém počítači při opakování vyšlo 0,032 ms, což je pořád hluboko pod jednou milisekundou).
 * Grafická karta Apple, jeden vzorek: medián 0,2405 ms, pomalejší než procesor, protože model je malý.
 * Verdikt: rychlost nebude překážkou. Zbývá ověřit napojení na skutečný řídicí systém a spolehlivost výstupu: DOPLNIT, kdo to potvrdí.
 

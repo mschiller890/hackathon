@@ -12,5 +12,5 @@ Dvanáct pojmů, každý jednou prostou větou. Slova odpovídají snímkům v o
 * **Výboj:** jeden celý pokus, od zapálení plazmatu do jeho zániku; data dělíme vždy po celých výbojích.
 * **Smyčka toku:** drát kolem komory, který měří magnetický tok, a je tedy jedním z 24 vstupů modelu.
 * **Cívka:** drát, který měří magnetické pole; cívky IPR nesou téměř všechnu informaci, kterou model potřebuje.
-* **Odezva:** čas od chvíle, kdy model dostane měření, do chvíle, kdy vydá odhad; náš je 0,0145 ms na procesoru.
+* **Odezva:** čas od chvíle, kdy model dostane měření, do chvíle, kdy vydá odhad; náš je řádově setiny milisekundy na procesoru.
 * **Přeučení:** model si zapamatuje učící data místo obecné souvislosti, a proto selže na nových výbojích; proti tomu testujeme na výbojích, které neviděl.
