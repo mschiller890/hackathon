@@ -105,13 +105,13 @@ export HACKATHON_HOME=~/GitHub/hackathon-home                                # y
 
 Install the packages into the venv, not with `pip install --user`: `python -I` ignores user site packages.
 
-Extra packages for the delivery tools only (not needed for the analysis):
-`uv pip install --python ~/.venvs/hackathon/bin/python python-pptx markdown`. Without `python-pptx`,
-`analysis/make_submission.py` fails (it cannot check the deck for placeholders). `analysis/make_pdf.py` and
-`viewer/record.py` also need headless Chrome, ffmpeg and `websocket-client` (not tested on a clean checkout).
+Extra packages for the delivery tools only (not needed for the analysis or for `analysis/make_submission.py`, which uses
+only the standard library): `uv pip install --python ~/.venvs/hackathon/bin/python python-pptx markdown`.
+`python-pptx` is for `presentation/deck/build_deck.py`; `analysis/make_pdf.py` and `viewer/record.py` also need headless
+Chrome, ffmpeg and `websocket-client` (none of these were tested on a clean checkout).
 
 Commands that run without data: `python -I analysis/make_submission.py --out <path that does not exist yet>` builds the
-submission package and checks it (`docs/SUBMISSION.md`). Every other script and the five notebooks need the data and stop
+submission package and checks it, deck and viewer page included (`docs/SUBMISSION.md`). Every other script and the five notebooks need the data and stop
 with "Data folder not found" without it. Not for a first run: `analysis/check_claims.py` rewrites the tracked file
 `docs/claims-audit.md` (restore it with `git restore docs/claims-audit.md`), `analysis/profile_data.py` needs a data path
 argument, and `viewer/build.py` needs `viewer/data.js`, which is made from the data and is not in git.

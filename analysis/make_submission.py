@@ -7,10 +7,12 @@
 Package layout mirrors the repository, so the notebooks still find analysis/ipp1_common.py:
 README.md, notebooks/, analysis/, results/, presentation/slides.pptx (+ slides.pdf), video/ (if given), MANIFEST.txt.
 Exit code 0 = package built and every check passed (missing optional items are listed but do not fail the run),
-1 = a check failed (data or secret found, notebook with an error). Nothing is uploaded or sent anywhere.
+1 = a check failed (data or secret found, notebook with an error, placeholder or data-sized table in the deck).
+Needs no data and no packages beyond the standard library. Nothing is uploaded or sent anywhere.
 """
 import argparse
 import hashlib
+import io
 import json
 import re
 import shutil
@@ -30,6 +32,18 @@ SECRET_RE = re.compile(r"sk-ant-[\w-]{10,}|ghp_[A-Za-z0-9]{20,}|github_pat_\w{20
 NUMBER_ROW_RE = re.compile(r"(?:-?\d+\.\d+(?:e[+-]?\d+)?\s*,\s*){19,}-?\d+")  # 20+ comma-separated numbers = a data row
 MAX_FILE_MB = 25
 MAX_TOTAL_MB = 100
+TEXT_EXT = {".md", ".py", ".txt", ".json", ".ipynb", ".html", ".js", ".css", ".svg", ".xml"}
+# A chart in the deck holds a handful of aggregate points; thousands of points or rows would be measured data.
+MAX_CHART_POINTS = 200
+# Public-facing files that are not copied into the package but are scanned in place.
+SCAN_IN_PLACE = [REPO / "viewer/index.html"]
+# Figures that show individual discharges and that no script can recognise (audit H-1); the owner decides with ÚFP.
+FIGURES_TO_CONFIRM = [
+    "presentation/assets/viewer-*.png and the deck images that equal them: true and predicted values of discharge 123 or 4",
+    "results/ipp1-time.png, middle and right panels: the error trace of one discharge",
+    "results/ipp1-unusual-shapes.png, left panel: one dot per discharge (median elongation and triangularity)",
+    "notebooks/01_data_exploration.ipynb cell 14: six true signals of one discharge; notebooks/04 cell 11: true traces of two discharges",
+]
 
 
 def sha(p: Path) -> str:
@@ -70,18 +84,50 @@ def check_notebooks(nbs):
     return problems, notes
 
 
-def deck_placeholders(pptx: Path):
-    """Slides that still carry a placeholder (DOPLNIT, TODO, XXX); needs python-pptx, skipped without it."""
-    try:
-        from pptx import Presentation
-    except ImportError:
-        return ["python-pptx not importable, placeholders in the deck not checked"]
-    hits = []
-    for i, slide in enumerate(Presentation(str(pptx)).slides, 1):
-        text = " ".join(sh.text_frame.text for sh in slide.shapes if sh.has_text_frame)
-        if re.search(r"DOPLNIT|TODO|XXX|lorem", text, re.I):
-            hits.append(f"slide {i} still has a placeholder")
-    return hits
+def scan_deck(pptx: Path):
+    """Return (failures, warnings) for the deck, read as a zip so that python-pptx is not needed.
+
+    Looks at everything the jury can open: slide, notes and chart text for placeholders, secrets and home paths;
+    chart series and embedded workbooks for data-sized tables; the media for forbidden types. The pictures themselves
+    are not inspected; they are listed so that the owner confirms them (FIGURES_TO_CONFIRM).
+    """
+    fails, warns = [], []
+    with zipfile.ZipFile(pptx) as z:
+        names = z.namelist()
+        for n in names:
+            low = n.lower()
+            if low.startswith("ppt/media/") and Path(low).suffix in FORBIDDEN_EXT:
+                fails.append(f"deck: forbidden file type inside: {n}")
+            elif low.startswith("ppt/embeddings/") and low.endswith(".xlsx"):
+                with zipfile.ZipFile(io.BytesIO(z.read(n))) as wb:
+                    rows = sum(len(re.findall(r"<row ", wb.read(m).decode("utf8", "replace")))
+                               for m in wb.namelist() if m.startswith("xl/worksheets/sheet"))
+                if rows > MAX_CHART_POINTS:
+                    fails.append(f"deck: embedded workbook {n} has {rows} rows (a chart needs a few)")
+            elif low.startswith("ppt/embeddings/"):
+                fails.append(f"deck: embedded file of an unchecked type: {n}")
+            if not low.endswith(".xml"):
+                continue
+            xml = z.read(n).decode("utf8", "replace")
+            text = " ".join(re.findall(r"<a:t>([^<]*)</a:t>", xml)) if low.startswith("ppt/slides/slide") or \
+                low.startswith("ppt/notesslides/") else ""
+            where = f"slide {m.group(1)}" if (m := re.search(r"slide(\d+)\.xml$", low)) and "notes" not in low else n
+            if text and re.search(r"DOPLNIT|TODO|XXX|lorem|\[\[", text, re.I):
+                fails.append(f"deck: placeholder in {where}")
+            if SECRET_RE.search(xml) or "/Users/" in xml:
+                fails.append(f"deck: secret or home path in {n}")
+            if low.startswith("ppt/charts/chart"):
+                points = max((len(re.findall(r"<c:pt ", c)) for c in re.findall(r"<c:numCache>.*?</c:numCache>", xml, re.S)),
+                             default=0)
+                if points > MAX_CHART_POINTS:
+                    fails.append(f"deck: chart {n} has a series of {points} points")
+        media = [n for n in names if n.lower().startswith("ppt/media/")]
+        stills = {hashlib.sha256((REPO / "presentation/assets" / f.name).read_bytes()).hexdigest(): f.name
+                  for f in (REPO / "presentation/assets").glob("viewer-*.png")}
+        shown = [f"{n} = {stills[h]}" for n in media if (h := hashlib.sha256(z.read(n)).hexdigest()) in stills]
+        warns.append(f"deck: {len(media)} images not inspected by this script; viewer stills inside: "
+                     f"{', '.join(shown) or 'none'}")
+    return fails, warns
 
 
 def scan(pkg: Path):
@@ -100,17 +146,34 @@ def scan(pkg: Path):
             warns.append(f"png outside results/: {rel}")
         if size > MAX_FILE_MB * 2**20:
             warns.append(f"large file ({size / 2**20:.1f} MB): {rel}")
-        if ext in {".md", ".py", ".txt", ".json", ".ipynb"}:
+        if ext in TEXT_EXT:
             text = p.read_text(errors="replace")
             if SECRET_RE.search(text):
                 fails.append(f"possible secret: {rel}")
             if NUMBER_ROW_RE.search(text):
                 fails.append(f"looks like a raw data row (20+ comma-separated numbers): {rel}")
+            if "/Users/" in text and rel.name != "make_submission.py":  # that file holds the string as a check
+                warns.append(f"absolute /Users/ path (audit H-3): {rel}")
             if ext == ".ipynb" and re.search(r'"(?:equil_data|camera_data)[^"]*\.csv"', text) and "image/png" not in text:
                 warns.append(f"notebook mentions a data file but stores no figures: {rel}")
     if total > MAX_TOTAL_MB * 2**20:
         warns.append(f"package is {total / 2**20:.1f} MB (limit assumed {MAX_TOTAL_MB} MB; the channel's real limit is unknown)")
     return fails, warns, total
+
+
+def scan_in_place():
+    """Same text checks for public-facing repository files that the package does not copy."""
+    fails = []
+    for p in SCAN_IN_PLACE:
+        if not p.exists():
+            fails.append(f"expected file missing: {p.relative_to(REPO)}")
+            continue
+        text = p.read_text(errors="replace")
+        if SECRET_RE.search(text) or NUMBER_ROW_RE.search(text) or "/Users/" in text:
+            fails.append(f"secret, data row or home path in {p.relative_to(REPO)}")
+        if p.stat().st_size > 2**20:
+            fails.append(f"{p.relative_to(REPO)} is over 1 MB: it must not embed data")
+    return fails
 
 
 def main():
@@ -130,7 +193,7 @@ def main():
     out.mkdir(parents=True)
     (out / MARKER).write_text("built by analysis/make_submission.py\n")
 
-    log, missing = [], []
+    log, missing, deck_fails, deck_warns = [], [], [], []
     copy(REPO / "README.md", out / "README.md", log)
     nbs = sorted((REPO / "notebooks").glob("*.ipynb"))
     for nb in nbs:
@@ -144,7 +207,7 @@ def main():
     deck = Path(a.deck)
     if deck.exists():
         copy(deck, out / "presentation/slides.pptx", log)
-        missing += deck_placeholders(deck)
+        deck_fails, deck_warns = scan_deck(deck)
         pdf = Path(a.deck_pdf) if a.deck_pdf else export_pdf(out / "presentation/slides.pptx", out / "presentation")
         if pdf and pdf.exists():
             if pdf.parent != out / "presentation":
@@ -165,7 +228,8 @@ def main():
     nb_problems, nb_notes = check_notebooks(nbs)
     # The video is the one allowed large binary; scan everything else.
     fails, warns, total = scan(out)
-    fails = [f"notebook: {p}" for p in nb_problems] + fails
+    fails = [f"notebook: {p}" for p in nb_problems] + deck_fails + scan_in_place() + fails
+    warns = deck_warns + warns
 
     lines = [f"{sha(p)}  {p.stat().st_size:>9}  {p.relative_to(out)}" for p in sorted(out.rglob("*"))
              if p.is_file() and p.name not in (MARKER, "MANIFEST.txt")]
@@ -180,8 +244,12 @@ def main():
     print("WARNINGS:" if warns else "WARNINGS: none")
     for w in warns:
         print("  -", w)
-    print("FAILED CHECKS:" if fails else "FAILED CHECKS: none (no forbidden file types, no secrets, no data rows)")
+    print("FAILED CHECKS:" if fails else "FAILED CHECKS: none (no forbidden file types, no secrets, no data rows, "
+          "deck and viewer page scanned)")
     for f in fails:
+        print("  -", f)
+    print("OWNER MUST CONFIRM (CON-001, figures no script can check; the package is not safe to make public until then):")
+    for f in FIGURES_TO_CONFIRM:
         print("  -", f)
 
     if a.zip and not fails:
