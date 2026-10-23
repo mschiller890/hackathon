@@ -10,11 +10,12 @@ Věta: Plazma v tokamaku COMPASS se musí držet daleko od stěny během milisek
 
 * Zadání žádá reakci v řádu jednotek až desítek milisekund (podle zadání úlohy).
 * Klasická rekonstrukce rovnováhy trvá minuty, tedy o několik řádů déle.
+* Celý výboj na tokamaku COMPASS trvá podle organizátorů asi 150 až 200 ms (údaj organizátorů, neměřili jsme ho).
 * Naše otázka: dokáže malý model odhadnout tvar plazmatu z magnetických měření dost přesně a dost rychle?
 
 ## Snímek 2: Data (30 s)
 
-Věta: Máme 42 972 řádků z 149 výbojů, na každém řádku 24 magnetických měření a 16 hledaných veličin popisujících tvar.
+Věta: Máme 42 972 řádků z 149 výbojů, na každém řádku 24 magnetických měření a 16 hlavních veličin popisujících tvar (soubor jich obsahuje 31).
 
 * Vstupy: 24 magnetických čidel, dvě skupiny: 16 cívek IPR a 8 smyček toku FL.
 * Výstupy: poloha osy, bod X, dotykové body na divertoru, protažení, trojúhelníkovost, proud plazmatem, bod u limiteru.
@@ -28,20 +29,22 @@ Věta: Použili jsme malou neuronovou síť o 107 152 parametrech, porovnali ji 
 * Srovnání: lineární model (hřebenová regrese) proti malé neuronové síti.
 * Dále: kolik vstupů opravdu potřebujeme, jak stabilní je výstup v čase, jak rychlá je odpověď, jak síť snáší šum.
 * Pro čisté vstupy jsme pak zkusili vylepšený model: síť s rozdíly sousedních cívek, lineární model pro proud a zvláštní síť pro bod u limiteru.
-* Kamera: malá konvoluční síť na snímcích, samotná je 6 až 8krát horší než magnetická měření na ose (1,54 mm proti 0,24 mm, jen na dvou z pěti dělení, proto srovnáváme jen uvnitř téže tabulky). Černobílý snímek nic nezmění (1,53 mm). Proud plazmatem z kamery určit nejde (chyba 18 kA).
+* Kamera je bonus, jeden snímek: podle nezávislého měření na pěti dělení po výbojích je 3 až 13krát horší než cívky (radiální osa 1,79 mm proti 0,377 mm, srovnání je jen orientační, protože jsou to jiné řádky). Nejblíž je u bodu u limiteru (1,3krát horší), nejdál u proudu plazmatem (13krát). Černobílý snímek nic nezmění (1,70 mm proti 1,79 mm). Tato čísla ještě neprošla kontrolou vedoucího.
+* Místní kontrola kamery na dvou z pěti dělení se shodne: na ose je 6 až 8krát horší než magnetická měření (1,54 mm proti 0,24 mm na stejných řádcích) a proud plazmatem určit nejde (chyba 18 kA).
 
 ## Snímek 4: Výsledky (45 s)
 
-Věta: Síť trefí osu, bod X a dotykové body s průměrnou chybou 0,06 až 0,4 mm, u osy více než šestkrát lépe než lineární model; jen u proudu plazmatem je lineární model lepší.
+Věta: Na 30 výbojích, které se při vývoji nepoužily, určí vybraný model pro čisté vstupy osu s chybou 0,13 mm, bod u limiteru dvakrát lépe než základní síť a proud plazmatem s chybou 0,035 kA.
 
-* Osa plazmatu: průměrná chyba 0,38 mm (radiální) a 0,39 mm (svislá); lineární model 2,4 a 2,66 mm.
-* Průměr skrývá chvosty: medián radiální osy je 0,153 mm, 99 % řádků je pod 3,74 mm, nejhorší řádek má 64 mm, hlavně na konci výboje. Limitované plazma je asi 2,3krát horší než divertorové.
-* Bod X: 0,20 mm a 0,20 mm. Dotykové body: od 0,0552 do 0,265 mm.
-* Proud plazmatem určí lineární model s chybou 0,035 kA, síť s chybou 1,49 kA, proto pro proud použijeme lineární model. Protažení: chyba sítě 0,00569.
-* Zda je plazma opřeno o limiter, určí síť správně v 99,3 % případů.
+* Závěrečný test na 30 výbojích (8 761 řádků), vybraný model proti základní síti, průměrná chyba: radiální osa 0,133 mm proti 0,307 mm, svislá osa 0,172 mm proti 0,321 mm, bod u limiteru 4,55 mm proti 10,6 mm (radiálně) a 8,35 mm proti 22,5 mm (svisle), proud plazmatem 0,035 kA proti 1,20 kA.
+* Pořadí platí pro všech pět zrn náhodných čísel: zisk u osy, dotykového bodu a bodu u limiteru je 42 až 60 %, několikrát víc než rozdíl mezi zrny. Bod X (radiálně) je jen o něco lepší, 0,111 mm proti 0,141 mm.
+* Poctivě k chvostům: model je lepší v průměru a ve většině řádků, ale několik jednotlivých řádků je horších, například střední kvadratická chyba radiálního bodu X je 0,454 mm proti 0,305 mm.
+* Základní síť na pětkrát dělených datech: osa 0,38 mm a 0,39 mm, lineární model 2,4 a 2,66 mm, tedy u osy více než šestkrát hůř. Průměr skrývá chvosty: medián radiální osy je 0,153 mm, 99 % řádků je pod 3,74 mm, nejhorší řádek má 64 mm, hlavně na konci výboje. Limitované plazma je asi 2,3krát horší než divertorové.
+* Proud plazmatem určí lineární model, ne síť (0,035 kA proti 1,49 kA na pětkrát dělených datech).
+* Zda je plazma opřeno o limiter, určí základní síť správně v 99,3 % případů.
+* Pro zašuměné vstupy vybraný model nepoužijeme: na šumu selže. Tam nasadíme síť učenou se šumem a posunem.
 * Méně vstupů: se všemi 24 vstupy je souhrnná relativní chyba 0,063, s nejlepšími 12 je 0,077, s nejlepšími 8 je 0,094.
 * Samotných 16 cívek IPR dává souhrnnou chybu 0,066, samotných 8 smyček toku 0,285, tedy 4,3krát horší. Pořadí vstupů je důležitost pro naučenou síť, ne obsah informace, proto neříkáme, které čidlo je nejdůležitější.
-* Vylepšený model pro čisté vstupy, závěrečný test na 30 výbojích, které se při vývoji nepoužily: chyba bodu u limiteru 4,55 mm místo 10,6 (radiálně) a 8,35 mm místo 22,5 (svisle), proud 0,035 kA místo 1,20 kA. Několik jednotlivých řádků je ale horších, takže říkáme "lepší v průměru a ve většině řádků", ne "všude".
 * Obrázek: graf chyby podle počtu vstupů (soubor ipp1 inputs ve složce results).
 
 ## Živá ukázka mezi snímkem 4 a 5 (95 s)
@@ -55,7 +58,7 @@ Věta: V prohlížeči vidíte skutečný a odhadnutý tvar plazmatu vedle sebe 
 Věta: Výpočet sítě rychlosti nebrání: medián je 0,0145 ms na procesoru Apple M5, rozpočet je 1 až 10 ms; ověřili jsme ale jen výpočet samotné sítě.
 
 * Procesor Apple M5, jeden vzorek: medián 0,0145 ms, 99 % měření pod 0,0209 ms. Při dřívějším měření na silněji zatíženém stroji vyšel medián 0,0188 ms a 99 % měření pod 0,118 ms, takže čas závisí na zatížení.
-* Celý odhad od surových čísel na vstupu po čísla na výstupu: medián 0,0140 ms. Nejvyšší hodnoty se na systému bez reálného času ojediněle objeví až v milisekundách, to není horní mez.
+* Celý odhad od surových čísel na vstupu po čísla na výstupu: medián 0,0140 ms, 99 % měření pod 0,0503 ms. Nejvyšší hodnoty se na systému bez reálného času ojediněle objeví až v milisekundách, to není horní mez.
 * Grafická karta pro jeden odhad: medián 0,27 ms, s přenosem dat 0,49 ms, pomalejší než procesor, protože model je malý.
 * Neověřili jsme: sběr a integraci signálů z cívek, nejhorší dobu na systému reálného času a přesnost na skutečně zašuměných signálech. Síť naučená na čistých datech na šumu selže, síť naučená na šumu dává chybu osy 2,64 mm.
 * U každého času říkáme, na jakém procesoru byl měřen.
