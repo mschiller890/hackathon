@@ -1,13 +1,13 @@
 # Osnova prezentace: tvar plazmatu z magnetických měření
 
 Celkem 7 minut (420 sekund), 8 snímků a živá ukázka. U každého snímku je čas a jedna věta, kterou musí říct. Časy a mluvený text jsou v souboru pitch script, tady jsou věty a podklady. Úpravy obrazovky jsou v `docs/deck-fixes.md`.
-Čísla pocházejí jen ze složky results. Kde číslo ještě neexistuje, stojí v dvojitých hranatých závorkách.
+Čísla pocházejí jen ze složky results. Kde číslo ještě neexistuje, říkáme to výslovně a nic nevymýšlíme.
 Zdroje čísel: soubory ipp1 final, ipp1 baseline, ipp1 inputs, ipp1 time a ipp1 latency ve složce results.
 
 Pravidla pro všechna čísla:
 
 * Dva modely se nezaměňují. Základní síť: 24 vstupů, 107 152 parametrů. Vybraný model: základní síť plus rozdíly sousedních cívek, lineární model pro proud a zvláštní síť pro bod u limiteru. Pro zašuměné vstupy se používá síť učená se šumem.
-* Slovo odložené nahlas doplnit: nejsou zcela nezávislé, náměty na úpravy vznikly na všech 149 výbojích; v malém písmu stojí odložené před výběrem.
+* Slovo odložené nahlas vysvětlit: nejsou zcela nezávislé, náměty na úpravy vznikly na všech 149 výbojích; v malém písmu stojí odložené před výběrem.
 * Pod každým číslem shody s rekonstrukcí stojí protokol: 30 odložených výbojů (radiální osa 0,133 mm), křížová validace na 119 výbojích (0,230 mm), novější čísla výbojů (0,397 mm), u základní sítě pět dělení po výbojích (0,377 mm).
 * Každá rychlost má model a procesor: základní síť 0,0145 ms, Apple M5; vybraný model medián asi 0,03 ms, 99 % pod 0,1 ms (Apple M5, vytížený počítač, `results/ipp1-latency-shipped.md`).
 * Slova zamčená a nikdo neviděl se nepoužívají. Říká se odložené výboje (odložené odložené před posledním výběrem modelu).
@@ -19,7 +19,7 @@ Věta: Plazma v tokamaku COMPASS se musí držet daleko od stěny během milisek
 * Zadání žádá reakci v řádu jednotek až desítek milisekund (podle zadání úlohy).
 * Klasická rekonstrukce rovnováhy trvá minuty, tedy o několik řádů déle.
 * Celý výboj na tokamaku COMPASS trvá podle organizátorů asi 150 až 200 ms (údaj organizátorů, neměřili jsme ho).
-* Naše otázka: dokáže malý model odhadnout tvar plazmatu z magnetických měření dost přesně a dost rychle?
+* Naše otázka: dokáže malá neuronová síť rekonstrukci polohy a tvaru plazmatu napodobit dost dobře a dost rychle?
 
 ## Snímek 2: Data (28 s)
 
@@ -74,7 +74,7 @@ Věta: Výpočet sítě rychlosti nebrání: základní síť 0,0145 ms na proce
 * Celý odhad základní sítě od surových čísel na vstupu po čísla na výstupu: medián 0,0140 ms, 99 % měření pod 0,0503 ms. Nejvyšší hodnoty se na systému bez reálného času ojediněle objeví až v milisekundách, to není horní mez.
 * Vybraný model (síť s rozdíly cívek, lineární model pro proud a síť pro bod u limiteru) trvá jeden odhad medián 0,0154 ms, když je plazma divertorové (stačí jedna síť), a 0,0274 ms, když je limitované (obě sítě); 99 % měření pod 0,057 a 0,093 ms. Je to asi dvakrát víc než základní síť v limitovaném případě, ne dvanáctkrát. Stroj nebyl klidný (zatížení asi 7), takže chvosty nejsou horní mez. Dřívější odhad 0,1775 ms se nepodařilo zopakovat, proto ho neříkáme.
 * Grafická karta a druhý počítač se nahlas neříkají (škrtnuto kvůli času): grafická karta 0,27 ms, s přenosem dat 0,49 ms, pomalejší než procesor, protože model je malý.
-* Neověřili jsme: sběr a integraci signálů z cívek, nejhorší dobu na systému reálného času a přesnost na skutečně zašuměných signálech. Přepínání mezi modelem pro čisté a pro zašuměné vstupy jsme netestovali.
+* Neověřili jsme: sběr a integraci signálů z cívek, nejhorší dobu na systému reálného času a chování na skutečně zašuměných signálech. Přepínání mezi modelem pro čisté a pro zašuměné vstupy jsme netestovali.
 * U každého času říkáme, na jakém modelu a procesoru byl měřen.
 
 ## Snímek 6: Meze (34 s)
@@ -124,10 +124,6 @@ Potvrzeno vedoucím s výhradami: jedno semeno, rozptyl mezi dělením 20 až 45
 * Pět dělení po výbojích, 78 výbojů, 12 epoch, každý osmý snímek (`results/cloud-camera-findings.md`). Radiální osa 1,79 mm (šedě 1,70 mm) proti 0,377 mm u cívek, srovnání je orientační, protože jsou to jiné řádky. Nejblíž je u bodu u limiteru (1,3krát horší v relativní chybě), nejdál u proudu plazmatem (13krát horší než základní síť; vůči lineárnímu modelu mnohem víc). Barva nepomáhá.
 * Říká to něco o této malé síti, ne o tom, že kamera nenese informaci.
 * Místní kontrola kamery na dvou z pěti dělení se shodne: na ose je 6 až 8krát horší než magnetická měření (1,54 mm proti 0,24 mm na stejných řádcích) a proud plazmatem určit nejde (chyba 18 kA).
-
-## Chybějící čísla (DOPLNIT)
-
-* Kamera: srovnání na stejných řádcích a zbylé běhy z cloudu (čísla z cloudu zatím neprošla kontrolou vedoucího).
 
 ## Do zálohy: dotazy poroty (neříká se nahlas)
 
