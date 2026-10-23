@@ -58,6 +58,9 @@ def load():
     j["tails"] = {"median": 0.153, "p99": 3.74, "limited": 0.553, "diverted": 0.237}
     # results/ipp1-final.md: blocked by discharge id against random group folds, plain baseline, clean inputs.
     j["blocked"] = (1.5, 2.9)
+    # results/ipp1-unusual-shapes.md (REQ-B08): error factor range when a shape family is left out of training, and the
+    # R axis MAE of the low elongation group (random fold against family held out).
+    j["unusual"] = {"factor": (1.0, 3.0), "axis": (0.68, 1.63)}
     return j
 
 
@@ -408,7 +411,7 @@ def build():
     highlight(c, (1,))
     label_points(c.plots[0].series[0], [v for _, v in nz], 2, TEXT, 11)
     c.value_axis.visible = False
-    cv = j["curve"]
+    cv, us = j["curve"], j["unusual"]
     text(s, 7.2, 2.15, 5.6, 0.4, "Chyba osy (mm) podle počtu učících výbojů, vždy 60 epoch", size=14, color=MUTED)
     c = chart(s, 7.1, 2.45, 5.8, 3.6, XL_CHART_TYPE.LINE_MARKERS, [str(n) for n, _ in cv],
               [("osa", [v for _, v in cv])], [ORANGE])
@@ -418,8 +421,10 @@ def build():
         c.plots[0].series[0].points[i].data_label.position = XL_LABEL_POSITION.ABOVE
     c.value_axis.visible = False
     text(s, 0.6, 6.15, 12.1, 0.8, [
-        [("Neobvyklý tvar mimo data: ", 16, ORANGE, True), ("DOPLNIT, zatím neměřeno. ", 16, TEXT, False),
-         ("Jen jeden tokamak. Model odhaduje tvar, řízení sám nenahradí.", 16, MUTED, False)]])
+        [("Tvar, který síť neviděla: ", 15, ORANGE, True),
+         (f"chyba {cz(us['factor'][0], 1)} až {cz(us['factor'][1], 1)}krát větší, bez zhroucení; osa u nejodlišnějších "
+          f"tvarů {cz(us['axis'][1], 1)} mm místo {cz(us['axis'][0], 1)} mm. ", 15, TEXT, False),
+         ("Tvary mimo rozsah dat neověřeny, jen jeden tokamak, řízení model sám nenahradí.", 15, MUTED, False)]])
 
     # 8 Close: one number
     s = frame(prs, 8, "Závěr", None, notes_text(sc[8], "Snímek 8"), "07-closing.png", 0.45)
