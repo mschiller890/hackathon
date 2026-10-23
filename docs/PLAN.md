@@ -51,6 +51,15 @@ Lanes, owners, paths and briefs: [`WORKERS.md`](WORKERS.md).
 | README fixes RP-1 to RP-5 (layout, data source, `uv`, CPU torch, versions) | "README commands work" is an IMPL-11 acceptance criterion | Owner's file; Lead or owner |
 | RP-6 (single discharge trace in the public talk), OQ-002 (submission time, video limit, how to submit) | Block the deck's slide content and the 12:00 slot | Owner |
 | Final model choice from the cloud search (C2 "Tester") | No result pushed; rule: none by 21:30 means the locked test recipe stands | Lead at G1 |
+| Latency of the shipped model (KQ-9c): `results/ipp1-final.md` has none, the deck quotes 0.18 ms from a loaded run, `ipp1_latency.py` times the baseline | The closing real-time claim would rest on a number for another model (`docs/plan-review.md` T5) | Lead, Fri before G2; else the slide says "baseline network" |
+| One cut-off for cloud numbers (21:30 Fri) and a claims re-audit (`check_claims.py`) at 01:30 and 08:00 after the last integration | Four cut-offs exist and G2 (23:00) precedes the last integration (T1, T2) | Lead; the timeline row is the Lead's to edit |
+| Fallback for notebooks `06` to `08` if lane R (GPT) does not start: markdown notebooks quoting `results/` and the producing command; `07` never dropped | G3 says eight notebooks; GPT was "not started" (T3, T4) | Lane K (own budget), decided at CP2 22:00 |
+| Deck PDF export (one owner), then the screen video of the viewer at Sat 08:30 to 09:30 rather than after the freeze | Three owners named for the PDF, V not started, the owner carries 10:00 to 12:00 alone (T7 to T9) | Owner exports the PDF Fri 22:00 to 23:00; owner and K record the video |
+| Submission fallback if the organizers give no channel by Sat 08:00 (zip and PDF on a USB stick, repository access prepared, CON-001 respected), and who asks them (OQ-S1 to S5) | The 12:00 slot assumes an upload that may not exist (T10) | Owner asks Fri 19:30 |
+| Named persons for G4 (critic) and G5 (presentation laptop, second device); the colleague's wake-up time | Gates without a person are skipped (T11) | Lead names them at CP3 |
+| README fix for a clean machine (RP-1 to RP-5, notebook command, `make_all.sh`), one commit, then K re-follows it as written | "Lead or owner" is nobody; G3 and G6 test the README (T13) | Lead, Fri 23:00 to 02:30 |
+| CON-001 clean-up: owner decision on RP-6 (stills `presentation/assets/viewer-*.png`, `results/ipp1-time.png` show real discharges), remove the Drive file id from `cloud/BRIEF-*.md` once the cloud sessions end | Hard constraint with open items (T15) | Owner (RP-6), Lead (Drive ids) |
+| Two rows share the id IMPL-16 (Packager; G2 audit) | "Update your own row" is ambiguous | Lead renumbers the second one |
 
 ## Open questions and blockers
 
