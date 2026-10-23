@@ -1,28 +1,36 @@
 #!/usr/bin/env python
-"""Build presentation/deck/slides.pptx (16:9, 8 slides, Czech) for IPP task 1.
+"""Build presentation/deck/slides.pptx (16:9, Czech) for IPP task 1.
 
     ~/.venvs/hackathon/bin/python -I presentation/deck/build_deck.py
 
-Numbers come only from the aggregate files in results/ (CON-001: no raw rows). The baseline, inputs,
-latency and time figures are read from the JSON; lane R wrote its aggregates only as Markdown
+Structure and seconds follow presentation/pitch-script.md (Lead's decision, docs/PLAN.md RP-11): talk slides 1 to 8
+plus the 95 s live demo between 4 and 5. A talk slide may span several screens (slide 1 switches image at 0:24,
+slide 4 has schematic, results and inputs); every screen keeps its talk number in the footer, and its speaker notes
+carry only the script lines spoken while it is up. A hidden backup screen holds the viewer stills for the
+"ukázka selže" fallback.
+
+Numbers come only from the aggregate files in results/ (CON-001: no raw rows). The baseline, inputs, latency and
+time figures are read from the JSON; lane R wrote its aggregates only as Markdown
 (results/ipp1-robustness-findings.md), so those few values are copied below with that file as the source.
-Speaker notes are parsed from presentation/outline.md so the spoken text has one owner; rebuild after the
-outline or the results change.
+Rebuild after the pitch script, the images or the results change.
 """
 import json
 import re
 from pathlib import Path
 
+from lxml import etree
 from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE, XL_LABEL_POSITION, XL_LEGEND_POSITION
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
+from pptx.oxml.ns import qn
 from pptx.util import Emu, Pt
 
 REPO = Path(__file__).resolve().parents[2]
 RES = REPO / "results"
+ASSETS = REPO / "presentation/assets"
 OUT = Path(__file__).resolve().parent / "slides.pptx"
 
 NAVY, PANEL, LINE = RGBColor(0x0B, 0x17, 0x30), RGBColor(0x14, 0x25, 0x4A), RGBColor(0x2A, 0x3D, 0x66)
@@ -49,25 +57,50 @@ def load():
     return j
 
 
-def outline_notes():
-    """Map slide number to its speaker notes (time, sentence, bullets) from presentation/outline.md."""
-    text = (REPO / "presentation/outline.md").read_text(encoding="utf-8")
-    notes = {}
-    for m in re.finditer(r"^## Snímek (\d+): (.+?) \((\d+) s\)\n(.*?)(?=^## )", text, re.S | re.M):
-        body = "\n".join(l.strip() for l in m.group(4).strip().splitlines() if l.strip())
-        notes[int(m.group(1))] = (m.group(2), int(m.group(3)), body.replace("* ", "• "))
-    return notes
+def secs(t):
+    m, s = t.split(":")
+    return int(m) * 60 + int(s)
+
+
+def script_sections():
+    """Map 1..8 and "demo" to (seconds, main sentence, rows) from presentation/pitch-script.md.
+
+    rows are (start "m:ss", seconds, speaker, spoken text) taken from the timed tables.
+    """
+    text = (REPO / "presentation/pitch-script.md").read_text(encoding="utf-8")
+    out = {}
+    for m in re.finditer(r"^### (Snímek (\d+)|Živá ukázka)[^\n]*?, (\d+) s\)\n(.*?)(?=^##)", text, re.S | re.M):
+        key = int(m.group(2)) if m.group(2) else "demo"
+        body = m.group(4)
+        main = re.search(r"^Hlavní věta: (.+)$", body, re.M)
+        rows = [tuple(c.strip() for c in r.split("|")[1:5])
+                for r in body.splitlines() if re.match(r"^\| \d+:\d\d \|", r)]
+        out[key] = (int(m.group(3)), main.group(1) if main else "", rows)
+    return out
+
+
+def notes_text(section, name, start=None, end=None):
+    """Speaker notes for one screen: the script rows spoken while it is up (start <= time < end)."""
+    total, main, rows = section
+    picked = [r for r in rows if (start is None or secs(r[0]) >= secs(start)) and (end is None or secs(r[0]) < secs(end))]
+    span = sum(int(r[1]) for r in picked)
+    head = f"{name}: {span} s z {total} s" if (start or end) else f"{name}: {total} s"
+    return "\n".join([head, f"Hlavní věta: {main}"] + [f"{r[0]} ({r[1]} s) {r[2]}: {r[3]}" for r in picked])
 
 
 # ---------- drawing helpers ----------
 
-def box(slide, x, y, w, h, fill=None, line=None):
-    s = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE if fill else MSO_SHAPE.RECTANGLE,
+def box(slide, x, y, w, h, fill=None, line=None, alpha=None):
+    s = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE if fill and alpha is None else MSO_SHAPE.RECTANGLE,
                                Emu(int(x * IN)), Emu(int(y * IN)), Emu(int(w * IN)), Emu(int(h * IN)))
     if fill:
-        s.adjustments[0] = 0.06
+        if alpha is None:
+            s.adjustments[0] = 0.06
         s.fill.solid()
         s.fill.fore_color.rgb = fill
+        if alpha is not None:  # python-pptx has no API for fill transparency
+            clr = s.fill._xPr.find(qn("a:solidFill")).find(qn("a:srgbClr"))
+            etree.SubElement(clr, qn("a:alpha")).set("val", str(int(alpha * 100000)))
     else:
         s.fill.background()
     if line:
@@ -77,6 +110,11 @@ def box(slide, x, y, w, h, fill=None, line=None):
         s.line.fill.background()
     s.shadow.inherit = False
     return s
+
+
+def picture(slide, name, x, y, w, h=None):
+    return slide.shapes.add_picture(str(ASSETS / name), Emu(int(x * IN)), Emu(int(y * IN)), Emu(int(w * IN)),
+                                    Emu(int(h * IN)) if h else None)
 
 
 def text(slide, x, y, w, h, runs, size=18, color=TEXT, bold=False, align=PP_ALIGN.LEFT, anchor=MSO_ANCHOR.TOP):
@@ -106,20 +144,29 @@ def tile(slide, x, y, w, h, number, label, accent=ORANGE, size=44):
     text(slide, x + 0.3, y + 0.15 + h * 0.55, w - 0.45, h * 0.4 - 0.2, label, size=14, color=MUTED)
 
 
-def frame(prs, n, kicker, title, notes):
+def frame(prs, n, kicker, title, notes, background=None, shade=0.0):
+    """One screen of talk slide n. background: an asset drawn full bleed, darkened by a navy veil of opacity shade."""
     s = prs.slides.add_slide(prs.slide_layouts[6])
     s.background.fill.solid()
     s.background.fill.fore_color.rgb = NAVY
+    if background:
+        picture(s, background, 0, 0, 13.333, 7.5)
+        if shade:
+            box(s, 0, 0, 13.333, 7.5, fill=NAVY, alpha=shade)
     bar = box(s, 0.6, 0.55, 0.6, 0.06, fill=ORANGE)
     bar.adjustments[0] = 0.5
     text(s, 0.6, 0.72, 10, 0.35, kicker.upper(), size=13, color=ORANGE, bold=True)
-    text(s, 0.6, 1.05, 12.1, 0.9, title, size=30, bold=True)
+    if title:
+        text(s, 0.6, 1.05, 12.1, 0.9, title, size=30, bold=True)
     text(s, 0.6, 7.0, 9, 0.3, "Tvar plazmatu z magnetických měření · tokamak COMPASS · úloha ÚFP 1", size=10,
          color=MUTED)
-    text(s, 11.7, 7.0, 1.0, 0.3, f"{n} / 8", size=10, color=MUTED, align=PP_ALIGN.RIGHT)
-    name, secs, body = notes.get(n, ("", 0, ""))
-    s.notes_slide.notes_text_frame.text = f"{secs} s · {name}\n{body}" if secs else ""
+    text(s, 11.7, 7.0, 1.0, 0.3, f"{n} / 8" if isinstance(n, int) else n, size=10, color=MUTED, align=PP_ALIGN.RIGHT)
+    s.notes_slide.notes_text_frame.text = notes
     return s
+
+
+def caption(slide, x, y, w, words):
+    text(slide, x, y, w, 0.3, words, size=11, color=MUTED)
 
 
 def style_chart(chart, legend=True, size=12):
@@ -138,7 +185,10 @@ def style_chart(chart, legend=True, size=12):
 
 
 def label_points(series, values, nd, color, size=12, suffix=""):
-    """Write each data label as text so the decimal comma does not depend on the viewer's locale."""
+    """Write each data label as text so the decimal comma does not depend on the viewer's locale.
+
+    nd is the number of decimals, or a function of the value that returns it.
+    """
     for i, v in enumerate(values):
         dl = series.points[i].data_label
         dl.has_text_frame = True
@@ -169,52 +219,78 @@ def chart(slide, x, y, w, h, kind, cats, series, colors):
     return c
 
 
+def highlight(c, idx, color=ORANGE):
+    for i in idx:
+        pt = c.plots[0].series[0].points[i]
+        pt.format.fill.solid()
+        pt.format.fill.fore_color.rgb = color
+
+
 # ---------- slides ----------
 
 def build():
-    j, notes = load(), outline_notes()
+    j, sc = load(), script_sections()
     b, mlp, ridge = j["baseline"], j["baseline"]["average"]["mlp"], j["baseline"]["average"]["ridge"]
     lat, inp, tm = j["latency"], j["inputs"], j["time"]
+    one = lat["cpu_1_thread_single_sample"]
     prs = Presentation()
     prs.slide_width, prs.slide_height = W, H
 
-    # 1 Problem
-    s = frame(prs, 1, "Problém", "Plazma se musí udržet dál od stěny během milisekund", notes)
+    # 1 Problem, screen a (0:00 to 0:24): the fear, full bleed illustration
+    s = frame(prs, 1, "Problém", None, notes_text(sc[1], "Snímek 1a", end="0:24"), "04-wall-damage.png", 0.35)
+    box(s, 0, 4.9, 13.333, 2.6, fill=NAVY, alpha=0.75)
+    text(s, 0.6, 5.2, 12.1, 1.0, "Plazma se musí udržet dál od stěny", size=40, bold=True)
+    text(s, 0.6, 6.05, 12.1, 0.5, "Celý výboj trvá jen 150 až 200 milisekund.", size=20, color=MUTED)
+    caption(s, 9.2, 6.6, 3.5, "Ilustrace, ne fotografie.")
+
+    # 1 Problem, screen b (0:24 to 0:50): minutes against milliseconds, then the question
+    s = frame(prs, 1, "Problém", "Minuty proti milisekundám",
+              notes_text(sc[1], "Snímek 1b", start="0:24"), "02-minutes-vs-ms.png", 0.55)
     tile(s, 0.6, 2.5, 5.8, 2.0, "minuty", "trvá klasický výpočet tvaru plazmatu", accent=MUTED, size=54)
     tile(s, 6.9, 2.5, 5.8, 2.0, "jednotky ms", "na reakci dává zadání úlohy", accent=ORANGE, size=54)
-    text(s, 0.6, 5.0, 12.1, 1.4, [[("Otázka: ", 24, ORANGE, True),
-                                   ("odhadne malý model tvar plazmatu z magnetických měření dost přesně a dost rychle?",
-                                    24, TEXT, False)]])
+    box(s, 0.6, 4.95, 12.1, 1.5, fill=PANEL)
+    text(s, 0.9, 5.15, 11.5, 1.2, [[("Otázka: ", 24, ORANGE, True),
+                                    ("odhadne malá neuronová síť tvar plazmatu z magnetických měření dost přesně "
+                                     "a dost rychle?", 24, TEXT, False)]])
 
-    # 2 Data
+    # 2 Data: tiles left, coil schematic right
     rows, dis = 42972, 149
-    s = frame(prs, 2, "Data", f"{cz(rows, 0)} okamžiků ze {dis} výbojů tokamaku COMPASS", notes)
-    tile(s, 0.6, 2.4, 3.8, 2.0, "24", "magnetických měření: 16 cívek a 8 smyček toku", accent=BLUE)
-    tile(s, 4.75, 2.4, 3.8, 2.0, "16", "hledaných veličin tvaru: osa, bod X, dotykové body, protažení", accent=ORANGE)
-    tile(s, 8.9, 2.4, 3.8, 2.0, str(dis), "výbojů; učení a test dělíme vždy po celých výbojích", accent=BLUE)
-    text(s, 0.6, 4.9, 12.1, 1.6, [
-        [("Proč po celých výbojích: ", 20, ORANGE, True),
-         ("sousední okamžiky jednoho výboje jsou skoro stejné, model by jinak testoval to, co už viděl.", 20, TEXT,
-          False)],
-        [("Data jsou důvěrná: ", 20, ORANGE, True), ("ukazujeme jen souhrnná čísla.", 20, TEXT, False)]])
+    s = frame(prs, 2, "Data", f"{cz(rows, 0)} okamžiků ze {dis} výbojů tokamaku COMPASS",
+              notes_text(sc[2], "Snímek 2"))
+    tile(s, 0.6, 2.2, 5.2, 1.3, "24", "magnetických měření: 16 cívek a 8 smyček toku", accent=BLUE, size=36)
+    tile(s, 0.6, 3.65, 5.2, 1.3, "16", "hledaných veličin tvaru: osa, bod X, dotykové body, protažení", ORANGE, 36)
+    tile(s, 0.6, 5.1, 5.2, 1.3, str(dis), "výbojů; učení a test dělíme vždy po celých výbojích", accent=BLUE, size=36)
+    picture(s, "03-coils.png", 6.2, 2.2, 6.5)
+    caption(s, 6.2, 5.95, 6.5, "Schéma, ne skutečný řez. Smyčky toku na něm nejsou.")
+    text(s, 6.2, 6.3, 6.5, 0.5, [[("Data jsou důvěrná: ", 14, ORANGE, True),
+                                  ("ukazujeme jen souhrnná čísla.", 14, TEXT, False)]])
 
-    # 3 Method
-    s = frame(prs, 3, "Metoda", "Malá neuronová síť proti lineárnímu modelu", notes)
-    steps = [("24", "magnetických\nměření", BLUE), (cz(lat["parameters"], 0), "parametrů sítě\n256 · 256 · 128", ORANGE),
-             ("16", "veličin tvaru\nnajednou", BLUE)]
+    # 3 Method: flow tiles left, principle illustration right
+    s = frame(prs, 3, "Metoda", "Malá neuronová síť proti lineárnímu modelu", notes_text(sc[3], "Snímek 3"))
+    steps = [("24", "magnetických měření", BLUE), (cz(lat["parameters"], 0), "parametrů sítě 256 · 256 · 128", ORANGE),
+             ("16", "veličin tvaru najednou", BLUE)]
     for i, (num, lab, col) in enumerate(steps):
-        x = 0.6 + i * 4.2
-        tile(s, x, 2.4, 3.5, 1.9, num, lab, accent=col, size=40)
+        y = 2.1 + i * 1.45
+        tile(s, 0.6, y, 5.2, 1.15, num, lab, accent=col, size=32)
         if i < 2:
-            text(s, x + 3.55, 2.95, 0.6, 0.8, "→", size=36, color=MUTED, align=PP_ALIGN.CENTER)
-    text(s, 0.6, 4.75, 12.1, 2.0, [
-        [("Ověření: ", 20, ORANGE, True), (f"{b['folds']} různých rozdělení výbojů na učení a test, "
-                                           "chyby vždy na výbojích, které model neviděl.", 20, TEXT, False)],
-        [("Měříme: ", 20, ORANGE, True), ("přesnost každé veličiny, počet potřebných vstupů, stabilitu v čase, "
-                                          "rychlost a odolnost proti šumu.", 20, TEXT, False)]])
+            text(s, 0.6, y + 1.12, 5.2, 0.35, "↓", size=18, color=MUTED, align=PP_ALIGN.CENTER)
+    picture(s, "06-neural-bridge.png", 6.2, 2.1, 6.5)
+    caption(s, 6.2, 5.85, 6.5, "Ilustrace principu; skutečných vstupů je 24, ne 16.")
+    text(s, 0.6, 6.35, 12.1, 0.6, [[("Ověření: ", 16, ORANGE, True),
+                                    (f"{b['folds']} různých rozdělení výbojů; chyby vždy na výbojích, které model "
+                                     "neviděl.", 16, TEXT, False)]])
 
-    # 4 Results
-    s = frame(prs, 4, "Výsledky", "Osa, bod X i dotykové body s chybou pod půl milimetru", notes)
+    # 4 Results, screen a (1:45 to 1:54): what we estimate
+    s = frame(prs, 4, "Výsledky", "Co odhadujeme", notes_text(sc[4], "Snímek 4a", end="1:54"))
+    picture(s, "05-shape-schematic.png", 2.3, 1.9, 8.7)
+    for (x, y, words) in [(0.6, 3.5, "osa plazmatu\nuprostřed"), (0.6, 5.5, "bod X\ndole"),
+                          (10.9, 5.5, "dva dotykové body,\nkam dopadá okraj")]:
+        text(s, x, y, 2.0, 0.9, words, size=16, color=TEXT, bold=True)
+    caption(s, 2.3, 6.8 - 0.05, 8.7, "Schéma tvaru, ne skutečný výboj.")
+
+    # 4 Results, screen b (1:54 to 2:14): errors against the linear model
+    s = frame(prs, 4, "Výsledky", "Osa, bod X i dotykové body s chybou pod půl milimetru",
+              notes_text(sc[4], "Snímek 4b", start="1:54", end="2:14"))
     tile(s, 0.6, 2.2, 3.6, 1.45, f"{cz(mlp['R_mag_axis']['mae'], 2)} mm", "průměrná chyba polohy osy", BLUE, 34)
     tile(s, 0.6, 3.8, 3.6, 1.45, f"{cz(mlp['R_x_point']['mae'], 2)} mm", "průměrná chyba bodu X", BLUE, 34)
     tile(s, 0.6, 5.4, 3.6, 1.45, f"{cz(mlp['is_limited']['accuracy'] * 100, 1)} %",
@@ -222,7 +298,8 @@ def build():
     keys = [("R_mag_axis", "osa R"), ("Z_mag_axis", "osa Z"), ("R_x_point", "bod X R"), ("Z_x_point", "bod X Z"),
             ("R_strike_point_1", "dotyk 1 R"), ("Z_strike_point_1", "dotyk 1 Z")]
     rv, mv = [ridge[k]["mae"] for k, _ in keys], [mlp[k]["mae"] for k, _ in keys]
-    text(s, 4.6, 2.15, 8.1, 0.4, "Průměrná chyba v mm na náhodně vybraných výbojích, které model neviděl", size=14, color=MUTED)
+    text(s, 4.6, 2.15, 8.1, 0.4, "Průměrná chyba v mm na náhodně vybraných výbojích, které model neviděl", size=14,
+         color=MUTED)
     c = chart(s, 4.5, 2.45, 8.3, 4.4, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
               [("lineární model", rv), ("neuronová síť", mv)], [MUTED, ORANGE])
     style_chart(c)
@@ -231,22 +308,62 @@ def build():
     label_points(c.plots[0].series[1], mv, 2, ORANGE, 11)
     c.value_axis.visible = False
 
-    # 5 Real time verdict
-    one = lat["cpu_1_thread_single_sample"]
-    s = frame(prs, 5, "Verdikt pro řízení v reálném čase", "Jeden odhad trvá setiny milisekundy", notes)
+    # 4 Results, screen c (2:14 to 2:30): how many inputs are needed (pitch script, Lead note 1b)
+    runs = inp["runs"]
+    topk = sorted((int(k.split()[1]), v) for k, v in runs.items() if k.startswith("top"))
+    topk.append((24, runs["all 24"]))
+    s = frame(prs, 4, "Výsledky", "Kolik vstupů stačí", notes_text(sc[4], "Snímek 4c", start="2:14"))
+    text(s, 0.6, 2.05, 8.0, 0.4, "Souhrnná relativní chyba podle počtu vstupů (menší je lepší)", size=14, color=MUTED)
+    vals = [v["summary_nrmse_mean"] for _, v in topk]
+    c = chart(s, 0.5, 2.35, 8.3, 4.4, XL_CHART_TYPE.LINE_MARKERS, [str(k) for k, _ in topk], [("chyba", vals)],
+              [ORANGE])
+    style_chart(c, legend=False)
+    label_points(c.plots[0].series[0], vals, 3, TEXT, 11)
+    for i in range(len(vals)):
+        c.plots[0].series[0].points[i].data_label.position = XL_LABEL_POSITION.ABOVE
+    c.value_axis.visible = False
+    caption(s, 0.6, 6.7, 8.0, "počet vstupů; nejlepší sada vybraná zvlášť v každém rozdělení")
+    tile(s, 9.1, 2.35, 3.6, 1.35, cz(runs["IPR only (16)"]["summary_nrmse_mean"], 3), "jen 16 cívek", BLUE, 32)
+    tile(s, 9.1, 3.85, 3.6, 1.35, cz(runs["FL only (8)"]["summary_nrmse_mean"], 3), "jen 8 smyček toku", MUTED, 32)
+    text(s, 9.1, 5.4, 3.6, 1.3, "Pořadí důležitosti platí pro naučenou síť, neříká, kolik informace vstup nese.",
+         size=13, color=MUTED)
+
+    # Live demo divider (2:30 to 4:05); the presenter switches to the browser
+    s = frame(prs, "ukázka", "Živá ukázka", None, notes_text(sc["demo"], "Živá ukázka"))
+    text(s, 0.6, 2.6, 12.1, 1.2, "Živá ukázka", size=60, bold=True, align=PP_ALIGN.CENTER)
+    text(s, 0.6, 3.9, 12.1, 0.8, "Skutečný a odhadnutý tvar plazmatu vedle sebe, chyba v čase", size=24, color=MUTED,
+         align=PP_ALIGN.CENTER)
+    text(s, 0.6, 5.0, 12.1, 0.6, "Prohlížeč tvaru běží bez připojení k internetu", size=16, color=BLUE,
+         align=PP_ALIGN.CENTER)
+
+    # Hidden backup: the stills for "Záloha, když ukázka selže"
+    s = frame(prs, "záloha", "Záloha ukázky", "Uložené obrázky z prohlížeče tvaru",
+              "Skrytý snímek pro zálohu, když ukázka selže (pitch-script.md, Záloha). Ukázat začátek, střed a konec.")
+    s._element.set("show", "0")
+    for i, (name, words) in enumerate([("viewer-start-limited.png", "začátek výboje"),
+                                       ("viewer-middle-divertor.png", "střed výboje"),
+                                       ("viewer-rough-end.png", "konec výboje")]):
+        x = 0.6 + i * 4.1
+        picture(s, name, x, 2.4, 3.9)
+        text(s, x, 4.75, 3.9, 0.4, words, size=16, color=TEXT, bold=True, align=PP_ALIGN.CENTER)
+
+    # 5 Real time verdict, over the minutes against milliseconds image
+    s = frame(prs, 5, "Verdikt pro řízení v reálném čase", "Jeden odhad trvá setiny milisekundy",
+              notes_text(sc[5], "Snímek 5"), "02-minutes-vs-ms.png", 0.8)
     tile(s, 0.6, 2.3, 5.9, 2.3, f"{cz(one['median_ms'], 4)} ms", "medián jednoho odhadu na procesoru", ORANGE, 60)
     # p99, not the maximum: 5000 calls on an ordinary OS bound nothing (docs/review-findings.md, latency finding)
-    tile(s, 6.85, 2.3, 5.9, 2.3, f"{cz(one['p99_ms'], 3)} ms", "99 % odhadů je rychlejších", BLUE, 60)
+    tile(s, 6.85, 2.3, 5.9, 2.3, f"{cz(one['p99_ms'], 4)} ms", "99 % odhadů je rychlejších", BLUE, 60)
     text(s, 0.6, 5.0, 12.1, 1.8, [
         [("Výpočet sítě není překážkou: ", 20, ORANGE, True),
          ("zadání dává jednotky až desítky milisekund. Neověřeno: sběr signálů z čidel a běh na systému "
           "reálného času.", 20, TEXT, False)],
         [("Grafická karta nepomůže: ", 20, ORANGE, True),
          (f"pro tak malou síť je pomalejší ({cz(lat['mps_single_sample']['median_ms'], 2)} ms).", 20, TEXT, False)],
-        [("Měřeno na nezatíženém počítači Mac vedoucího týmu; na druhém počítači vyšel medián 0,032 ms.", 14, MUTED, False)]])
+        [("Měřeno na nezatíženém počítači Mac vedoucího týmu; na druhém počítači vyšel medián 0,032 ms.", 14, MUTED,
+          False)]])
 
     # 6 Limits
-    s = frame(prs, 6, "Meze", "Nejslabší je bod u limiteru a konec výboje", notes)
+    s = frame(prs, 6, "Meze", "Nejslabší je bod u limiteru a konec výboje", notes_text(sc[6], "Snímek 6"))
     tile(s, 0.6, 2.2, 3.6, 2.0, f"{cz(mlp['R_limiter']['mae'], 1)} mm", "chyba bodu u limiteru, radiálně", ORANGE, 40)
     tile(s, 0.6, 4.4, 3.6, 2.0, f"{cz(mlp['Z_limiter']['mae'], 1)} mm", "chyba bodu u limiteru, svisle", ORANGE, 40)
     dec = tm["mae_by_time_decile"]["R_mag_axis"]
@@ -255,10 +372,7 @@ def build():
     c = chart(s, 4.5, 2.45, 8.3, 4.0, XL_CHART_TYPE.COLUMN_CLUSTERED, cats, [("osa R", dec)], [BLUE])
     style_chart(c, legend=False)
     c.plots[0].gap_width = 40
-    for i in (0, 8, 9):
-        pt = c.plots[0].series[0].points[i]
-        pt.format.fill.solid()
-        pt.format.fill.fore_color.rgb = ORANGE
+    highlight(c, (0, 8, 9))
     label_points(c.plots[0].series[0], dec, 2, TEXT, 11)
     c.value_axis.visible = False
     jr = tm["jitter_ratio"].values()  # all targets in the file, not the most favourable one (review finding)
@@ -266,15 +380,14 @@ def build():
          f"až {cz(max(jr), 2)} u {len(jr)} veličin.", size=13, color=MUTED)
 
     # 7 What the model cannot do
-    s = frame(prs, 7, "Co model neumí", "Zná jen tvary z dat a šum v měření mu vadí nejvíc", notes)
+    s = frame(prs, 7, "Co model neumí", "Zná jen tvary z dat a šum v měření mu vadí nejvíc", notes_text(sc[7], "Snímek 7"))
     nz = j["noise"]
     text(s, 0.6, 2.15, 6.2, 0.4, "Chyba polohy osy (mm) při šumu v měření", size=14, color=MUTED)
     c = chart(s, 0.5, 2.45, 6.4, 3.6, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for n, _ in nz], [("osa", [v for _, v in nz])],
               [BLUE])
     style_chart(c, legend=False, size=10)
     c.plots[0].gap_width = 50
-    c.plots[0].series[0].points[1].format.fill.solid()
-    c.plots[0].series[0].points[1].format.fill.fore_color.rgb = ORANGE
+    highlight(c, (1,))
     label_points(c.plots[0].series[0], [v for _, v in nz], 2, TEXT, 11)
     c.value_axis.visible = False
     cv = j["curve"]
@@ -290,20 +403,21 @@ def build():
         [("Neobvyklý tvar mimo data: ", 16, ORANGE, True), ("DOPLNIT, zatím neměřeno. ", 16, TEXT, False),
          ("Jen jeden tokamak. Model odhaduje tvar, řízení sám nenahradí.", 16, MUTED, False)]])
 
-    # 8 Demo and conclusion
-    s = frame(prs, 8, "Ukázka a závěr", "Skutečný a odhadnutý tvar plazmatu vedle sebe", notes)
-    demo = box(s, 0.6, 2.3, 6.4, 4.3, fill=PANEL, line=BLUE)
-    text(s, 0.9, 3.6, 5.8, 1.6, [[("ŽIVÁ UKÁZKA", 28, BLUE, True)],
-                                 [("prohlížeč tvaru: posuvník času, skutečná a odhadnutá hranice, chyba v čase", 16,
-                                   MUTED, False)]], align=PP_ALIGN.CENTER)
+    # 8 Close: one number
+    s = frame(prs, 8, "Závěr", None, notes_text(sc[8], "Snímek 8"), "07-closing.png", 0.45)
+    text(s, 0.6, 2.0, 6.8, 0.5, "Jeden odhad tvaru plazmatu", size=22, color=MUTED)
+    text(s, 0.6, 2.5, 6.8, 1.6, f"{cz(one['median_ms'], 4)} ms", size=88, color=ORANGE, bold=True)
+    text(s, 0.6, 4.2, 6.8, 1.0, "Klasický výpočet trvá minuty. Zadání chce jednotky až desítky milisekund.",
+         size=20, color=TEXT)
     for i, (head, body, col) in enumerate([
-            ("Přesný", f"desetiny milimetru na ose, bodu X a dotykových bodech", BLUE),
-            ("Rychlý", f"{cz(one['median_ms'], 4)} ms na jeden odhad, hluboko pod limitem", ORANGE),
-            ("Zbývá", "odolnost proti šumu, bod u limiteru a neobvyklé tvary", MUTED)]):
-        y = 2.3 + i * 1.5
-        box(s, 7.4, y, 5.3, 1.3, fill=PANEL)
-        box(s, 7.4, y + 0.15, 0.07, 1.0, fill=col)
-        text(s, 7.7, y + 0.15, 4.9, 1.0, [[(head, 22, col, True)], [(body, 15, TEXT, False)]])
+            ("Přesný", "desetiny milimetru na ose, bodu X a dotykových bodech", BLUE),
+            ("Zbývá", "bod u limiteru, neobvyklé tvary, odolnost proti šumu, napojení na řízení", MUTED)]):
+        y = 2.0 + i * 1.9
+        box(s, 7.9, y, 4.8, 1.6, fill=PANEL)
+        box(s, 7.9, y + 0.2, 0.07, 1.2, fill=col)
+        text(s, 8.2, y + 0.2, 4.4, 1.3, [[(head, 22, col, True)], [(body, 15, TEXT, False)]])
+    text(s, 0.6, 6.1, 12.1, 0.6, "Desetiny milimetru za setiny milisekundy.", size=22, bold=True,
+         align=PP_ALIGN.CENTER)
 
     prs.save(OUT)
     return OUT
