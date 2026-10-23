@@ -437,9 +437,11 @@ def build():
     s = frame(prs, "Živá ukázka", None,
               notes_text(sc["demo"], "Živá ukázka") + "\nZáloha: klávesa H otevře skrytý snímek s uloženými obrázky.")
     text(s, 0.6, 2.6, 12.1, 1.2, "Živá ukázka", size=60, bold=True, align=PP_ALIGN.CENTER)
-    text(s, 0.6, 3.9, 12.1, 0.9, [[("Skutečný a odhadnutý tvar plazmatu vedle sebe, chyba v čase", 24, MUTED, False)],
-                                  [("V ukázce je základní síť, ne vybraný model. Výboje 123 a 0 síť při učení neviděla.",
-                                    18, MUTED, False)]], align=PP_ALIGN.CENTER)
+    # Since e50b1ee the viewer shows the selected model on the 30 held-out discharges, which predicts the points but
+    # not the outline (its legend: "obrys model nepředpovídá"); docs/PLAN.md KQ-18
+    text(s, 0.6, 3.9, 12.1, 0.9, [[("Skutečný tvar plazmatu a odhadnuté body, chyba v čase", 24, MUTED, False)],
+                                  [("V ukázce je vybraný model na výbojích odložených před finálním výběrem. Odhaduje osu, "
+                                    "bod X a dotykové body, obrys ne.", 18, MUTED, False)]], align=PP_ALIGN.CENTER)
     text(s, 0.6, 5.4, 12.1, 0.6, "Prohlížeč tvaru běží bez připojení k internetu", size=16, color=BLUE,
          align=PP_ALIGN.CENTER)
 
@@ -453,7 +455,8 @@ def build():
         x = 0.6 + i * 4.1
         picture(s, name, x, 2.4, 3.9)
         text(s, x, 4.75, 3.9, 0.4, words, size=16, color=TEXT, bold=True, align=PP_ALIGN.CENTER)
-    caption(s, 0.6, 5.4, 12.1, "Základní síť, výboj 123, mimo učení. Obrázky z prohlížeče.")
+    caption(s, 0.6, 5.4, 12.1, "Vybraný model, odložený výboj mimo učení (číslo výboje je v obrázku). Obrázky z "
+                               "prohlížeče.")
 
     # 5 Real time verdict (items 11.1 to 11.4)
     s = frame(prs, "Verdikt pro řízení v reálném čase", "Výpočet sítě rychlosti nebrání", notes_text(sc[5], "Snímek 5"),
