@@ -12,7 +12,7 @@ Věta: Plazma v tokamaku COMPASS se musí držet daleko od stěny během milisek
 * Klasická rekonstrukce rovnováhy trvá minuty, tedy o několik řádů déle.
 * Naše otázka: dokáže malý model odhadnout tvar plazmatu z magnetických měření dost přesně a dost rychle?
 
-## Snímek 2: Data (50 s)
+## Snímek 2: Data (30 s)
 
 Věta: Máme 42 972 řádků z 149 výbojů, na každém řádku 24 magnetických měření a 16 hledaných veličin popisujících tvar.
 
@@ -21,7 +21,7 @@ Věta: Máme 42 972 řádků z 149 výbojů, na každém řádku 24 magnetickýc
 * Data jsou důvěrná, proto na snímku nejsou žádné surové hodnoty, jen souhrny.
 * Dělíme po celých výbojích, nikdy po řádcích, jinak by se model učil na tom, co testuje.
 
-## Snímek 3: Metoda (50 s)
+## Snímek 3: Metoda (25 s)
 
 Věta: Použili jsme malou neuronovou síť o 107 152 parametrech a porovnali ji s lineárním modelem.
 
@@ -30,7 +30,7 @@ Věta: Použili jsme malou neuronovou síť o 107 152 parametrech a porovnali ji
 * Dále: kolik vstupů opravdu potřebujeme, jak stabilní je výstup v čase, jak rychlá je odpověď.
 * Kamerový model: DOPLNIT (zatím neměřeno).
 
-## Snímek 4: Výsledky (80 s)
+## Snímek 4: Výsledky (45 s)
 
 Věta: Na náhodně vybraných nových výbojích síť trefí osu, bod X a dotykové body s chybou 0,06 až 0,4 mm, což je mnohem lépe než lineární model; jen pro proud plazmatem je lepší lineární model.
 
@@ -42,7 +42,13 @@ Věta: Na náhodně vybraných nových výbojích síť trefí osu, bod X a doty
 * Samotné cívky IPR (16 vstupů) dávají 0,066, samotné smyčky toku (8 vstupů) jen 0,285, tedy cívky stačí téměř samy. Pořadí vstupů je důležitost pro naučenou síť, ne obsah informace.
 * Obrázek: graf chyby podle počtu vstupů (soubor ipp1 inputs ve složce results).
 
-## Snímek 5: Verdikt pro řízení v reálném čase (50 s)
+## Živá ukázka mezi snímkem 4 a 5 (95 s)
+
+Věta: V prohlížeči vidíte skutečný a odhadnutý tvar plazmatu vedle sebe a chybu v čase, jednu typickou a jednu špatnou ukázku.
+
+* Posuvník času, skutečná a odhadnutá hranice, tabulka chyb. Podrobný scénář je v souboru pitch script.
+
+## Snímek 5: Verdikt pro řízení v reálném čase (35 s)
 
 Věta: Výpočet sítě trvá asi 0,0145 ms na procesoru, tedy mnohonásobně méně než jednotky milisekund, které zadání žádá, ale sběr signálů a běh na systému reálného času jsme neověřovali.
 
@@ -50,7 +56,7 @@ Věta: Výpočet sítě trvá asi 0,0145 ms na procesoru, tedy mnohonásobně m�
 * Grafická karta Apple, jeden vzorek: medián 0,2405 ms, pomalejší než procesor, protože model je malý.
 * Verdikt: výpočet sítě není překážkou. Neověřeno: sběr signálů z čidel, běh na systému reálného času a přesnost na skutečně zašuměných signálech (síť učená na čistých datech na šumu selže, viz snímek 7).
 
-## Snímek 6: Meze (50 s)
+## Snímek 6: Meze (30 s)
 
 Věta: Nejhůř se odhaduje bod u limiteru, kde chyba dosahuje 10,7 mm a 22,2 mm, a na konci výboje chyby rostou u všech veličin.
 
@@ -68,16 +74,17 @@ Věta: Model je křehký vůči šumu, potřebuje dost výbojů a nezná neobvyk
 * Neobvyklý tvar, který poruší vztahy mezi veličinami: DOPLNIT (zatím neměřeno).
 * Ověřeno jen na jednom tokamaku. Model odhaduje jen tvar a řízení plazmatu samo nenahrazuje.
 
-## Snímek 8: Ukázka a závěr (30 s)
+## Snímek 8: Závěr, jedno číslo (50 s)
 
-Věta: V prohlížeči vidíte skutečný a odhadnutý tvar plazmatu vedle sebe a chybu v čase.
+Věta: Jeden odhad tvaru plazmatu trvá 0,0145 ms na procesoru a chyba osy je desetiny milimetru, ale model ještě není připraven pro řízení.
 
-* Krátká ukázka prohlížeče tvaru: posuvník času, skutečná a odhadnutá hranice.
-* Závěrečná věta: rychlý model je přesný na většině veličin; zbývá ověřit odolnost a slabá místa.
+* Velké číslo 0,0145 ms, vedle něj desetiny milimetru u osy, bodu X a dotykových bodů.
+* Upřímně: slabý bod u limiteru, nezná neobvyklé tvary a šum mu vadí, pokud se na něj neučí.
+* Zbývá ověřit napojení na řídicí systém, získat víc výbojů a přidat odolnost proti šumu.
 
 ## Součet času
 
-50 + 50 + 50 + 80 + 50 + 50 + 60 + 30 = 420 sekund, tedy 7 minut.
+Podle rozhodnutí vedoucího (RP 11) platí časy ze souboru pitch script: 50 + 30 + 25 + 45 + 95 (ukázka) + 35 + 30 + 60 + 50 = 420 sekund, tedy 7 minut.
 
 ## Chybějící čísla (DOPLNIT)
 

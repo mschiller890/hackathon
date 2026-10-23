@@ -1,21 +1,23 @@
 # Poznámky ke zkoušce (předběžné)
 
-Stav: odhad podle počtu slov, NE měření na stopkách. Přednášku zatím nikdo nečetl nahlas. Počítáno 130 slov za minutu,
-slova z odrážek v osnově (osnova je zhuštěná, mluvený text bude delší). Po přečtení nahlas čísla přepsat skutečnými.
+Stav: odhad podle počtu slov, NE měření na stopkách. Přednášku zatím nikdo nečetl nahlas. Po přečtení nahlas čísla přepsat skutečnými.
 
 ## Odhad délky podle snímků
 
-* Snímek 1: 58 slov, asi 27 s z 50 s. Rezerva velká.
-* Snímek 2: 78 slov, asi 36 s z 50 s.
-* Snímek 3: 54 slov, asi 25 s z 50 s.
-* Snímek 4: 124 slov, asi 57 s z 80 s.
-* Snímek 5: 81 slov, asi 37 s z 50 s.
-* Snímek 6: 83 slov, asi 38 s z 50 s.
-* Snímek 7: 85 slov, asi 39 s z 60 s.
-* Snímek 8: 40 slov, asi 18 s z 30 s.
+Platí časy ze souboru pitch script (rozhodnutí vedoucího, RP 11). Počty mluvených slov a slova za sekundu jsou z jeho tabulky, ne moje měření.
 
-Odrážky samy vycházejí kolem 5 minut, zbytek je prostor na plynulou řeč a přechody. Riziko je spíš opačné než přetečení:
-mluvit rychleji, než se vejde. DOPLNIT: skutečný čas po přečtení se stopkami (maximum 7:00).
+* Snímek 1: 96 slov v 50 s, 1,92 slova za sekundu.
+* Snímek 2: 59 slov ve 30 s, 1,97.
+* Snímek 3: 48 slov ve 25 s, 1,92.
+* Snímek 4: 88 slov ve 45 s, 1,96.
+* Živá ukázka: 165 slov v 95 s, 1,74.
+* Snímek 5: 67 slov ve 35 s, 1,91.
+* Snímek 6: 52 slov ve 30 s, 1,73.
+* Snímek 7: 115 slov v 60 s, 1,92.
+* Snímek 8: 80 slov v 50 s, 1,60.
+* Celkem 770 slov ve 420 s, 1,83 slova za sekundu.
+
+Tempo kolem 2 slov za sekundu je rychlé, zvlášť u čísel, která se čtou pomaleji. Nejtěsnější jsou snímky 2, 4 a 7. DOPLNIT: skutečný čas po přečtení se stopkami (maximum 7:00).
 
 ## Kde je text těžký na sledování
 
@@ -25,14 +27,14 @@ mluvit rychleji, než se vejde. DOPLNIT: skutečný čas po přečtení se stopk
 
 ## Otázky poroty (naše odhady, ne deset otázek ze skriptu)
 
-DOPLNIT: deset otázek z pitch skriptu, až bude existovat. Do té doby připravené odpovědi, všechny z osnovy a z results:
+Deset otázek poroty s odpověďmi je v souboru pitch script. Zde jsou moje doplňující odpovědi, všechny z osnovy a z results:
 
 * Proč síť, a ne klasická rekonstrukce? Odezva 0,0145 ms na procesoru proti minutám; přesnost je pod půl milimetru u většiny veličin.
 * Co když čidla mají šum? Na čistých datech učený model je křehký (osa 0,38 mm na 10,15 mm). Učení na šumu to srazí na 2,64 mm za cenu horších čistých dat (2,22 mm).
 * Jak víte, že to funguje na nových výbojích? Dělili jsme po celých výbojích, pětkrát jinak.
 * Je 149 výbojů dost? Od 30 výbojů se chyba osy s každým zdvojením zhruba půlí ale učili jsme vždy 60 epoch, takže část zlepšení tvoří víc kroků učení; víc dat by zřejmě pomohlo.
 * Kde model selhává? Bod u limiteru (10,7 a 22,2 mm) a začátek a konec výboje.
-  * Záloha: zkusili jsme zvláštní model pro bod u limiteru. Na čistých datech chybu půlí (10,7 na 5,7 mm radiálně, 22,2 na 11,7 mm svisle), ale na zašuměných datech selže úplně, proto ho zatím nepoužíváme. Platí, dokud vedoucí nerozhodne, který model se v talku ukáže (RP-9); osnova zůstává na základním modelu.
+  * Záloha: zkusili jsme zvláštní model pro bod u limiteru. Na čistých datech chybu půlí (10,7 na 5,7 mm radiálně, 22,2 na 11,7 mm svisle), ale na zašuměných datech selže úplně, proto ho zatím nepoužíváme. Platí, dokud vedoucí nerozhodne, který model se v talku ukáže (RP 9); osnova zůstává na základním modelu.
 * Dá se to nasadit do řízení? Výpočet sítě je rychlý; sběr signálů, systém reálného času a skutečně zašuměné signály jsme neověřovali.
 * Co neobvyklý tvar? Neměřeno (DOPLNIT, nebo přiznat jako mez).
 * Co kamera? DOPLNIT, dokud nejsou výsledky.
