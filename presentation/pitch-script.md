@@ -84,7 +84,7 @@ Obrázek: 05-shape-schematic.png
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 1:26 | 7 | A | Odhadujeme polohu osy, dolní bod X a dotykové body na deskách divertoru. Celý obrys neodhadujeme. | Snímek 4. Obrázek 05-shape-schematic.png asi 6 sekund, pak snímek s výsledky. |
+| 1:26 | 7 | A | Odhadujeme polohu osy, dolní bod X a dotykové body na deskách divertoru. Obrys vybraný model neodhaduje. | Snímek 4. Obrázek 05-shape-schematic.png asi 6 sekund, pak snímek s výsledky. |
 | 1:33 | 23 | A | Třicet výbojů jsme odložili před posledním výběrem modelu, náměty na úpravy ale vznikly na všech 149. Na odložených se vybraný model od rekonstrukce ústavu liší v radiální poloze osy o 0,13 milimetru, základní síť o 0,31. | Titulek a sloupce osy R. Protokol pod číslem: 30 odložených výbojů. Pod grafem je věta, že náměty na úpravy vznikly na všech 149 výbojích. |
 | 1:56 | 9 | A | V křížové validaci na 119 výbojích 0,23, na novějších číslech 0,40. | Řádek protokolů pod grafem (119 výbojů, křížová validace; novější čísla). |
 | 2:05 | 12 | A | Proud určí lineární model s chybou 0,035 kiloampéru; síť měla 1,2. | Dlaždice 0,035 kA (lineární model; proč stačí lineární, je v otázce 4). Protokol: 30 odložených výbojů. Bod u limiteru 4,55 mm proti 10,6 je na dlaždici a zazní na snímku 6. |
@@ -92,7 +92,7 @@ Obrázek: 05-shape-schematic.png
 
 ### Živá ukázka, mezi snímkem 4 a 5 (2:29 až 3:49, 80 s)
 
-Hlavní věta: Rekonstrukce ústavu a odhad vybraného modelu vedle sebe: sledujeme odhadnuté body, obrys neodhadujeme; jedna typická a jedna špatná ukázka.
+Hlavní věta: Rekonstrukce ústavu a odhad vybraného modelu vedle sebe: sledujeme odhadnuté body, obrys vybraný model neodhaduje; jedna typická a jedna špatná ukázka.
 
 Obrázek: žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html)
 
@@ -306,7 +306,7 @@ Odpovídá A: Je to malá síť na snímcích 48 na 64 bodů, 12 epoch, každý 
 ### N11. Fyzik
 Otázka: Zadání mluví o 17 parametrech, vy uvádíte 16.
 
-Odpovídá B: Odhadujeme 16 hlavních sloupců z 31 v souboru; ostatní jsou doplňkové a neodhadovali jsme je. Obrys plazmatu určují právě ty doplňkové, takže obrys neodhadujeme.
+Odpovídá B: Vybraný model odhaduje 16 hlavních sloupců z 31 v souboru. Ostatních patnáct jsou doplňkové veličiny pro obrys; ty odhaduje jen základní síť a čísla pro ně zatím nezveřejňujeme (oprava podle `docs/bonus-gaps.md`, stejně jako v `docs/REHEARSAL.md`).
 
 ### N12. Odborník na strojové učení
 Otázka: A jak si model vede na nejnovějších výbojích?
@@ -359,17 +359,17 @@ Odpovídá B: Rychlost změny jsme neměřili. Máme jen krok chyby mezi sousedn
 | Snímek 1: Problém | 0:00 | 0:38 | 38 | 65 | 65 | 65 | 0 | 1.71 | 1.71 |
 | Snímek 2: Data | 0:38 | 1:06 | 28 | 45 | 48 | 46 | 0 | 1.71 | 1.64 |
 | Snímek 3: Metoda | 1:06 | 1:26 | 20 | 29 | 31 | 31 | 0 | 1.55 | 1.55 |
-| Snímek 4: Výsledky | 1:26 | 2:29 | 63 | 89 | 98 | 109 | 0 | 1.56 | 1.73 |
+| Snímek 4: Výsledky | 1:26 | 2:29 | 63 | 90 | 99 | 110 | 0 | 1.57 | 1.75 |
 | Živá ukázka, mezi snímkem 4 a 5 | 2:29 | 3:49 | 80 | 104 | 107 | 108 | 15 | 1.65 | 1.66 |
 | Snímek 5: Rychlost, verdikt pro řízení | 3:49 | 4:29 | 40 | 56 | 59 | 65 | 0 | 1.48 | 1.62 |
 | Snímek 6: Meze | 4:29 | 5:03 | 34 | 55 | 60 | 66 | 0 | 1.76 | 1.94 |
 | Snímek 7: Co model neumí | 5:03 | 6:17 | 74 | 104 | 113 | 121 | 0 | 1.53 | 1.64 |
 | Snímek 8: Závěr | 6:17 | 7:00 | 43 | 66 | 71 | 82 | 0 | 1.65 | 1.91 |
-| Total | 0:00 | 7:00 | 420 | 613 | 652 | 693 | 15 | 1.61 | 1.71 |
+| Total | 0:00 | 7:00 | 420 | 614 | 653 | 694 | 15 | 1.61 | 1.71 |
 
-Counting (same method as before, small parser of the five-column rows that `build_deck.py` reads, silent "ticho" rows left out): words split on spaces; a token with a digit counts twice; "numbers written out" counts the Czech words a speaker really says (rough rule: "0,0145" is 6 words, "4,55" is 4, "119" is 2). The jury hears every digit, so the last column is the honest planning figure. The counting script reproduces the previous version's 727 written-out words (the old table said 730), so the numbers are comparable. The Lead's edits H1 to H3 (commit 2fb3f86) had raised the count to 789, 7:33 at 1.8 words per second; this pass brought it to 693 by cutting the sentences listed in the paragraph under the overview table.
+Counting (same method as before, small parser of the five-column rows that `build_deck.py` reads, silent "ticho" rows left out): words split on spaces; a token with a digit counts twice; "numbers written out" counts the Czech words a speaker really says (rough rule: "0,0145" is 6 words, "4,55" is 4, "119" is 2). The jury hears every digit, so the last column is the honest planning figure. The counting script reproduces the previous version's 727 written-out words (the old table said 730), so the numbers are comparable. The Lead's edits H1 to H3 (commit 2fb3f86) had raised the count to 789, 7:33 at 1.8 words per second; this pass brought it to 694 by cutting the sentences listed in the paragraph under the overview table.
 
-Time estimate from the written-out count (693 words, 405 s of speech plus 15 s of silence in the demo): at 1.6 words per second 7:28, at 1.7 words per second 7:02, at 1.8 words per second 6:40. **So the script fits 7:00 at 1.7 words per second and is about 28 s over at the slow end (1.6).** Sections above 1.85 words per second (written out) are slide 6 (1.94) and slide 8 (1.91); slide 4 is 1.84 after the cuts. This is an estimate; no stopwatch reading exists: read the whole script aloud once and write the real times into `rehearsal-notes.md`.
+Time estimate from the written-out count (694 words, 405 s of speech plus 15 s of silence in the demo): at 1.6 words per second 7:28, at 1.7 words per second 7:03, at 1.8 words per second 6:40. **So the script fits 7:00 at about 1.7 words per second and is about 28 s over at the slow end (1.6).** Sections above 1.85 words per second (written out) are slide 6 (1.94) and slide 8 (1.91); slide 4 is 1.84 after the cuts. This is an estimate; no stopwatch reading exists: read the whole script aloud once and write the real times into `rehearsal-notes.md`.
 
 If the stopwatch says over, cut in this order (written-out words saved): the sentence "Platí jen pro jeden tokamak" at 6:11 (5; the slide text keeps it), row 4:01 on the selected model (13, the tile keeps 0,027), the camera (hidden, no seconds). Already cut in this pass: the length of the discharge 150 to 200 ms at 0:09 (it is in Q8), the 42 972 at 0:38, the p99 clause at 3:49, "Zadání chce jednotky až desítky milisekund" at 4:10 (slide and Q8), the 2,64 and 2,22 row at 5:19 (Q3), the 135 of 149 at 3:31, and the Ampère sentence at 2:04 (Q4). Do not cut the caveat lines: the second sentence of 4:10, 4:29 (last sentence), 5:23 and 6:38.
 
@@ -396,7 +396,7 @@ If the stopwatch says over, cut in this order (written-out words saved): the sen
 | L4 jargon | "zamčených" gone; "p99" is said as "devadesát devět procent odhadů je rychlejších"; "vybraný model" is explained on slide 3. |
 | L5 how many inputs | "Samotné cívky stačí na skoro stejnou souhrnnou chybu, osm nejlepších už ne." |
 | Physics review H1 (labels are the institute's reconstruction) | H1 spoken replacements were already in; this pass finished the leftovers: header, "Jak je to postavené", slogan, speech rules (no "přesnost", "skutečný", "předpověď"), Q1 now says "podle toho, co víme" (the sentence "podle zadání" is not in any file), screen column of 2:42 (viewer toggles to be renamed, deck-fixes), slide 8 main sentence and tile, 30 and 60 second versions. Remaining old words only in the jury's own questions (Q1, N1, N4). |
-| Physics review H2 (points, not a boundary) | 1:26 says axis, lower X point, strike points on the divertor plates and "Celý obrys neodhadujeme"; 2:29 says outline is the institute's reconstruction; main sentence of the demo; N11 says the outline is not output. Glossary line for Dotykový bod: lane K (deck-fixes). |
+| Physics review H2 (points, not a boundary) | 1:26 says axis, lower X point, strike points on the divertor plates and "Celý obrys neodhadujeme"; 2:29 says outline is the institute's reconstruction; main sentence of the demo; N11 follows `docs/REHEARSAL.md` (the 15 supplementary columns are predicted by the basic network only). Glossary line for Dotykový bod: lane K (deck-fixes). |
 | Physics review H3 (opening) | Already applied by the Lead. This pass cut the 150 to 200 ms sentence from the stage (the time column is relative and 439 rows at 0,6 ms would be 263 ms, M3; it stays in Q8 as the organizers' statement), kept the instability claim (ÚFP to confirm, deck-fixes questions) and shortened the question so slide 1 fits 38 s. Picture 04-wall-damage.png: deck-fixes slide 1. |
 | Physics review H4 (real time) | 4:10 now lists what is not tested: acquisition and integration, how the signals look in operation, closed loop, real-time system; Q8 adds the derivative, the relative time and the 0,65 and 21 ms spikes; slide 8 says the chain from the sensors and a closed loop test are missing. |
 | Physics review H5 (noise) | 5:03 says the weakness is robustness to sensor faults, that the noise is the organizers' and the drift is ours; Q3 gives the standard deviation wording (not "rozptyl"), says the ratio hints at proportional noise (inference) and that real integrator drift grows with absolute time; calibration error and a dead sensor were not tested. |
@@ -459,4 +459,4 @@ The demo now plays the selected model on the 30 set-aside discharges (viewer e50
 * `build_deck.py` has hard-coded split times for speaker notes (`0:21`, `1:37`, `2:14`); with the timing of this file the last two become `1:33` and `2:17`, see `docs/deck-fixes.md` item 0.3 and the section For lane K.
 * Any change of the shipped recipe after 21:30 Friday invalidates the 0,13 and 0,23 numbers.
 * Physics wording that needs a person: the viewer toggles Skutečnost and Předpověď must become Rekonstrukce ústavu and Odhad sítě (viewer owner, `docs/deck-fixes.md`); ÚFP should confirm the vertical instability sentence at 0:00; the replies of the organizers to the list in `docs/deck-fixes.md` (labels, sign, time axis, formulas, disruptions) decide whether Q1, N3 and N6 can say more. The answers F1 to F10 are written from `results/` only and say Neměřili jsme where no file measured.
-* Timing: 693 written-out words, 7:02 at 1,7 words per second, 7:28 at 1,6. One stopwatch reading is still missing.
+* Timing: 694 written-out words, 7:03 at 1,7 words per second, 7:28 at 1,6. One stopwatch reading is still missing.

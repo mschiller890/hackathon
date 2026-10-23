@@ -131,7 +131,7 @@ Line 2: "Na souvislých blocích čísel výbojů je chyba základní sítě 1,5
 "Vynechání celé rodiny tvarů: chyba 1,0 až 3,0krát větší. Skutečně neobvyklých výbojů je jen 18 ze 149 a samostatně nikdy vynechány nebyly; tvary mimo rozsah dat jsme neověřili. Jen jeden tokamak, řízení model sám nenahradí."
 Delete "bez zhroucení; osa u nejodlišnějších tvarů 1,6 mm místo 0,7 mm". (H4)
 
-13.6 Slide title: see 16.8 (the deck v4 title "Šum mu vadí nejvíc; tvary mimo rozsah dat jsme neověřili" is replaced, the physicist objects that noise is a synthetic stress test, not a model of integrator faults).
+13.6 Slide title: unchanged, KQ-19 answered by the Lead (keep "Šum mu vadí nejvíc; tvary mimo rozsah dat jsme neověřili"); the footnote of 16.8 carries the physicist's point that noise is a synthetic stress test.
 
 ## 14. Slide 14 (Závěr) (H1, H5, M7)
 
@@ -179,7 +179,7 @@ The deck is not edited here. Strings and line numbers are those of `presentation
 
 16.3 **Slide 3 Data (line 314).** Tile "hledaných veličin tvaru: osa, bod X, dotykové body, protažení" becomes "veličin polohy a tvaru: osa, dolní bod X, dotykové body, bod u limiteru, protažení, trojúhelníkovost, proud, údaj o limiteru" (the 16 include the current and a flag). Add one line under the tiles, small print: "Vstup: jen magnetická čidla. Proudy v cívkách pole a model komory síť nedostává." (H6, spoken at 0:45).
 
-16.4 **Slide 6 Co odhadujeme (line 364 onward).** Add the line "Odhadujeme jen body (osa, dolní bod X, dotykové body, bod u limiteru). Celý obrys plazmatu neodhadujeme." (H2).
+16.4 **Slide 6 Co odhadujeme (line 364 onward).** Add the line "Vybraný model odhaduje jen body (osa, dolní bod X, dotykové body, bod u limiteru), obrys ne." (H2; the 15 supplementary columns are predicted by the basic network only and their numbers are not published, `docs/bonus-gaps.md`).
 
 16.5 **Slide 7 and slide 9 (lines 372, 376, 384, 442).**
 * line 372 title: "Na 30 odložených výbojích se osa liší od rekonstrukce o 0,13 mm"
@@ -196,7 +196,7 @@ The deck is not edited here. Strings and line numbers are those of `presentation
 * line 490 chart caption keeps "Chyba polohy osy"; add "Příčina růstu na konci výboje není známa." (M6)
 
 16.8 **Slide 13 (lines 513 to 557).**
-* title (line 513): "Šum a umělý posun mu vadí; neobvyklé tvary jsme neověřili"
+* title (line 513): unchanged. The Lead answered KQ-19: keep "Šum mu vadí nejvíc; tvary mimo rozsah dat jsme neověřili" (it is the more exact one). Item 13.6 and the first title proposal of this pass are withdrawn.
 * line 525 text under the left chart: add "Šum je ze souboru organizátorů, posun jsme vyrobili sami. Skutečné chyby čidel (kalibrace, výpadek, posun integrátoru) jsme netestovali." (H5)
 * line 554 footnote: keep, and after "řízení model sám nenahradí" add nothing else.
 
@@ -270,7 +270,7 @@ Lines the colleague must change in the files he owns (the script is already corr
 
 ### Physics review pass (branch `cloud/pitch-fix-3`, `docs/review-physics.md`)
 
-Line numbers are those of `presentation/outline.md` and `presentation/slovnicek.md` on main at commit 2fb3f86 (check with `grep -n` on the quoted text). The pitch script is already changed; the row times of its slides 1, 2, 4, 5, 6 and 7 moved (see 16.10), no section length changed (still 420 s: 38 + 28 + 20 + 63 + 80 + 40 + 34 + 74 + 43). Wording rule for every line: the model reproduces the institute's reconstruction from 24 signals; do not write "přesnost polohy plazmatu", "skutečný", "skutečnost", "předpověď".
+Line numbers are those of `presentation/outline.md` and `presentation/slovnicek.md` after the merge of main c2b5bba (check with `grep -n` on the quoted text). Already applied on main and therefore not listed again: the slide 4 sentence (line 44), the slide 8 sentence (line 103), the slogan (line 109) and the placeholder `[[chyba osy výboje 0]]` (lines 4 and 125). The pitch script is already changed; the row times of its slides 1, 2, 4, 5, 6 and 7 moved (see 16.10), no section length changed (still 420 s: 38 + 28 + 20 + 63 + 80 + 40 + 34 + 74 + 43). Wording rule for every line: the model reproduces the institute's reconstruction from 24 signals; do not write "přesnost polohy plazmatu", "skutečný", "skutečnost", "předpověď".
 
 `presentation/outline.md`:
 * line 16 (sentence of slide 1): "Plazma v tokamaku COMPASS se musí držet daleko od stěny během milisekund, ale klasický výpočet jeho tvaru trvá minuty." becomes "Řízení potřebuje polohu a tvar plazmatu v milisekundách, úplná rekonstrukce rovnováhy se počítá po výboji a trvá minuty."
@@ -279,19 +279,16 @@ Line numbers are those of `presentation/outline.md` and `presentation/slovnicek.
 * line 21: "dokáže malý model odhadnout tvar plazmatu z magnetických měření dost přesně a dost rychle?" becomes "dokáže malá neuronová síť napodobit rekonstrukci polohy a tvaru plazmatu z magnetických měření dost dobře a dost rychle?"
 * line 25 (sentence of slide 2): "16 hlavních veličin popisujících tvar" becomes "16 hlavních veličin: poloha a tvar plazmatu, proud a údaj o limiteru"; after line 27 add the bullet "Síť nedostává proudy v cívkách pole ani model komory; nevíme, co všechno použila rekonstrukce."
 * line 28: "bod X" becomes "dolní bod X" (v datech je vždy dolní, žádný horní bod X ani dvojitý nulový bod).
-* line 44 (sentence of slide 4): "určí vybraný model osu s chybou 0,13 mm (základní síť 0,31)" becomes "se osa vybraného modelu liší od rekonstrukce ústavu o 0,13 mm (základní sítě o 0,31)"
 * line 47 (current): add "Proud je podle Ampérova zákona lineární funkce signálů cívek; tak přesná shoda znamená, že štítek je zřejmě odvozen z týchž signálů (neověřeno)."
 * line 53: replace "chyby jsou posuny o pár řádků na přechodu" by "chyby se dělí rovným dílem mezi obě konfigurace (49 a 51 % čtverce chyby); kde v čase leží, jsme nevyhodnotili"
 * line 61 and 63 (demo): "skutečné a odhadnuté body" becomes "body z rekonstrukce ústavu a odhadnuté body"; "Vybraný model nepředpovídá celý obrys" becomes "Vybraný model neodhaduje celý obrys"
 * line 76 (not verified, slide 5): add "uzavřenou smyčku, chování signálů v provozu, rychlost změny polohy; čas řádků je relativní"
 * line 83 to 85 (slide 6): add "Bod u limiteru je místo dotyku na stěně; medián radiální chyby 0,733 mm, průměr 4,55 mm táhnou řádky s jiným místem dotyku, nejhorší řádky 357 a 485 mm; vzdálenost plazmatu od stěny jsme neměřili." and after the sentence on the end of the discharge add "Příčinu neznáme; hypotéza (neověřeno): na koncích je malý proud a rychlé změny, takže je i rekonstrukce nejhůř určená."
 * line 94 to 95 (slide 7, noise): add "Šum v souboru je od organizátorů (bílý, směrodatná odchylka 16 % směrodatné odchylky signálu u cívek, 9 % u smyček toku; rozsah poměru 0,086 až 0,167 vypadá na šum úměrný signálu, neověřeno); posun jsme vyrobili sami, lineární v relativním čase; kalibraci a výpadek čidla jsme netestovali."
-* line 103 (sentence of slide 8): "Přesnost na čistých vstupech je desetiny milimetru" becomes "Shoda s rekonstrukcí ústavu na čistých vstupech je desetiny milimetru"
 * line 105: "Přesnost: osa 0,13 mm" becomes "Shoda s rekonstrukcí: osa 0,13 mm"
 * line 108: "Zbývá napojení na řídicí systém, víc výbojů a odolnost proti šumu." becomes "Zbývá celý řetězec od čidel k řízení, zkouška v uzavřené smyčce, víc výbojů a odolnost proti skutečným chybám čidel."
-* line 109 (slogan): "Slogan: desetiny milimetru shody s rekonstrukcí za setiny milisekundy."
 * line 113 (součet času): the order of cuts becomes the one in the Lead notes of the pitch script (6:11 Platí jen pro jeden tokamak; 4:01; camera); already cut: the length of the discharge, 42 972, p99 clause, "Zadání chce jednotky", 2,64 and 2,22, 135 of 149, the Ampère sentence.
-* line 131 and 132 (Do zálohy): the line "Učení na zašuměných datech zhorší čistá data ..." stays; add to line 135 "Posun, který zkoušíme, je lineární v relativním čase výboje; skutečný posun integrátoru roste s absolutním časem."
+* line 130 (Do zálohy): the line "Učení na zašuměných datech zhorší čistá data ..." stays; add to line 134 "Posun, který zkoušíme, je lineární v relativním čase výboje; skutečný posun integrátoru roste s absolutním časem."
 * new line in "Do zálohy": "Deset nejtěžších fyzikálních otázek F1 až F10 je v pitch scriptu (část Příloha: deset nejtěžších fyzikálních otázek)."
 
 `presentation/slovnicek.md` (line 3 says "Dvanáct pojmů"; with the new entry it is "Třináct pojmů"):
