@@ -1,6 +1,6 @@
 # Deck fixes for `presentation/deck/slides.pptx`
 
-For the colleague who owns the deck. Source: `docs/review-findings-2.md` (Kritik 2) and the rewritten `presentation/pitch-script.md`. Nothing here edits the deck for you; each item says the slide, what to change, and the exact Czech text. Slide numbers are the deck's 14 screens (the footer counter is wrong, see item 0.1). Items marked **[[latency shipped]]** wait for one measurement (finding H1a: time of the shipped model pair on an idle machine, owner: a local terminal, file `results/ipp1-latency-shipped.md`); leave the placeholder text in until the number exists, then replace it with the measured median, p99 and the CPU name. Until then use the fallback written next to it.
+For the colleague who owns the deck. Source: `docs/review-findings-2.md` (Kritik 2) and the rewritten `presentation/pitch-script.md`. Nothing here edits the deck for you; each item says the slide, what to change, and the exact Czech text. Slide numbers are the deck's 14 screens (the footer counter is wrong, see item 0.1). Items marked **[[odezva vybraného modelu]]** wait for one measurement (finding H1a: time of the shipped model pair on an idle machine, owner: a local terminal, file `results/ipp1-latency-shipped.md`); leave the placeholder text in until the number exists, then replace it with the measured median, p99 and the CPU name. Until then use the fallback written next to it.
 
 Vocabulary to use on every slide: **základní síť** (24 vstupů, 107 152 parametrů), **vybraný model** (základní síť + rozdíly sousedních cívek + lineární model pro proud + zvláštní síť pro bod u limiteru), **odložené výboje** (30 výbojů odložených před finálním výběrem). Never "nasazený model", "zamčené", "nikdo neviděl".
 
@@ -101,7 +101,7 @@ Stays hidden. Add the caption under the three pictures: "Základní síť, výbo
 Tile text under "0,0209 ms": "99 % odhadů základní sítě je rychlejších" (keep the p99 gloss, 0.5).
 
 11.2 **Add a third tile** next to them:
-* with the measurement: "[[latency shipped]] ms" / "vybraný model (3 části), procesor [[CPU]], klidný počítač"
+* with the measurement: "[[odezva vybraného modelu]] ms" / "vybraný model (3 části), procesor [[CPU]], klidný počítač"
 * fallback until it exists: "asi 0,18 ms" / "vybraný model, zatím odhad z podobného postupu na vytíženém počítači, neměřeno"
 
 11.3 Footnote: keep "Rozpočet je 1 až 10 ms." and "Celý odhad základní sítě od čísel na vstupu po čísla na výstupu: medián 0,0140 ms." **Delete** the sentence "Grafická karta je pro jeden odhad pomalejší (0,27 ms, s přenosem dat 0,49 ms)." (time cut) and the sentence "Nasazený model se třemi částmi je pomalejší, asi 0,18 ms (podobný recept, zatížený počítač)." (replaced by 11.2). Keep "Neověřeno: sběr signálů z cívek, nejhorší doba na systému reálného času a přesnost na skutečně zašuměných signálech." and add: "Přepínání mezi modelem pro čisté a pro zašuměné vstupy netestováno. Na systému bez reálného času se ojediněle objeví špičky."
@@ -135,7 +135,7 @@ Delete "bez zhroucení; osa u nejodlišnějších tvarů 1,6 mm místo 0,7 mm". 
 
 ## 14. Slide 14 (Závěr) (H1, H5, M7)
 
-14.1 Big number tile: "0,0145 ms" with the label "Jeden odhad základní sítě, procesor Apple M5". Next to it a second, smaller number: "[[latency shipped]] ms" / "vybraný model" (fallback until measured: "asi 0,18 ms, odhad").
+14.1 Big number tile: "0,0145 ms" with the label "Jeden odhad základní sítě, procesor Apple M5". Next to it a second, smaller number: "[[odezva vybraného modelu]] ms" / "vybraný model" (fallback until measured: "asi 0,18 ms, odhad").
 
 14.2 Line "Klasický výpočet trvá minuty. Zadání chce jednotky až desítky milisekund." stays; add after it: "Obojí je pod rozpočtem 1 až 10 ms."
 
@@ -150,4 +150,4 @@ Delete "bez zhroucení; osa u nejodlišnějších tvarů 1,6 mm místo 0,7 mm". 
 
 ## What waits for a measurement
 
-Only the placeholders **[[latency shipped]]** (items 11.2, 14.1 and the script rows of slides 5 and 8) and `[[CPU]]`. Everything else here is final and checked against `results/` (numbers and files are listed in the Lead notes at the end of `presentation/pitch-script.md`). The viewer (`viewer/`) is outside this list: its latency tile should say "základní síť" (H1d).
+Only the placeholders **[[odezva vybraného modelu]]** (items 11.2, 14.1 and the script rows of slides 5 and 8) and `[[CPU]]`. Everything else here is final and checked against `results/` (numbers and files are listed in the Lead notes at the end of `presentation/pitch-script.md`). The viewer (`viewer/`) is outside this list: its latency tile should say "základní síť" (H1d).

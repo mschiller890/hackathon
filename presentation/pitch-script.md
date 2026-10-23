@@ -5,7 +5,7 @@ tags:
 
 # Pitch: 7 minut pro porotu
 
-Stav: přepsáno v pátek 23. října večer podle `docs/review-findings-2.md` (Kritik 2) a `docs/claims-corrections.md`. Každá mluvená věta souhlasí se souborem v `results/` a s obrazovkou po úpravách z `docs/deck-fixes.md`. Pod každým číslem přesnosti říkáme, na jakých výbojích bylo změřeno. Co čeká na měření, je v dvojitých hranatých závorkách: `[[latency shipped]]` (čas vybraného modelu na klidném počítači, bod H1a) a `[[chyba osy výboje 0]]` (číslo z přehrání v prohlížeči den předem). Pořadí snímků sedí s `repo/presentation/outline.md`; co má změnit sazeč decku, je v `docs/deck-fixes.md`. Formát tabulek se nesmí měnit, čte ho `deck/build_deck.py` (nadpisy `### Snímek N`, řádek `Hlavní věta:` a řádky `| m:ss | sek. | kdo | text | obrazovka |`).
+Stav: přepsáno v pátek 23. října večer podle `docs/review-findings-2.md` (Kritik 2) a `docs/claims-corrections.md`. Každá mluvená věta souhlasí se souborem v `results/` a s obrazovkou po úpravách z `docs/deck-fixes.md`. Pod každým číslem přesnosti říkáme, na jakých výbojích bylo změřeno. Co čeká na měření, je v dvojitých hranatých závorkách: `[[odezva vybraného modelu]]` (čas vybraného modelu na klidném počítači, bod H1a) a `[[chyba osy výboje 0]]` (číslo z přehrání v prohlížeči den předem). Pořadí snímků sedí s `repo/presentation/outline.md`; co má změnit sazeč decku, je v `docs/deck-fixes.md`. Formát tabulek se nesmí měnit, čte ho `deck/build_deck.py` (nadpisy `### Snímek N`, řádek `Hlavní věta:` a řádky `| m:ss | sek. | kdo | text | obrazovka |`).
 
 ## Jak je to postavené
 
@@ -110,14 +110,14 @@ Obrázek: žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html)
 
 ### Snímek 5: Rychlost, verdikt pro řízení (3:52 až 4:29, 37 s)
 
-Hlavní věta: Základní síť 0,0145 ms, vybraný model asi [[latency shipped]] ms, obojí pod rozpočtem 1 až 10 ms; ověřili jsme jen výpočet samotné sítě.
+Hlavní věta: Základní síť 0,0145 ms, vybraný model asi [[odezva vybraného modelu]] ms, obojí pod rozpočtem 1 až 10 ms; ověřili jsme jen výpočet samotné sítě.
 
 Obrázek: 02-minutes-vs-ms.png (zopakovat jako pozadí)
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
 | 3:52 | 13 | B | Základní síť: jeden odhad na procesoru Apple M5 trvá 0,0145 milisekundy, devadesát devět procent odhadů je rychlejších než 0,021 milisekundy. | Snímek 5. Velká dlaždice 0,0145 ms, dlaždice 0,0209 ms. Pod nimi: základní síť, procesor Apple M5. |
-| 4:05 | 8 | B | Vybraný model má tři části a je pomalejší, asi [[latency shipped]] milisekundy. | Dlaždice vybraného modelu. Dokud není změřeno, říkej: asi 0,18 milisekundy, zatím odhad z podobného postupu na vytíženém počítači. |
+| 4:05 | 8 | B | Vybraný model má tři části a je pomalejší, asi [[odezva vybraného modelu]] milisekundy. | Dlaždice vybraného modelu. Dokud není změřeno, říkej: asi 0,18 milisekundy, zatím odhad z podobného postupu na vytíženém počítači. |
 | 4:13 | 16 | B | Obojí je hluboko pod rozpočtem jedné až deseti milisekund, výpočet sítě rychlosti nebrání. Ověřili jsme ale jen výpočet sítě, ne sběr signálů, systém reálného času ani zašuměné signály. | Věta pod dlaždicemi. Konec snímku, pohled na A, klik na snímek 6. |
 
 ### Snímek 6: Meze (4:29 až 5:00, 31 s)
@@ -155,7 +155,7 @@ Obrázek: 07-closing.png
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
 | 6:16 | 10 | A | Přesnost na čistých vstupech: osa 0,13 milimetru na odložených výbojích, asi 0,2 v křížové validaci. | Snímek 8. Obrázek 07-closing.png. Dlaždice Přesnost. |
-| 6:26 | 12 | A | Rychlost: základní síť 0,0145 milisekundy, vybraný model asi [[latency shipped]], obojí hluboko pod rozpočtem jedné až deseti. | Velké číslo 0,0145 ms vlevo a vedle něj vybraný model. Pomalu. |
+| 6:26 | 12 | A | Rychlost: základní síť 0,0145 milisekundy, vybraný model asi [[odezva vybraného modelu]], obojí hluboko pod rozpočtem jedné až deseti. | Velké číslo 0,0145 ms vlevo a vedle něj vybraný model. Pomalu. |
 | 6:38 | 15 | B | Na zašuměných vstupech jsou to jednotky milimetrů. Pro řízení tokamaku model ještě není: slabý je u bodu limiteru, nezná neobvyklé tvary a šum mu vadí. | Dlaždice Přesnost (druhý řádek) a Zbývá. |
 | 6:53 | 3 | A | Zbývá napojení na řídicí systém. | Stále snímek 8. |
 | 6:56 | 4 | A+B | Desetiny milimetru za desetiny milisekundy. Děkujeme. | Oba se dívají na porotu. Konec v 7:00. |
@@ -238,7 +238,7 @@ Odpovídá A: Správně, ale jen u osy, bodu X a dotykových bodů: jejich rozpt
 ### 8. Podnikatel
 Otázka: Co to znamená v praxi? Dá se to nasadit do řízení?
 
-Odpovídá B: Zatím ne. Změřili jsme jen samotný odhad: základní síť 0,0145 milisekundy na procesoru Apple M5, vybraný model asi [[latency shipped]] milisekundy, obojí hluboko pod rozpočtem jedné až deseti milisekund. Na systému bez reálného času se ojediněle objeví špičky až do milisekund. Mezi dvěma řádky dat uplyne asi 0,6 milisekundy, to je orientační údaj. Sběr signálů, napojení na řídicí systém, nejhorší dobu a skutečně zašuměné signály jsme nezkoušeli. Navíc jsou to dva různé modely, pro čisté a pro zašuměné vstupy, a přepínání mezi nimi jsme netestovali. Bez toho bych to do řízení nedal.
+Odpovídá B: Zatím ne. Změřili jsme jen samotný odhad: základní síť 0,0145 milisekundy na procesoru Apple M5, vybraný model asi [[odezva vybraného modelu]] milisekundy, obojí hluboko pod rozpočtem jedné až deseti milisekund. Na systému bez reálného času se ojediněle objeví špičky až do milisekund. Mezi dvěma řádky dat uplyne asi 0,6 milisekundy, to je orientační údaj. Sběr signálů, napojení na řídicí systém, nejhorší dobu a skutečně zašuměné signály jsme nezkoušeli. Navíc jsou to dva různé modely, pro čisté a pro zašuměné vstupy, a přepínání mezi nimi jsme netestovali. Bez toho bych to do řízení nedal.
 
 ### 9. Podnikatel
 Otázka: Komu to pomůže a co dál? Dá se to použít na COMPASS Upgrade?
@@ -277,7 +277,7 @@ Odpovídá A: Pět semen: vybraný model je lepší v pěti z pěti u všech sed
 ### N5. Fyzik
 Otázka: Jakou rychlost uvádíte, tu vybraného modelu?
 
-Odpovídá B: Číslo 0,0145 milisekundy patří základní síti. Vybraný model měl v dřívějším měření podobného postupu 0,1775 milisekundy na vytíženém počítači, asi dvanáctkrát víc, a na klidném počítači ho změříme: [[latency shipped]]. Obojí je hluboko pod rozpočtem jedné až deseti milisekund; ani jedno nezahrnuje sběr dat.
+Odpovídá B: Číslo 0,0145 milisekundy patří základní síti. Vybraný model měl v dřívějším měření podobného postupu 0,1775 milisekundy na vytíženém počítači, asi dvanáctkrát víc, a na klidném počítači ho změříme: [[odezva vybraného modelu]]. Obojí je hluboko pod rozpočtem jedné až deseti milisekund; ani jedno nezahrnuje sběr dat.
 
 ### N6. Fyzik
 Otázka: Pro řízení rozhodují náhlé zániky a start výboje. Jak jste tam dobří?
@@ -342,7 +342,7 @@ Counting: words split on spaces; a token with a digit (and each `[[placeholder]]
 
 | Finding | Fix in this file |
 |---|---|
-| H1 shipped model, speed and demo | Two latencies, always named: basic network 0,0145 ms (Apple M5), selected model `[[latency shipped]]` (until measured: about 0,18 ms, an estimate from a similar recipe on a loaded machine, `results/ipp1-improve.md:82`). The close says two speeds, the slogan is "desetiny milimetru za desetiny milisekundy". Before the demo the speaker says the viewer shows the basic network. The viewer tile must say "základní síť" (lane U, not edited here). |
+| H1 shipped model, speed and demo | Two latencies, always named: basic network 0,0145 ms (Apple M5), selected model `[[odezva vybraného modelu]]` (until measured: about 0,18 ms, an estimate from a similar recipe on a loaded machine, `results/ipp1-improve.md:82`). The close says two speeds, the slogan is "desetiny milimetru za desetiny milisekundy". Before the demo the speaker says the viewer shows the basic network. The viewer tile must say "základní síť" (lane U, not edited here). |
 | H2 favourable protocol, "nikdo neviděl" | Slide 4 gives three protocols (30 set aside 0,13; cross-validation on 119 0,23; newer ids 0,40). "Zamčené" and "nikdo neviděl" are gone; "odložené před finálním výběrem". Design on all 149 discharges is answered in N2. |
 | H3 script against screen, slides 4 to 7 | Rows rewritten to the numbers on the screen: 0,133 / 0,307, 4,55 / 10,6, 0,035 / 1,2 (slide 4); two speeds (slide 5); 4,55 and 8,35, chart marked as basic network (slide 6); learning-curve wording of `claims-corrections.md` section 10 (slide 7). "Cívky nesou skoro všechno", "rychlost nebude překážkou", 0,029, 0,24 ms and 0,032 ms are removed. |
 | H4 slide 13 against the speaker | One sentence for both: leaving out a family raised the error at most threefold; the 18 really unusual discharges were never held out alone. |
@@ -372,7 +372,7 @@ Counting: words split on spaces; a token with a digit (and each `[[placeholder]]
 | Basic network, 5 folds | axis R 0,377, Z 0,391; nRMSE 0,139 and 0,68; linear 2,4 mm; plasma current 1,49 against 0,0346 kA | `results/ipp1-baseline.md` |
 | Inputs | 24: 0,063; top 8: 0,094; coils only 0,066; loops only 0,285 | `results/ipp1-inputs.md` |
 | Latency, basic network, Apple M5 | median 0,0145; p99 0,0209 ms | `results/ipp1-latency.md` (machine was shared and busy) |
-| Latency, selected model | about 0,18 ms (estimate), `[[latency shipped]]` | `results/ipp1-improve.md:82` (0,1775 ms, recipe `combo_diff`, loaded machine); measurement pending |
+| Latency, selected model | about 0,18 ms (estimate), `[[odezva vybraného modelu]]` | `results/ipp1-improve.md:82` (0,1775 ms, recipe `combo_diff`, loaded machine); measurement pending |
 | Basic network, error end against middle | 0,9 against 0,24 mm | `results/ipp1-time.md` |
 | Jitter (footnote only) | 0,96 to 1,07 clean (13 targets); 8,4 and 3,3 noisy; 1,7 and 1,65 after training with noise | `results/ipp1-time.md`, `claims-corrections.md` section 2 |
 | Noise, basic network, 5 folds | 0,38 clean; 10,15 on noisy; 2,64 trained with noise; 2,22 clean after training with noise; 2,33 with three rows (not spoken) | `results/ipp1-robustness-findings.md` |
@@ -391,7 +391,7 @@ The demo discharges 0, 4, 11 and 123 are not among the 30 set aside (`results/ip
 
 ### Still pending (needs a person or a machine)
 
-* `[[latency shipped]]`: time the selected pair (46-input network, limiter network, ridge) on an idle machine with `analysis/ipp1_latency.py`; write `results/ipp1-latency-shipped.md` with the CPU named (owner: a local terminal). Until then speak "asi 0,18 milisekundy, zatím odhad z podobného postupu na vytíženém počítači" and keep the slogan "desetiny za desetiny".
+* `[[odezva vybraného modelu]]`: time the selected pair (46-input network, limiter network, ridge) on an idle machine with `analysis/ipp1_latency.py`; write `results/ipp1-latency-shipped.md` with the CPU named (owner: a local terminal). Until then speak "asi 0,18 milisekundy, zatím odhad z podobného postupu na vytíženém počítači" and keep the slogan "desetiny za desetiny".
 * `[[chyba osy výboje 0]]` and the sentence "v tomto výboji roste na začátku a na konci": replay discharges 123 and 0 in the viewer, write down the numbers the viewer shows.
 * One timed read-aloud with a stopwatch; update `rehearsal-notes.md`.
 * The 60 s screen recording and the copy of the viewer on the second laptop (M6).
