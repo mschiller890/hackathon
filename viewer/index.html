@@ -37,6 +37,7 @@ button:active, button.on { background: #e9edf8; border-color: var(--ink); }
 button svg { width: 15px; height: 15px; fill: var(--ink); }
 .seg { display: inline-flex; } .seg button { border-radius: 0; margin-left: -1px; } .seg button:first-child { border-radius: 8px 0 0 8px; margin-left: 0; } .seg button:last-child { border-radius: 0 8px 8px 0; }
 #play { background: var(--ink); border-color: var(--ink); min-width: 42px; } #play svg { fill: #fff; } #play:hover { background: var(--ink2); } #play.on { background: var(--signal); border-color: var(--signal); }
+.group:last-child { border-right: 0; }
 #export { border-color: var(--ink); color: var(--ink); } #export:hover { background: var(--ink); color: #fff; } #export:hover svg { fill: #fff; }
 .tbox { font-family: var(--mono); width: 96px; text-align: right; background: var(--head); cursor: default; font-size: 12.5px; padding: 0 10px; }
 input[type=range] { --p: 0%; -webkit-appearance: none; appearance: none; width: 200px; height: 22px; background: transparent; margin: 0; cursor: pointer; }
@@ -59,6 +60,14 @@ main { display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 12px; pa
 .ph::before { content: ""; width: 4px; height: 14px; border-radius: 2px; background: var(--signal); margin-right: -2px; }
 .ph .sp { overflow: hidden; text-overflow: ellipsis; min-width: 0; margin-left: auto; font-weight: 400; color: var(--muted); font-family: var(--mono); font-size: 12px; }
 .ph select { height: 26px; font-weight: 450; max-width: 270px; border-radius: 6px; padding-left: 9px; }
+.panel { grid-template-columns: minmax(0, 1fr); }
+.ph { min-width: 0; overflow: hidden; }
+.stagepanel { grid-template-rows: 36px auto minmax(0, 1fr); }
+.legendbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; padding: 6px 14px; border-bottom: 1px solid var(--border); background: var(--head); font-size: 12px; color: var(--muted); }
+.legendbar b { color: var(--ink); font-weight: 650; } .legendbar .it { display: inline-flex; align-items: center; gap: 6px; } .legendbar svg { width: 22px; height: 12px; overflow: visible; }
+.ph .chips { display: flex; gap: 6px; align-items: center; margin-left: 12px; }
+.ph .chip { height: 26px; padding: 0 10px 0 9px; font-size: 12px; gap: 6px; }
+.ph #export { height: 26px; min-width: 28px; padding: 0 7px; border-radius: 6px; }
 .stagebody { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 0; }
 .rail { border-right: 1px solid var(--border); background: #fafbfd; padding: 12px; display: grid; gap: 9px; align-content: start; overflow: auto; }
 .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px 9px 14px; display: grid; gap: 1px; position: relative; }
@@ -85,7 +94,10 @@ tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-s
 .status div { padding: 0 14px; height: 100%; display: flex; align-items: center; border-right: 1px solid rgba(255, 255, 255, 0.12); white-space: nowrap; }
 .status div:last-child { margin-left: auto; border-right: 0; border-left: 1px solid rgba(255, 255, 255, 0.12); }
 .fatal { padding: 40px; font-size: 18px; }
+@media (max-width: 1560px) { .stagepanel .ph .sp { display: none; } .ph .chips { margin-left: auto; } }
 @media (max-width: 1300px) {
+  th:nth-child(2), td:nth-child(2) { display: none; }
+  .ph .chip { padding: 0 8px 0 7px; gap: 5px; font-size: 11.5px; } .ph .chips { gap: 4px; }
   .stagebody { grid-template-columns: 190px minmax(0, 1fr); } .kpi b { font-size: 20px; } .rail { padding: 8px; gap: 7px; }
   thead th, td, tr.grp td { padding-left: 8px; padding-right: 8px; } td.n { font-size: 12px; }
   main { grid-template-columns: minmax(0, 1fr) 436px; padding: 8px; gap: 8px; } input[type=range] { width: 84px; } .tbox { width: 92px; }
@@ -115,19 +127,11 @@ tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-s
     <input id="slider" type="range" min="0" max="0" value="0" aria-label="Čas ve výboji">
     <input id="tbox" class="tbox" type="text" readonly aria-label="Čas">
   </div>
-  <div class="group"><label class="k" for="speed">Rychlost</label><select id="speed"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option><option value="8">8×</option></select></div>
-  <div class="group">
-    <label class="chip" style="--c:#0f172a"><input type="checkbox" id="showTrue" checked><span class="g"></span>Skutečnost</label>
-    <label class="chip" style="--c:#e5502f"><input type="checkbox" id="showPred" checked><span class="g dash"></span>Předpověď</label>
-    <label class="chip" id="chipNoise" style="--c:#0b8f7c"><input type="checkbox" id="showNoise"><span class="g dot"></span>Šum měření</label>
-    <label class="chip" style="--c:#101d42"><input type="checkbox" id="showPts" checked><span class="g dot"></span>Body</label>
-    <label class="chip" style="--c:#101d42"><input type="checkbox" id="showGrid" checked><span class="g grid"></span>Mřížka</label>
-  </div>
-  <div class="group"><button id="export" title="Uložit aktuální průřez jako obrázek"><svg viewBox="0 0 14 14"><path d="M6 1h2v6l2.2-2.2 1.4 1.4L7 10.8 2.4 6.2l1.4-1.4L6 7V1Z"/><rect x="1.5" y="11" width="11" height="2" rx="1"/></svg><span>Uložit PNG</span></button></div>
+  <div class="group"><label class="k" for="speed">Rychlost</label><select id="speed"><option value="0.25">0,25×</option><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></div>
 </div>
 <main>
   <div class="left">
-    <section class="panel"><div class="ph">Poloidální průřez, rovina R–Z<span class="sp" id="cfgTag"></span></div><div class="stagebody"><aside class="rail" id="rail"></aside><div class="pb"><canvas id="stage"></canvas></div></div></section>
+    <section class="panel stagepanel"><div class="ph">Tvar plazmatu v řezu tokamakem<span class="sp" id="cfgTag"></span><div class="chips"><label class="chip" style="--c:#0f172a"><input type="checkbox" id="showTrue" checked><span class="g"></span>Skutečnost</label><label class="chip" style="--c:#e5502f"><input type="checkbox" id="showPred" checked><span class="g dash"></span>Předpověď</label><label class="chip" id="chipNoise" style="--c:#0b8f7c"><input type="checkbox" id="showNoise"><span class="g dot"></span>Šum měření</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showPts" checked><span class="g dot"></span>Body</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showGrid" checked><span class="g grid"></span>Mřížka</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showLens" checked><span class="g dot"></span>Lupa</label><button id="export" title="Uložit aktuální průřez jako obrázek (PNG)" aria-label="Uložit PNG"><svg viewBox="0 0 14 14"><path d="M6 1h2v6l2.2-2.2 1.4 1.4L7 10.8 2.4 6.2l1.4-1.4L6 7V1Z"/><rect x="1.5" y="11" width="11" height="2" rx="1"/></svg></button></div></div><div class="legendbar" id="legendbar"></div><div class="stagebody"><aside class="rail" id="rail"></aside><div class="pb"><canvas id="stage"></canvas></div></div></section>
     <section class="panel"><div class="ph">Chyba předpovědi v čase <select id="param" aria-label="Parametr"></select><span class="sp" id="chartStats"></span></div><div class="pb"><canvas id="chart"></canvas></div></section>
   </div>
   <section class="panel tablepanel">
@@ -152,9 +156,10 @@ function fmt(v, d) {
   let s = v.toFixed(d); if (/^-0(\.0*)?$/.test(s)) s = s.slice(1);
   return s.replace(".", ",").replace("-", MINUS);
 }
-const fmtSigned = (v, d) => (v == null ? "–" : (v >= 0 && fmt(v, d)[0] !== MINUS ? "+" : "") + fmt(v, d));
+const fmtSigned = (v, d) => { if (v == null) return "–"; const s = fmt(v, d); return s[0] === MINUS || /^0[,0]*$/.test(s) ? s : "+" + s; };
+const LATENCY_MS = 0.0145; // median per sample, one CPU thread, results/ipp1-latency.md
 const show = { true: true, pred: true, pts: true, grid: true };
-const state = { di: 0, i: 0, playing: false, speed: 2, param: "axis", hover: null, noise: false };
+const state = { di: 0, i: 0, pos: 0, playing: false, speed: 1, param: "axis", hover: null, noise: false };
 const TEAL = "#0b8f7c";
 // Prediction sets drawn right now: [column suffix, colour, label]. The noise mode compares a plain and a hardened network on noisy inputs.
 const sets = () => (state.noise ? [["_clean_on_noisy", COL.pred, "Běžná síť, zašuměná měření"], ["_hardened_on_noisy", TEAL, "Odolná síť, zašuměná měření"]] : [["_pred", COL.pred, "Předpověď sítě"]]);
@@ -273,17 +278,49 @@ function drawAxes(ctx, t) {
   ctx.textAlign = "center"; ctx.fillText("R (m)", v.x0 + v.pw / 2, v.y0 + v.ph + 36);
   ctx.save(); ctx.translate(v.x0 - 46, v.y0 + v.ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText("Z (m)", 0, 0); ctx.restore();
 }
-function drawLegend(ctx) {
-  const v = view, rows = [["line", "Skutečnost (reference)", COL.true], ...sets().map(([, col, label]) => ["dash", label, col]), ["circle", "Magnetická osa"], ["x", "X-bod"], ["tri", "Strike point"], ["square", "Bod dotyku s limiterem"]];
-  const w = state.noise ? 214 : 168, h = rows.length * 17 + 10, outside = v.w - (v.x0 + v.pw) - 12 >= w + 8;
-  const x = outside ? v.x0 + v.pw + 14 : v.x0 + v.pw - w - 10, y = v.y0 + (outside ? 0 : 10);
-  ctx.fillStyle = "rgba(255,255,255,0.94)"; ctx.fillRect(x, y, w, h); ctx.strokeStyle = COL.border; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w, h);
-  ctx.font = FONT; ctx.textAlign = "left"; ctx.fillStyle = "#334155";
-  rows.forEach(([k, label, rc], n) => {
-    const cy = y + 14 + n * 17;
-    if (k === "line" || k === "dash") { ctx.strokeStyle = rc; ctx.lineWidth = 2; ctx.setLineDash(k === "dash" ? [6, 4] : []); ctx.beginPath(); ctx.moveTo(x + 8, cy); ctx.lineTo(x + 32, cy); ctx.stroke(); ctx.setLineDash([]); }
-    else marker(ctx, k, x + 20, cy, "#64748b", false, 4.5);
-    ctx.fillStyle = "#334155"; ctx.fillText(label, x + 40, cy + 4);
+function drawLegendBar() {
+  const glyph = (k, col) => k === "line" || k === "dash"
+    ? `<svg viewBox="0 0 22 12"><line x1="1" y1="6" x2="21" y2="6" stroke="${col}" stroke-width="2.2" ${k === "dash" ? 'stroke-dasharray="6 4"' : ""}/></svg>`
+    : `<svg viewBox="0 0 22 12"><g transform="translate(11 6)" stroke="#64748b" stroke-width="1.6" fill="none">${{ circle: '<circle r="4.2"/>', x: '<path d="M-4-4L4 4M4-4L-4 4"/>', tri: '<path d="M-4.4-3.6H4.4L0 4Z"/>', square: '<rect x="-4" y="-4" width="8" height="8"/>' }[k]}</g></svg>`;
+  const items = [["line", "Skutečnost", COL.true], ...sets().map(([, col, label]) => ["dash", label, col]), ["circle", "magnetická osa"], ["x", "X-bod"], ["tri", "strike point"], ["square", "bod dotyku s limiterem"]];
+  $("#legendbar").innerHTML = `<span><b>${state.noise ? "Černá = skutečný tvar, barevně = dvě sítě na zašuměných měřeních" : "Černá = skutečný tvar plazmatu, červeně = předpověď sítě z 24 magnetických čidel"}</b></span>` +
+    items.map(([k, label, col]) => `<span class="it">${glyph(k, col)}${label}</span>`).join("");
+}
+// Magnifier tiles: the true point in the centre, the predicted points around it, the window sized to the error.
+function drawLenses(ctx) {
+  const v = view, c = cur().c, i = state.i;
+  if (!show.lens) return;
+  const freeX = v.x0 + v.pw + 22, freeW = v.w - freeX - 14, ps = sets();
+  if (freeW < 110) return;
+  const lim = isLimited(c, i, "");
+  const pts = [["Magnetická osa", "R_mag_axis", "Z_mag_axis"]].concat(lim ? [["Bod dotyku s limiterem", "R_limiter", "Z_limiter"]]
+    : [["X-bod", "R_x_point", "Z_x_point"], ["Strike point 1 (menší R)", "sp:0:R", "sp:0:Z"], ["Strike point 2 (větší R)", "sp:1:R", "sp:1:Z"]]);
+  const tiles = pts.map(([label, rn, zn]) => ({ label, tr: value(c, i, rn, ""), tz: value(c, i, zn, ""), pr: ps.map(([s, col]) => [value(c, i, rn, s), value(c, i, zn, s), col]) })).filter((q) => q.tr != null && q.tz != null);
+  let cols = freeW >= 2 * 112 + 10 ? 2 : 1, side = clamp(Math.floor((freeW - (cols - 1) * 10) / cols), 96, 176);
+  const rowsOf = (n) => Math.ceil(n / cols), blockH = (s) => 20 + s + 14 * (ps.length + (s < 130 ? 1 : 0)) + 10;
+  let list = tiles;
+  while (list.length > 1 && rowsOf(list.length) * blockH(side) > v.h - 44) { if (side > 96) side -= 8; else list = list.slice(0, list.length - 1); }
+  ctx.font = "600 12px -apple-system, 'SF Pro Text', 'Segoe UI', Arial, sans-serif"; ctx.fillStyle = "#101d42"; ctx.textAlign = "left"; ctx.fillText("Lupa: kde se síť liší", freeX, v.y0 + 10);
+  list.forEach((q, n) => {
+    const bx = freeX + (n % cols) * (side + 10), by = v.y0 + 22 + Math.floor(n / cols) * blockH(side);
+    const errs = q.pr.map(([r, z]) => (r == null || z == null ? 0 : Math.hypot(r - q.tr, z - q.tz) * 1000)), want = Math.max(...errs, 0.2) * 1.6;
+    const h = [1, 2, 5, 10, 20, 50, 100, 200, 500].find((x) => x >= want) || 500, px = side / (2 * h), cx = bx + side / 2, cy = by + 20 + side / 2;
+    ctx.font = "600 11px -apple-system, 'SF Pro Text', 'Segoe UI', Arial, sans-serif"; ctx.fillStyle = "#334155"; ctx.textAlign = "left"; ctx.fillText(q.label, bx, by + 10);
+    ctx.fillStyle = "#fff"; ctx.fillRect(bx, by + 16, side, side); ctx.strokeStyle = COL.border; ctx.strokeRect(bx + 0.5, by + 16.5, side, side);
+    ctx.save(); ctx.beginPath(); ctx.rect(bx, by + 16, side, side); ctx.clip();
+    ctx.strokeStyle = COL.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx, by + 16); ctx.lineTo(cx, by + 16 + side); ctx.moveTo(bx, cy); ctx.lineTo(bx + side, cy); ctx.stroke();
+    q.pr.forEach(([r, z, col]) => {
+      if (r == null || z == null) return;
+      const x = cx + (r - q.tr) * 1000 * px, y = cy - (z - q.tz) * 1000 * px;
+      ctx.strokeStyle = col; ctx.lineWidth = 1.4; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, 4.5, 0, 2 * Math.PI); ctx.fill();
+    });
+    ctx.strokeStyle = COL.true; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(cx, cy, 7, 0, 2 * Math.PI); ctx.stroke();
+    ctx.restore();
+    ctx.font = "11.5px 'SF Mono', Menlo, monospace"; ctx.textAlign = "left";
+    q.pr.forEach(([, , col], k) => { ctx.fillStyle = col; ctx.textAlign = "left"; ctx.fillText(`Δ ${fmt(errs[k], errs[k] >= 10 ? 1 : 2)} mm`, bx, by + 16 + side + 14 + 14 * k); });
+    ctx.fillStyle = "#64748b"; ctx.textAlign = side >= 130 ? "right" : "left";
+    ctx.fillText(`okno ±${h} mm`, side >= 130 ? bx + side : bx, by + 16 + side + 14 + (side >= 130 ? 0 : 14 * ps.length));
   });
 }
 function drawStage() {
@@ -322,12 +359,13 @@ function drawStage() {
     ctx.moveTo(state.hover.x, v.y0); ctx.lineTo(state.hover.x, v.y0 + v.ph); ctx.moveTo(v.x0, state.hover.y); ctx.lineTo(v.x0 + v.pw, state.hover.y); ctx.stroke(); ctx.setLineDash([]);
   }
   ctx.restore();
-  drawAxes(ctx, ticks); drawLegend(ctx);
+  drawAxes(ctx, ticks); drawLenses(ctx);
 }
 
 // ---- table -------------------------------------------------------------------------------------
 function axisErr(c, i, sfx = "_pred") { return Math.hypot(c.R_mag_axis[i] - c["R_mag_axis" + sfx][i], c.Z_mag_axis[i] - c["Z_mag_axis" + sfx][i]) * 1000; }
 const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const latencyTile = () => `<div class="kpi ok"><span>Doba jednoho odhadu</span><b>${fmt(LATENCY_MS, 4)}<small>ms</small></b><em>medián, 1 jádro CPU</em></div>`;
 function drawRail() {
   const c = cur().c, i = state.i, d = cur(), lt = isLimited(c, i, false), lp = isLimited(c, i, true);
   const e = d.c.R_mag_axis.map((_, n) => axisErr(d.c, n)), mean = e.reduce((a, b) => a + b, 0) / e.length;
@@ -347,7 +385,7 @@ function drawRail() {
       tile("Chyba osy, odolná síť", fmt(axisErr(c, i, "_hardened_on_noisy"), 2), "mm", `ve výboji Ø ${fmt(avg(ax("_hardened_on_noisy")), 2)} mm`, "ok") +
       tile("Chyba " + key[2] + ", běžná", fmt(kerrOf("_clean_on_noisy"), 1), "mm", "zašuměná měření", true) +
       tile("Chyba " + key[2] + ", odolná", fmt(kerrOf("_hardened_on_noisy"), 1), "mm", "zašuměná měření", "ok") +
-      tile("Chyba proudu", `${fmt(cur_("_clean_on_noisy"), 1)} / ${fmt(cur_("_hardened_on_noisy"), 1)}`, "kA", "běžná / odolná");
+      tile("Chyba proudu", `${fmt(cur_("_clean_on_noisy"), 1)} / ${fmt(cur_("_hardened_on_noisy"), 1)}`, "kA", "běžná / odolná") + latencyTile();
     return;
   }
   const kt = [value(c, i, key[0], false), value(c, i, key[1], false)], kp = [value(c, i, key[0], true), value(c, i, key[1], true)];
@@ -355,8 +393,9 @@ function drawRail() {
   $("#rail").innerHTML =
     tile("Chyba polohy osy", fmt(axisErr(c, i), 2), "mm", `ve výboji Ø ${fmt(mean, 2)} mm`, true) +
     tile("Chyba " + key[2], kerr == null ? "–" : fmt(kerr, 1), "mm", lt === lp ? "konfigurace správně" : "konfigurace chybně", true) +
-    pair("plasma_current", 1e-3, 1, "Proud plazmatem", "kA") + pair("elongation", 1, 3, "Elongace κ", "") + pair("triangularity", 1, 3, "Triangularita δ", "");
+    pair("plasma_current", 1e-3, 1, "Proud plazmatem", "kA") + pair("elongation", 1, 3, "Elongace κ", "") + pair("triangularity", 1, 3, "Triangularita δ", "") + latencyTile();
 }
+const unitOf = (g) => { const u = [...new Set(ROWS.filter((r) => r[0] === g).map((r) => r[4]))]; return u.length === 1 && u[0] ? ` (${u[0]})` : ""; };
 function drawTable() {
   const c = cur().c, i = state.i, d = cur(), out = [];
   $("#th4").textContent = state.noise ? "Δ běžná síť" : "Předpověď"; $("#th5").textContent = state.noise ? "Δ odolná síť" : "Δ";
@@ -365,7 +404,8 @@ function drawTable() {
     out.push(`<tr class="grp"><td colspan="5">Konfigurace</td></tr><tr><td>Typ plazmatu</td><td class="u"></td><td class="n t">${lt ? "limiterové" : "divertorové"}</td><td class="n p">${lt === la ? "shoda" : "rozdíl"}</td><td class="n k">${lt === lb ? "shoda" : "rozdíl"}</td></tr>`);
     let group = "";
     for (const [g, label, name, k, unit, dec] of ROWS) {
-      if (g !== group) { out.push(`<tr class="grp"><td colspan="5">${g}</td></tr>`); group = g; }
+      if (!ROWS.some((r) => r[0] === g && value(c, i, r[2], "") != null)) continue;
+      if (g !== group) { out.push(`<tr class="grp"><td colspan="5">${g}${unitOf(g)}</td></tr>`); group = g; }
       const t = value(c, i, name, ""), a = value(c, i, name, A), b = value(c, i, name, B);
       out.push(`<tr><td>${label}</td><td class="u">${unit}</td><td class="n t">${t == null ? "–" : fmt(t * k, dec)}</td><td class="n p">${t == null || a == null ? "–" : fmtSigned((a - t) * k, dec)}</td><td class="n k">${t == null || b == null ? "–" : fmtSigned((b - t) * k, dec)}</td></tr>`);
     }
@@ -379,14 +419,16 @@ function drawTable() {
   out.push(`<tr class="grp"><td colspan="5">Konfigurace</td></tr><tr><td>Typ plazmatu</td><td class="u"></td><td class="n t">${lt ? "limiterové" : "divertorové"}</td><td class="n p">${lp ? "limiterové" : "divertorové"}</td><td class="n d">${lt === lp ? "shoda" : "rozdíl"}</td></tr>`);
   let group = "";
   for (const [g, label, name, k, unit, dec] of ROWS) {
-    if (g !== group) { out.push(`<tr class="grp"><td colspan="5">${g}</td></tr>`); group = g; }
+    if (!ROWS.some((r) => r[0] === g && (value(c, i, r[2], "") != null || value(c, i, r[2], "_pred") != null))) continue;
+    if (g !== group) { out.push(`<tr class="grp"><td colspan="5">${g}${unitOf(g)}</td></tr>`); group = g; }
     const t = value(c, i, name, false), p = value(c, i, name, true), has = t != null && p != null;
     out.push(`<tr><td>${label}</td><td class="u">${unit}</td><td class="n t">${t == null ? "–" : fmt(t * k, dec)}</td><td class="n p">${has ? fmt(p * k, dec) : "–"}</td><td class="n d">${has ? fmtSigned((p - t) * k, dec) : "–"}</td></tr>`);
   }
   $("#rows").innerHTML = out.join("");
   const e = d.c.R_mag_axis.map((_, n) => axisErr(d.c, n)), mean = e.reduce((a, b) => a + b, 0) / e.length, rms = Math.sqrt(e.reduce((a, b) => a + b * b, 0) / e.length);
   $("#sum").innerHTML = `<div><span>Chyba polohy magnetické osy, tento snímek:</span> <b>${fmt(axisErr(c, i), 2)} mm</b></div>` +
-    `<div><span>Ve výboji ${d.id}:</span> průměr <b>${fmt(mean, 2)}</b>, RMS <b>${fmt(rms, 2)}</b>, největší <b>${fmt(Math.max(...e), 1)} mm</b></div>`;
+    `<div><span>Ve výboji ${d.id}:</span> průměr <b>${fmt(mean, 2)}</b>, RMS <b>${fmt(rms, 2)}</b>, největší <b>${fmt(Math.max(...e), 1)} mm</b></div>` +
+    `<div><span>Začátek a konec výboje jsou méně spolehlivé: plazma tam vzniká nebo zaniká.</span></div>`;
 }
 
 // ---- error chart -------------------------------------------------------------------------------
@@ -464,15 +506,18 @@ function status() {
   $("#cfgTag").textContent = `${isLimited(c, i, false) ? "limiterová" : "divertorová"} konfigurace · t = ${fmt(c.time[i], 3)}`;
   $("#tbox").value = `t = ${fmt(c.time[i], 3)}`;
 }
-function render() { drawStage(); drawRail(); drawTable(); drawChart(); status(); $("#slider").value = state.i; $("#slider").style.setProperty("--p", (cur().n > 1 ? (100 * state.i) / (cur().n - 1) : 0) + "%"); }
+function render() { if (!state.playing) state.pos = state.i; drawLegendBar(); drawStage(); drawRail(); drawTable(); drawChart(); status(); $("#slider").value = state.i; $("#slider").style.setProperty("--p", (cur().n > 1 ? (100 * state.i) / (cur().n - 1) : 0) + "%"); }
 function selectDischarge(idx) { state.di = idx; state.i = 0; $("#slider").max = cur().n - 1; $("#discharge").value = idx; render(); }
 function init() {
   $("#discharge").innerHTML = D.discharges.map((d, k) => `<option value="${k}">Výboj ${d.id} · osa ${fmt(d.axisErrMm, 1)} mm · ${Math.round(d.limitedShare * 100)} % lim.</option>`).join("");
   $("#param").innerHTML = PARAMS.map(([v, l]) => `<option value="${v}">${l}</option>`).join("");
   const q = new URLSearchParams(location.hash.slice(1));
   const byId = q.has("d") ? D.discharges.findIndex((d) => d.id === +q.get("d")) : -1;
-  const median = [...D.discharges].sort((a, b) => a.axisErrMm - b.axisErrMm)[Math.floor(D.discharges.length / 2)];
-  layoutStage(); selectDischarge(byId >= 0 ? byId : D.discharges.indexOf(median));
+  // Open on a typical divertor discharge, in the middle of its longest divertor stretch (not on the start or end frames).
+  const div = D.discharges.filter((d) => d.limitedShare < 0.6), med = [...div].sort((a, b) => a.axisErrMm - b.axisErrMm)[Math.floor(div.length / 2)];
+  const midFrame = (d) => { let best = [0, 0], s0 = null; for (let k = 0; k <= d.n; k++) { const dv = k < d.n && d.c.is_limited[k] < 0.5; if (dv && s0 == null) s0 = k; if (!dv && s0 != null) { if (k - s0 > best[1] - best[0]) best = [s0, k]; s0 = null; } } return Math.floor((best[0] + best[1]) / 2); };
+  layoutStage(); selectDischarge(byId >= 0 ? byId : D.discharges.indexOf(med));
+  if (byId < 0 && !q.get("f")) { state.i = midFrame(cur()); render(); }
   if (q.get("f")) { state.i = clamp(Math.round(+q.get("f") * (cur().n - 1)), 0, cur().n - 1); render(); }
   if (q.get("noise") === "1" && D.hasNoise) { state.noise = true; $("#showNoise").checked = true; render(); }
   if (q.get("play") === "1") play(true);
@@ -481,7 +526,7 @@ let timer = null;
 const ICON_PLAY = '<svg viewBox="0 0 14 14"><polygon points="3,1.5 12,7 3,12.5"/></svg>', ICON_PAUSE = '<svg viewBox="0 0 14 14"><rect x="2.5" y="2" width="3" height="10"/><rect x="8.5" y="2" width="3" height="10"/></svg>';
 function play(on) {
   state.playing = on; $("#play").innerHTML = on ? ICON_PAUSE : ICON_PLAY; $("#play").classList.toggle("on", on); clearInterval(timer);
-  if (on) timer = setInterval(() => { state.i = (state.i + state.speed) % cur().n; render(); }, 33);
+  if (on) { state.pos = state.i; timer = setInterval(() => { state.pos = (state.pos + (cur().n / 300) * state.speed) % cur().n; state.i = Math.floor(state.pos); render(); }, 33); }
 }
 const step = (k) => { state.i = clamp(state.i + k, 0, cur().n - 1); render(); };
 $("#play").onclick = () => play(!state.playing);
@@ -493,7 +538,8 @@ $("#speed").onchange = (e) => (state.speed = +e.target.value);
 $("#param").onchange = (e) => { state.param = e.target.value; drawChart(); };
 if (!D.hasNoise) $("#chipNoise").style.display = "none";
 $("#showNoise").onchange = (e) => { state.noise = e.target.checked; render(); };
-for (const [id, key] of [["showTrue", "true"], ["showPred", "pred"], ["showPts", "pts"], ["showGrid", "grid"]]) $("#" + id).onchange = (e) => { show[key] = e.target.checked; drawStage(); };
+show.lens = true;
+for (const [id, key] of [["showTrue", "true"], ["showPred", "pred"], ["showPts", "pts"], ["showGrid", "grid"], ["showLens", "lens"]]) $("#" + id).onchange = (e) => { show[key] = e.target.checked; drawStage(); };
 $("#export").onclick = () => stage.toBlob((b) => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `vyboj${cur().id}_t${cur().c.time[state.i].toFixed(3)}.png`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); });
 stage.addEventListener("mousemove", (e) => {
   const r = stage.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;

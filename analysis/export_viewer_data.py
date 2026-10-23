@@ -18,6 +18,7 @@ import pandas as pd
 ROOT = Path(os.environ.get("HACKATHON_HOME", "."))
 DATA = ROOT / "data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.csv"
 PRED = ROOT / "out/ipp1-predictions.csv"
+FULL = ROOT / "out/ipp1-predictions-full.csv"  # all 31 targets incl. the geometry columns; draws the predicted outline
 NOISE = ROOT / "out/ipp1-predictions-noise.csv"
 WALL = ROOT / "data/raw/organizers/COMPASS_stena.csv"
 TARGET = Path(__file__).resolve().parents[1] / "viewer/data.js"
@@ -36,7 +37,7 @@ def column(values, decimals):
 
 
 true = pd.read_csv(DATA, usecols=["discharge"] + TRUE_COLS)
-pred = pd.read_csv(PRED)
+pred = pd.read_csv(FULL if FULL.exists() else PRED)
 # The prediction file prints time with fewer digits, so a join on the float time loses rows; the rows have
 # the same order, which the checks below enforce.
 assert len(true) == len(pred), (len(true), len(pred))
