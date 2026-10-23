@@ -93,9 +93,11 @@ Without `--quick` the whole run takes a little over an hour (`ipp1_inputs.py` al
 already exist. Aggregate results and their interpretation are in `results/` and the notebooks.
 
 Notes from the second-machine check (`docs/PLAN.md`, RP-1 to RP-14):
-- On Linux `uv pip install torch` downloads the CUDA build, about 3 GB. The scripts use only the CPU; the CPU build
-  (`uv pip install --python ~/.venvs/hackathon/bin/python torch --index-url https://download.pytorch.org/whl/cpu`, about
-  200 MB) should do, but was not tested here.
+- On Linux `uv pip install torch` downloads the CUDA build, about 3 GB (a 5.7 GB venv). The scripts use only the CPU, so
+  install the CPU build first and the rest afterwards (tested: `torch 2.14.1+cpu` in 110 s, a 1.3 GB venv, and
+  `ipp1_baseline.py` gave all 16 MAE and R2 values of `results/ipp1-baseline.md` unchanged):
+  `uv pip install --python ~/.venvs/hackathon/bin/python torch --index-url https://download.pytorch.org/whl/cpu`, then the
+  `uv pip install` line above.
 - Versions that reproduced `results/ipp1-baseline.md` on the second machine: Python 3.12.15, torch 2.14.1, numpy 2.5.4,
   pandas 3.1.0, scikit-learn 1.9.1, scipy 1.18.1, nbconvert 7.17.2. Latency figures depend on the processor.
 
