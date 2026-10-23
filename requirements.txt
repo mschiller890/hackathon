@@ -1,0 +1,19 @@
+# Versions that produced the results in this repository (Python 3.12, macOS, Apple M5).
+# Install: python -m pip install -r requirements.txt
+# On Linux install the CPU build of torch first (about 200 MB instead of 3 GB of CUDA wheels):
+#   python -m pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+numpy==2.5.4
+pandas==3.1.0
+scikit-learn==1.9.1
+scipy==1.18.1
+torch==2.14.1
+matplotlib==3.11.2
+nbclient==0.11.0
+nbformat==5.11.1
+nbconvert==7.17.2
+ipykernel==7.4.0
+
+# Only to rebuild the presentation, the PDFs and the viewer (not needed to rerun the notebooks):
+# markdown==3.11.2
+# python-pptx==1.0.2
+# pillow==13.0.0

@@ -12,6 +12,7 @@ CVUT ML Hackathon 2026. A small neural network estimates 16 numbers that describ
 | `slides.pdf`, `slides.pptx` | The presentation (7 minutes, with a live demo of the shape viewer) |
 | `handout.pdf` | One-page summary for the jury (Czech) |
 | `analysis/ipp1_common.py`, `analysis/ipp1_final.py`, `analysis/export_model.py` | The training: the network, the masked loss, the training loop (`fit_net`) and the export of the trained model. `python analysis/export_model.py` trains the shipped model from the data (about 30 s) and writes `model/ipp1-selected.npz`. Needs the IPP data (`HACKATHON_HOME`) |
+| `requirements.txt` | Python 3.12 packages with the versions that produced the results (`python -m pip install -r requirements.txt`) |
 | `predict.py` | Try the model: `python predict.py input.csv` (numpy only). The CSV has the columns IPR01..IPR16 and FL01..FL08; the output is the 16 estimates per row in mm and kA. Needs `model/ipp1-selected.npz` and `model/ipp1-selected.json` (given to the organisers separately: the weights are derived from the confidential IPP data and are not published) |
 
 ## Run it again (needs the IPP data)
