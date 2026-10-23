@@ -1,70 +1,74 @@
-# Hackathon
+# Hackathon Assignment
 
-> **Status: pre-specification.** The assignment specification has not yet been supplied,
-> so this repository contains no solution, no source code, and no project description.
-> Inventing any of those would be fabrication. This README will be rewritten once the
-> actual problem is known.
+This repository contains the implementation and supporting engineering work for a
+hackathon assignment.
 
-## Purpose
+The project will be developed against the official assignment specification, with an
+emphasis on correctness, maintainability, appropriate testing, clear technical reasoning,
+and reproducible results.
 
-This repository is the delivery target for a hackathon assignment
-(`github.com/mschiller890/hackathon`). It exists to hold the engineering workflow, and
-eventually the implementation, for that assignment.
+**Current status:** Awaiting the assignment specification.
 
-Right now its only job is to be **ready to receive the specification** and to make the
-working method explicit before any code is written.
+## Project Overview
 
-## What is here
+The problem statement, solution approach, and deliverables will be documented here once
+the official specification is available.
 
-| Path | What it is |
+Implementation decisions, technology choices, and project structure will be based on the
+actual requirements rather than assumptions made in advance.
+
+## Repository Structure
+
+| Path | Purpose |
 |---|---|
-| [`AGENTS.md`](AGENTS.md) | The engineering workflow. Read this first — it governs all work in this repo. |
-| [`README.md`](README.md) | This file. The human entry point. |
-| [`docs/PLAN.md`](docs/PLAN.md) | The task tracker. What work remains and what is done. |
-| [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md) | Requirement IDs and traceability. Empty until the spec arrives. |
-| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Why significant choices were made. |
+| `AGENTS.md` | Engineering workflow, coding standards, testing expectations, and Git practices. |
+| `docs/PLAN.md` | Project milestones, tasks, dependencies, and progress. |
+| `docs/REQUIREMENTS.md` | Assignment requirements, acceptance criteria, and verification traceability. |
+| `docs/DECISIONS.md` | Significant technical decisions and their rationale. |
 
-There is **no** `src/`, `tests/`, or `docs/ARCHITECTURE.md` yet. They are created only
-when the assignment provides something real to put in them.
+Additional source code, tests, and technical documentation will be organized according to
+the assignment's requirements and the chosen technology stack.
 
-## Setup and usage
+## Getting Started
 
-Nothing to install or run — there is no code and no build system. No language, framework,
-or dependency has been chosen, because the problem that would justify the choice is
-unknown.
+Setup, execution, and testing instructions will be added once the implementation and its
+tooling are established.
 
-When a stack is chosen, its setup, run, and test commands will be documented here, with
-verification detail in `docs/TESTING.md`.
+When available, this section will cover:
 
-## How to work in this repository
+- Prerequisites and dependencies.
+- Installation and configuration.
+- How to run the solution.
+- How to execute the test suite.
+- Example inputs and expected outputs.
 
-Read [`AGENTS.md`](AGENTS.md) in full first. In short:
+## Engineering Approach
 
-1. Inspect the repo before changing it (`AGENTS.md` §1).
-2. Do not design until the problem is understood (§2).
-3. Track all work in [`docs/PLAN.md`](docs/PLAN.md) — the single task board (§3).
-4. Record requirements with stable IDs in [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md).
-5. Test from requirements and failure modes, not from hope (§9).
-6. Commit often and push to `main` regularly (§14).
+Development follows the repository instructions in [`AGENTS.md`](AGENTS.md).
 
-## Documentation ownership
+The workflow emphasizes:
 
-Each category has exactly one authoritative file. Do not duplicate detail across files —
-link to the owner instead.
+- Requirements-driven planning and implementation.
+- Clear, maintainable code and justified technical decisions.
+- Appropriate algorithm analysis and complexity evaluation.
+- Tests designed around acceptance criteria and likely failure modes.
+- Accurate documentation and reproducible verification.
+- Meaningful Git commits and regular pushes to the designated GitHub repository.
 
-| Question | Authoritative file |
-|---|---|
-| How must the work be done? | [`AGENTS.md`](AGENTS.md) |
-| What is this project? | [`README.md`](README.md) — this file |
-| What work remains? | [`docs/PLAN.md`](docs/PLAN.md) |
-| What must be delivered? | [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md) |
-| How is correctness verified? | `docs/TESTING.md` — *not yet created* |
-| How does the solution work? | `docs/ARCHITECTURE.md` — *not yet created* |
-| Why were choices made? | [`docs/DECISIONS.md`](docs/DECISIONS.md) |
+## Documentation
 
-## Known limitations
+- [`AGENTS.md`](AGENTS.md) — Engineering instructions and working practices.
+- [`docs/PLAN.md`](docs/PLAN.md) — Task tracking and implementation progress.
+- [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md) — Requirements and acceptance criteria.
+- [`docs/DECISIONS.md`](docs/DECISIONS.md) — Significant technical decisions.
 
-- The assignment specification is outstanding. No requirements, architecture, algorithms,
-  or acceptance criteria have been established, and none should be assumed.
-- No verification tooling (tests, linter, type checker) exists yet, so no verification
-  claims can currently be made about this repository.
+Further documentation will be linked here as it becomes relevant.
+
+## Project Status and Verification
+
+The assignment specification has not yet been incorporated into the project. Consequently,
+the final functionality, architecture, technology stack, and acceptance criteria remain to
+be established.
+
+Build instructions, automated tests, and verification results will be documented when the
+corresponding implementation and tooling are available.
