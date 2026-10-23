@@ -2,7 +2,7 @@
 
 Branch `cloud/tidy` (from `origin/main` 3b10670, rollback tag `pre-cleanup-20261023-2248` exists on origin), session of Fri 23 Oct 2026 about 23:00 to 00:30 CEST.
 Static verification only: the IPP data are not in this mirror, so no analysis script, no notebook execution and no viewer build was run.
-Nothing under `analysis/`, `notebooks/` or `results/` was renamed, moved or deleted. 203 tracked files before, 203 after
+Nothing under `analysis/`, `notebooks/` or `results/` was renamed, moved or deleted. 203 tracked files before, 204 after
 (+ `analysis/README.md`, `analysis/check_links.py`, `docs/README.md`, this file; minus 3 deleted).
 
 ## 1. Moves (`git mv`, commit "refactor: move internal working documents ...")
