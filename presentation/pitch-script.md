@@ -5,7 +5,7 @@ tags:
 
 # Pitch: 7 minut pro porotu
 
-Stav: přepsáno v pátek 23. října večer podle `docs/review-findings-2.md` (Kritik 2) a `docs/claims-corrections.md`, potom opraveno podle `docs/review-findings-3.md` (Kritik 3). Každá mluvená věta souhlasí se souborem v `results/` a s obrazovkou po úpravách z `docs/deck-fixes.md`. Pod každým číslem přesnosti říkáme, na jakých výbojích bylo změřeno. Čas vybraného modelu je změřený (`results/ipp1-latency-shipped.md`). Na přehrání čeká jen `[[chyba osy výboje 0]]` (číslo z prohlížeče den předem; bez něj se říká věta bez čísla). Název `[[odezva vybraného modelu]]` je rezervovaný pro číslo, které by čekalo na další soubor; teď se nepoužívá. Pořadí snímků sedí s `repo/presentation/outline.md`; co má změnit sazeč decku, je v `docs/deck-fixes.md`. Formát tabulek se nesmí měnit, čte ho `deck/build_deck.py` (nadpisy `### Snímek N`, řádek `Hlavní věta:` a řádky `| m:ss | sek. | kdo | text | obrazovka |`).
+Stav: přepsáno v pátek 23. října večer podle `docs/review-findings-2.md` (Kritik 2) a `docs/claims-corrections.md`, potom opraveno podle `docs/review-findings-3.md` (Kritik 3). Každá mluvená věta souhlasí se souborem v `results/` a s obrazovkou po úpravách z `docs/deck-fixes.md`. Pod každým číslem přesnosti říkáme, na jakých výbojích bylo změřeno. Čas vybraného modelu je změřený (`results/ipp1-latency-shipped.md`). Na přehrání čeká jen `0,22 milimetru` (číslo z prohlížeče den předem; bez něj se říká věta bez čísla). Název `[[odezva vybraného modelu]]` je rezervovaný pro číslo, které by čekalo na další soubor; teď se nepoužívá. Pořadí snímků sedí s `repo/presentation/outline.md`; co má změnit sazeč decku, je v `docs/deck-fixes.md`. Formát tabulek se nesmí měnit, čte ho `deck/build_deck.py` (nadpisy `### Snímek N`, řádek `Hlavní věta:` a řádky `| m:ss | sek. | kdo | text | obrazovka |`).
 
 ## Jak je to postavené
 
@@ -97,13 +97,13 @@ Obrázek: žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html)
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 2:29 | 13 | A | Teď naživo. Prohlížeč běží bez internetu. Vidíte základní síť, ne vybraný model, který je u osy na odložených výbojích asi dvakrát přesnější. | Cmd+Tab do prohlížeče. Okno je předem otevřené na adrese končící #d=123, rychlost 1×, zastaveno. Dlaždice v prohlížeči musí říkat základní síť. |
-| 2:42 | 12 | A | Tmavá čára je skutečný tvar, oranžová odhad sítě. Výboj číslo 123 síť neviděla, nepatří ani mezi odložených třicet. | Ukázat na přepínače Skutečnost a Předpověď. Mezerník spustí přehrávání. Stav dole: validační skupina 1 z 5. |
+| 2:29 | 13 | A | Teď naživo. Prohlížeč běží bez internetu. Vidíte vybraný model na třiceti výbojích, které jsme odložili; obrys nepředpovídá, ukazuje body. | Cmd+Tab do prohlížeče. Okno je předem otevřené na výboji 85, rychlost 1×, zastaveno. Dlaždice říká vybraný model. |
+| 2:42 | 12 | A | Tmavá čára je skutečný tvar, barevné značky jsou odhad modelu. Výboj číslo 85 patří mezi odložených třicet, je to typický výboj. | Ukázat na přepínače Skutečnost a Předpověď. Mezerník spustí přehrávání. |
 | 2:54 | 6 | A | (ticho, výboj běží a porota se dívá) | Nech výboj proběhnout dvakrát. |
-| 3:00 | 12 | A | Kroužek je osa, křížek bod X. Dole je chyba v čase, v tomto výboji roste na začátku a na konci. | Ukázat na značky a spodní graf. Před vystoupením ověřit, že graf to opravdu ukazuje. |
-| 3:12 | 14 | A | Teď záměrně špatný výboj, číslo 0. Rozdíl je vidět, chyba osy je podle prohlížeče [[chyba osy výboje 0]] milimetru. | Výboj 0 z nabídky nebo adresa s #d=0. Číslo doplnit až po přehrání den předem; bez ověřeného čísla řekni jen: Rozdíl mezi čárami je vidět. |
+| 3:00 | 12 | A | Kroužek je osa, křížek bod X. Chyba osy je tady čtvrtina milimetru, na začátku i uprostřed výboje. | Ukázat na značky a tabulku. Čísla z prohlížeče: začátek 0,22 mm, střed 0,25 mm (docs/demo-facts.md). |
+| 3:12 | 14 | A | Teď nejhorší konec: výboj číslo 147, poslední snímek. Osa je vedle o třicet tři milimetrů a bod u limiteru o sto pět, ale průměr celého výboje je pod milimetrem. | Výboj 147 z nabídky, poslední snímek (t 1,0). Čísla: osa 33,7 mm, bod u limiteru 105,5 mm, průměr výboje 0,85 mm (docs/demo-facts.md). |
 | 3:26 | 5 | A | (ticho, špatný výboj běží) | Ukázat na místo, kde se čáry rozcházejí. |
-| 3:31 | 14 | B | Takových výbojů je málo: u základní sítě má chybu osy pod milimetrem 86 procent výbojů, tedy 128 ze 149. | Protokol: základní síť, pět dělení po výbojích (results/ipp1-claim-support.md); jen tři výboje jsou přes 5 mm. |
+| 3:31 | 14 | B | Takových výbojů je málo: všech třicet odložených má průměrnou chybu osy pod milimetrem, medián 0,18, a ze všech 149 jsou pod milimetrem 135. | Protokol: vybraný model, odložených 30 a vývojové výboje mimo učení, vzdálenost osy (docs/demo-facts.md); dva výboje nad 5 mm, obě vývojové (id 0 a 11). |
 | 3:45 | 4 | A | (ticho, přepnutí zpět) | Cmd+Tab zpět do prezentace, klik na snímek 5. Dlaždici latence v prohlížeči neukazovat ani neříkat (v prohlížeči je základní síť; číslo zazní na snímku 5). |
 
 ### Snímek 5: Rychlost, verdikt pro řízení (3:49 až 4:29, 40 s)
@@ -164,15 +164,15 @@ Obrázek: 07-closing.png
 * Slova základní síť a vybraný model nikdy nezaměňuj. Rychlost 0,0145 milisekundy patří základní síti, nikdy vybranému modelu. Vybraný model má asi 0,03 milisekundy, u limitovaného plazmatu medián 0,027, u divertorového 0,015.
 * Rozpočet jedné až deseti milisekund je náš; zadání chce jednotky až desítky milisekund. Neříkej, že rozpočet dalo zadání.
 * Nečti text ze snímku. Dívej se na porotu, na obrazovku jen ukaž.
-* Před začátkem: prohlížeč otevřený na výboji 123, rychlost 1×, zastaveno; druhá záložka nebo adresa s #d=0 připravená; hlasitost a zrcadlení obrazovky vyzkoušené. Den předem přehrát výboje 123 a 0 a zapsat sem čísla, která prohlížeč ukazuje (viz Záloha ukázky).
+* Před začátkem: prohlížeč otevřený na výboji 85, rychlost 1×, zastaveno; výboj 147 připravený v nabídce; hlasitost a zrcadlení obrazovky vyzkoušené. Čísla z prohlížeče jsou v docs/demo-facts.md; den předem je jednou porovnat s tím, co prohlížeč ukazuje.
 * Kontrolní časy: 0:38 snímek 2, 1:06 snímek 3, 1:26 snímek 4, 2:29 ukázka, 3:49 snímek 5, 4:29 snímek 6, 5:03 snímek 7, 6:17 snímek 8, 7:00 konec.
 * Neznáš odpověď? Řekni: Tohle jsme neměřili. A pokračuj tím, co jsme měřili. Nikdy nehádej číslo.
 
 ## Záloha, když ukázka selže
 
-* Po první větě ukázky (2:29) řekni: Ukázka se nespustila, ukážu uložené obrázky. Pak ukaž tři obrázky z tlačítka Uložit PNG (začátek, střed a konec výboje 123) a řádky ukázky o osách a tabulce. Zkrať to na 45 sekund a zbytek času dorovnej tím, že vynecháš řádky se špatným výbojem. Skrytý snímek 10 se z prezentace otevře klávesou H (nebo napsat 10 a Enter); klávesa H funguje jen v PowerPointu, protože skrytý snímek 10 následuje hned po snímku 9. V Keynote ani v Google Slides klávesa H není: tam před vystoupením odkrýt snímek 10 nebo mít záložní kopii s odkrytým snímkem a vyzkoušet, jak se na něj přejde.
-* DOPLNIT: nahrát 60 sekund záznamu obrazovky z prohlížeče (výboj 123 a výboj 4 s přepínačem šumu) a uložit vedle prezentace; zkopírovat prohlížeč `viewer/dist/index.html` na druhý notebook. Zatím neexistuje.
-* Den před vystoupením: přehrát výboje 123 a 0 a zapsat, co prohlížeč ukazuje (počet snímků, chyba osy na konci výboje). Dřívější poznámky o 219 snímcích a o chybě 5,7 mm výboje 0 nejdou z repozitáře ověřit (prohlížeč ukazuje jen 146 snímků, každý druhý řádek) a nepoužívají se.
+* Po první větě ukázky (2:29) řekni: Ukázka se nespustila, ukážu uložené obrázky. Pak ukaž tři obrázky z tlačítka Uložit PNG (začátek, střed a konec, výboj 85 a 147) a řádky ukázky o osách a tabulce. Zkrať to na 45 sekund a zbytek času dorovnej tím, že vynecháš řádky se špatným výbojem. Skrytý snímek 10 se z prezentace otevře klávesou H (nebo napsat 10 a Enter); klávesa H funguje jen v PowerPointu, protože skrytý snímek 10 následuje hned po snímku 9. V Keynote ani v Google Slides klávesa H není: tam před vystoupením odkrýt snímek 10 nebo mít záložní kopii s odkrytým snímkem a vyzkoušet, jak se na něj přejde.
+* Záznam hotový: `out/viewer-demo.mp4` (60 s, výboj 85, jen na počítači, mimo git). Zkopírovat ho a `viewer/dist/index.html` na druhý notebook. Plynulejší verze: `viewer/record.py --seconds 20`.
+* Den před vystoupením: jednou přehrát výboje 85 a 147 a porovnat s docs/demo-facts.md. Dřívější čísla pro výboje 123, 0 a 11 pocházela ze základní sítě a nepoužívají se.
 
 ## Záloha: kamera (skrytý snímek 5 v decku)
 
@@ -246,7 +246,7 @@ Odpovídá B: Náš model je naučený jen na COMPASSu a na jiném zařízení b
 ### 10. Podnikatel
 Otázka: Proč věřit modelu, který neříká, jak si je jistý? Co když se plete?
 
-Odpovídá B: Síť sama vydá jen číslo. Zkusili jsme pět sítí s různým náhodným začátkem, základní síť v pěti dělení po výbojích: na deseti procentech řádků, kde se nejvíc rozcházejí, je chyba 8krát větší než na zbytku a ty řádky nesou 47 procent celé chyby. Je to použitelné varování, ne pravděpodobnost chyby, a netestovali jsme ho na neobvyklých tvarech ani na zašuměném vstupu. Slabá místa známe: bod u limiteru, začátek a konec výboje a šum. V prohlížeči jste viděli špatný výboj, rozdíl mezi čárami byl vidět. (Číslo říkej jen po ověření: chyba osy [[chyba osy výboje 0]] milimetru. Bez ověřeného čísla neříkej žádné.)
+Odpovídá B: Síť sama vydá jen číslo. Zkusili jsme pět sítí s různým náhodným začátkem, základní síť v pěti dělení po výbojích: na deseti procentech řádků, kde se nejvíc rozcházejí, je chyba 8krát větší než na zbytku a ty řádky nesou 47 procent celé chyby. Je to použitelné varování, ne pravděpodobnost chyby, a netestovali jsme ho na neobvyklých tvarech ani na zašuměném vstupu. Slabá místa známe: bod u limiteru, začátek a konec výboje a šum. V prohlížeči jste viděli špatný výboj, rozdíl mezi čárami byl vidět. (Číslo říkej jen po ověření: chyba osy 0,22 milimetru milimetru. Bez ověřeného čísla neříkej žádné.)
 
 ## Příloha: dalších třináct otázek od Kritika 2
 
@@ -353,7 +353,7 @@ If the stopwatch says over, cut in this order (written-out words saved, from the
 | M2 camera | Hidden backup, no seconds, 20 s line, title 1,3 až 13krát, "malá síť" wording. |
 | M3 labelled noise numbers | Protocol said with every number; the 2,33 bar is not spoken and is deleted from the slide (deck-fixes). |
 | M4 stale answers | Q4, Q5, Q6, Q8 rewritten, plus Q2, Q3, Q7, Q10 refreshed; N2, N4, N7 give the sources. Review 3: Q5 uses the seed spread of `ipp1-final-seeds.md` (0,133 SD 0,006 and 0,289 SD 0,011) instead of "0,12" (in no file); Q6 says trees were tried for the limiter point (`ipp1-improve.md:37-40`) and the noise line is "10 až 15 procent" (`ipp1-inputs-controls.md`); Q8 and N5 give the measured speed; Q9 lost the COMPASS Upgrade sentence (no source in the repository). |
-| M5 demo facts | Frame count and "5,7 mm" removed; the discharge 0 number is `[[chyba osy výboje 0]]` until replayed; 3:00 now says what the chart shows for one discharge (still unchecked, to be verified in the rehearsal); Q10 has the same fallback as 3:12 (review 3). 128 of 149 (85,9 percent) is verified in `results/ipp1-claim-support.md`. |
+| M5 demo facts | Frame count and "5,7 mm" removed; the demo numbers now come from `docs/demo-facts.md`; 3:00 now says what the chart shows for one discharge (still unchecked, to be verified in the rehearsal); Q10 has the same fallback as 3:12 (review 3). 128 of 149 (85,9 percent) is verified in `results/ipp1-claim-support.md`. |
 | M6 demo single point of failure | Backup section now says: key H opens the hidden slide and works in PowerPoint only (review 3), record the 60 s clip, copy the viewer to the second laptop. Still to do by a person. |
 | M7 nobody read it aloud | Recounted after review 3 (table above): written-out count 730 words, 7:24 at a normal pace, 7:01 only at 1.8 words per second. Cut already: demo speed sentence, "Typický výboj sedí", "Zbývá napojení", "U každého čísla řeknu". Emergency cuts in the section above. GPU and second computer lines are gone. No stopwatch reading yet. |
 | X1 stale latency lines (review 3) | 4:02, 6:27, the main sentence of slide 5, Q8, N5, Lead notes: measured numbers; slogan "setiny"; the 30 s version says "setiny milisekundy". `[[odezva vybraného modelu]]` is gone from this file. |
@@ -394,12 +394,12 @@ If the stopwatch says over, cut in this order (written-out words saved, from the
 | Spreads | 2,4 to 13,7 mm; limiter 89,6 and 153,3 mm; current 114,2 kA | `results/ipp1-data-checks.md` |
 | Camera | 5 folds, 78 discharges, 48x64; axis R 1,79 (grey 1,70) against 0,377; 1,3 to 13 times; fused 1,21 against 0,24 on 2 folds | `results/cloud-camera-main.md`, `results/cloud-camera-findings.md`, `results/ipp1-camera-local-findings.md` |
 
-The demo discharges 0, 4, 11 and 123 are not among the 30 set aside (`results/ipp1-locked-test-ids.txt`).
+The demo now plays the selected model on the 30 set-aside discharges (viewer e50b1ee); typical discharge 85, rough end discharge 147; numbers in `docs/demo-facts.md`. Discharges 0, 11 and 123 belong to the development set.
 
 ### Still pending (needs a person or a machine)
 
 * Latency of the selected model: done (`results/ipp1-latency-shipped.md`, busy laptop, random weights, numpy). Caveats a physicist can raise, not closed: no file checks that the numpy path reproduces the trained network (a 100-row comparison with `predict()` would close it); the noise-trained network needed for noisy inputs was not timed (it has the size of the basic network); the machine was not idle. `[[odezva vybraného modelu]]` is reserved and unused.
-* `[[chyba osy výboje 0]]` and the sentence "v tomto výboji roste na začátku a na konci": replay discharges 123 and 0 in the viewer, write down the numbers the viewer shows.
+* Demo numbers: done, taken from the viewer by bladed-85 (`docs/demo-facts.md`); one human replay of discharges 85 and 147 the day before is still advised.
 * One timed read-aloud with a stopwatch; update `rehearsal-notes.md`.
 * The 60 s screen recording and the copy of the viewer on the second laptop (M6).
 * `build_deck.py` has hard-coded split times for speaker notes (`0:21`, `1:37`, `2:14`); with the timing of this file the last two become `1:33` and `2:17`, see `docs/deck-fixes.md` item 0.3 and the section For lane K.
