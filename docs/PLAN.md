@@ -35,6 +35,18 @@ Lanes, owners, paths and briefs: [`WORKERS.md`](WORKERS.md).
 
 See `REQUIREMENTS.md` (OQ-001 to OQ-004). No blocker for IMPL-3 to IMPL-5.
 
+### Reproducibility check, second machine (IMPL-11, lane K)
+
+Machine: Fedora Linux, kernel 7.2, 12 CPU threads, 14 GB RAM, RTX 2050; system Python 3.14 only, no `uv`.
+Fresh clone at `~/GitHub/hackathon`. Each row is a point where `README.md` alone was not enough.
+
+| ID | Problem | What I did | Proposed fix to `README.md` |
+|---|---|---|---|
+| RP-1 | The layout assumes `hackathon/{data,repo}`, but `git clone` names the repository folder `hackathon/` itself, so there is no `hackathon/` folder next to it and `repo/analysis/...` in the run commands does not exist | Created `~/GitHub/hackathon-home/` with `data/raw` and `out`, used it as `HACKATHON_HOME` | Say "pick any folder for the data, export `HACKATHON_HOME=<it>`" and write the run commands relative to the clone |
+| RP-2 | No source for the data: no Drive link, file name, size or checksum, no unzip target | Owner of this machine downloaded `uloha_1-magneticka_data.zip` (37,368,783 bytes, sha256 `0b2b3dd1…3781381`) and unzipped it into `data/raw/ipp1-magnetic/`, made read-only. CSVs: `equil_data.csv` 43,161,674 bytes, `equil_data_noisy.csv` 44,246,279 bytes | Name the zip, its size and where to unzip it; point to the Drive folder without putting the link in the repository if it is private |
+| RP-3 | `uv` is required but not installed and not explained | `python3 -m pip install --user uv` (uv 0.13.5); `uv venv --python 3.12` then fetched CPython 3.12.15 itself | One line: how to install `uv` |
+| RP-4 | On Linux, plain `uv pip install torch` pulls the CUDA build: torch 2.14.1 plus 16 NVIDIA/triton wheels, about 3.0 GB to download (measured from PyPI). Here at about 1 MB/s it took more than 25 minutes. The scripts only use the CPU | Let the download finish to keep the README command as written | Offer `--index-url https://download.pytorch.org/whl/cpu` for torch on Linux (about 200 MB) |
+
 ## Milestones (checkpoints, Fri to Sat)
 
 | Time | Checkpoint |
