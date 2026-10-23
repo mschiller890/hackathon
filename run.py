@@ -78,16 +78,16 @@ def main():
     py = sys.executable
     if a.full:
         step("3. Everything: all analysis steps, then all ten notebooks")
-        run([py, "-I", "analysis/make_all.py", "--quick", "--notebooks"], env, True)
+        run([py, "analysis/make_all.py", "--quick", "--notebooks"], env, True)
         print(f"\n{G}Finished.{X} Executed notebooks: {home / 'out' / 'notebooks'}")
         return
     step("3. Live: the network learns, then estimates a discharge it never saw, then runs at full speed")
     if a.relu_demo:
         run([py, "-u", "analysis/ipp1_live_train_fast.py"], env, True)
     else:
-        run([py, "-I", "-u", "analysis/mini_pipeline.py", "--dump-rows", "0"], env, True)
+        run([py, "-u", "analysis/mini_pipeline.py", "--dump-rows", "0"], env, True)
     step("4. Train the shipped model and export it (model/ipp1-selected.npz)")
-    run([py, "-I", "analysis/export_model.py"], env, True)
+    run([py, "analysis/export_model.py"], env, True)
     step("5. First estimate with the exported model (reference reconstruction against our estimate)")
     code = (
         "import sys, numpy as np, pandas as pd; sys.path.insert(0, 'analysis'); import predict;"
@@ -97,7 +97,7 @@ def main():
         "ref = df['R_mag_axis'].values[:5] * 1000;"
         "[print(f'  row {i}: reference R axis {ref[i]:.2f} mm, estimate {e[i, m.outputs.index(\"R_mag_axis\")]:.2f} mm') for i in range(5)] if 'R_mag_axis' in m.outputs else print(e[:2])"
         % ((home / EQUIL).as_posix(), (home / "out" / "model" / "ipp1-selected.npz").as_posix()))
-    run([py, "-I", "-c", code], env)
+    run([py, "-c", code], env)
     print(f"\n{G}Done.{X} Everything: python run.py --full. Try the model on your own file: python predict.py input.csv --model {home / 'out' / 'model' / 'ipp1-selected.npz'}")
 
 
