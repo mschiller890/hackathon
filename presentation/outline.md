@@ -37,14 +37,14 @@ Věta: Použili jsme malou neuronovou síť o 107 152 parametrech, porovnali ji 
 Věta: Na 30 výbojích, které se při vývoji nepoužily, určí vybraný model pro čisté vstupy osu s chybou 0,13 mm, bod u limiteru dvakrát lépe než základní síť a proud plazmatem s chybou 0,035 kA.
 
 * Závěrečný test na 30 výbojích (8 761 řádků), vybraný model proti základní síti, průměrná chyba: radiální osa 0,133 mm proti 0,307 mm, svislá osa 0,172 mm proti 0,321 mm, bod u limiteru 4,55 mm proti 10,6 mm (radiálně) a 8,35 mm proti 22,5 mm (svisle), proud plazmatem 0,035 kA proti 1,20 kA.
-* Pořadí platí pro všech pět zrn náhodných čísel: zisk u osy, dotykového bodu a bodu u limiteru je 42 až 60 %, několikrát víc než rozdíl mezi zrny. Bod X (radiálně) je jen o něco lepší, 0,111 mm proti 0,141 mm.
+* Vybraný model je lepší u všech sedmi veličin v každém z pěti semen: zisk u osy, dotykového bodu a bodu u limiteru je 42 až 60 %, několikrát víc než rozdíl mezi semeny. Bod X (radiálně) je jen o něco lepší, 0,111 mm proti 0,141 mm. Proud 0,035 kA je lineární model, který žádné semeno nemá.
 * Poctivě k chvostům: model je lepší v průměru a ve většině řádků, ale několik jednotlivých řádků je horších, například střední kvadratická chyba radiálního bodu X je 0,454 mm proti 0,305 mm.
 * Základní síť na pětkrát dělených datech: osa 0,38 mm a 0,39 mm, lineární model 2,4 a 2,66 mm, tedy u osy více než šestkrát hůř. Průměr skrývá chvosty: medián radiální osy je 0,153 mm, 99 % řádků je pod 3,74 mm, nejhorší řádek má 64 mm, hlavně na konci výboje. Limitované plazma je asi 2,3krát horší než divertorové.
 * Proud plazmatem určí lineární model, ne síť (0,035 kA proti 1,49 kA na pětkrát dělených datech).
 * Zda je plazma opřeno o limiter, určí základní síť správně v 99,3 % případů.
 * Pro zašuměné vstupy vybraný model nepoužijeme: na šumu selže. Tam nasadíme síť učenou se šumem a posunem.
 * Méně vstupů: se všemi 24 vstupy je souhrnná relativní chyba 0,063, s nejlepšími 12 je 0,077, s nejlepšími 8 je 0,094.
-* Samotných 16 cívek IPR dává souhrnnou chybu 0,066, samotných 8 smyček toku 0,285, tedy 4,3krát horší. Pořadí vstupů je důležitost pro naučenou síť, ne obsah informace, proto neříkáme, které čidlo je nejdůležitější.
+* Samotných 16 cívek IPR dává souhrnnou chybu 0,066, samotných 8 smyček toku 0,285, tedy 4,3krát horší. Žádné jedno čidlo není samo nezbytné: pořadí podle tří způsobů se téměř neshodují. Neříkáme, která čidla jsou důležitá, říkáme jen výsledek po rodinách.
 * Obrázek: graf chyby podle počtu vstupů (soubor ipp1 inputs ve složce results).
 
 ## Živá ukázka mezi snímkem 4 a 5 (95 s)
@@ -67,6 +67,7 @@ Věta: Výpočet sítě rychlosti nebrání: medián je 0,0145 ms na procesoru A
 
 Věta: Nejhůř se odhaduje bod u limiteru, kde chyba dosahuje 10,7 mm a 22,2 mm, a chyby rostou hlavně na konci výboje.
 
+* Limitované plazma tvoří 44 % řádků, ale 92 % čtverce chyby radiální osy. Bod u limiteru je v prvních 2 % výboje 52,6 mm, uprostřed výboje 8,28 mm.
 * Bod u limiteru: radiální chyba 10,7 mm, svislá 22,2 mm, řádově hůř než ostatní veličiny.
 * Chyby rostou hlavně na konci výboje, 1,6 až 3,7krát oproti středu: osa má na konci 0,9 mm, uprostřed 0,24 mm. Na začátku roste jen chyba polohy osy (radiální 2,5krát, svislá 1,5krát), bod X a dotykové body se na začátku výboje nevyskytují.
 * Na čistých vstupech kolísá výstup stejně jako skutečnost, poměr je 0,97 až 1,07 u sedmi veličin. Na zašuměných vstupech kolísá výstup sítě naučené na čistých datech 8,4krát (osa R) a 3,3krát (osa Z) víc než skutečnost, po učení se šumem a posunem 1,7krát (osa R) a 1,65krát (osa Z). Nikdy neříkáme jen 0,97.
