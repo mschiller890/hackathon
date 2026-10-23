@@ -72,6 +72,10 @@ ls "$HACKATHON_HOME/data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.cs
 
 If the two csv files landed directly in `ipp1-magnetic/`, move them into a new folder `uloha_1-magneticka_data/` there.
 
+The vacuum wall outline for the shape viewer is one public file of the organisers' repository. Fetch only that file with
+`HACKATHON_HOME=<hackathon folder> python -I analysis/fetch_wall.py` (prints size and sha256, refuses any other URL).
+Without it `make_all.py --viewer` still builds the viewer and says so in one line; limiter frames then touch nothing on screen.
+
 ## Repository structure
 
 | Path | Purpose |

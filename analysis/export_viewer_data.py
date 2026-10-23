@@ -125,6 +125,8 @@ wall = None
 if WALL.exists():
     w = pd.read_csv(WALL)
     wall = {"R": [round(float(v), 5) for v in w["R"]], "Z": [round(float(v), 5) for v in w["Z"]]}
+else:
+    print("wall outline missing: the viewer is built without it (limiter frames touch nothing). Fetch it with: HACKATHON_HOME=... python -I analysis/fetch_wall.py")
 
 R_all = np.concatenate([frame["R_inner"].dropna(), frame["R_outer"].dropna()] + ([w["R"].values] if wall else []))
 Z_all = np.concatenate([frame["Z_top"].dropna(), frame["Z_bottom"].dropna()] + ([w["Z"].values] if wall else []))
