@@ -59,6 +59,7 @@ Věta: Výpočet sítě rychlosti nebrání: medián je 0,0145 ms na procesoru A
 
 * Procesor Apple M5, jeden vzorek: medián 0,0145 ms, 99 % měření pod 0,0209 ms. Při dřívějším měření na silněji zatíženém stroji vyšel medián 0,0188 ms a 99 % měření pod 0,118 ms, takže čas závisí na zatížení.
 * Celý odhad od surových čísel na vstupu po čísla na výstupu: medián 0,0140 ms, 99 % měření pod 0,0503 ms. Nejvyšší hodnoty se na systému bez reálného času ojediněle objeví až v milisekundách, to není horní mez.
+* Pozor: čísla výše platí pro základní síť. Vybraný model pro čisté vstupy (síť s rozdíly cívek, lineární model pro proud a síť pro bod u limiteru) trvá jeden odhad 0,1775 ms, měřeno na sdíleném a vytíženém stroji, takže jen orientačně. Pořád je to hluboko pod rozpočtem 1 až 10 ms, ale je to asi dvanáctkrát víc než 0,0145 ms. Vedoucí má změřit čas vybraného modelu na klidném stroji (DOPLNIT).
 * Grafická karta pro jeden odhad: medián 0,27 ms, s přenosem dat 0,49 ms, pomalejší než procesor, protože model je malý.
 * Neověřili jsme: sběr a integraci signálů z cívek, nejhorší dobu na systému reálného času a přesnost na skutečně zašuměných signálech. Síť naučená na čistých datech na šumu selže, síť naučená na šumu dává chybu osy 2,64 mm.
 * U každého času říkáme, na jakém procesoru byl měřen.
@@ -88,7 +89,7 @@ Věta: Model je křehký vůči šumu, potřebuje dost výbojů a nezná neobvyk
 
 Věta: Výpočet sítě trvá 0,0145 ms na procesoru Apple M5 a chyba osy je desetiny milimetru, ale model ještě není připraven pro řízení.
 
-* Velké číslo 0,0145 ms (výpočet sítě na procesoru Apple M5, ne celý řídicí systém), vedle něj desetiny milimetru u osy, bodu X a dotykových bodů.
+* Velké číslo 0,0145 ms (výpočet základní sítě na procesoru Apple M5, ne celý řídicí systém; vybraný model je pomalejší, asi 0,18 ms, viz snímek 5), vedle něj desetiny milimetru u osy, bodu X a dotykových bodů.
 * Upřímně: slabý bod u limiteru, nezná neobvyklé tvary a šum mu vadí, pokud se na něj neučí.
 * Sběr signálů a napojení na řídicí systém jsme nezkoušeli. Zbývá ověřit napojení na řídicí systém, získat víc výbojů a přidat odolnost proti šumu.
 
