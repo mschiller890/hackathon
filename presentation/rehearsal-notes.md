@@ -36,5 +36,5 @@ Deset otázek poroty s odpověďmi je v souboru pitch script. Zde jsou moje dopl
 * Kde model selhává? Bod u limiteru (10,7 a 22,2 mm) a začátek a konec výboje.
   * Záloha: zkusili jsme zvláštní model pro bod u limiteru. Na čistých datech chybu půlí (10,7 na 5,7 mm radiálně, 22,2 na 11,7 mm svisle), ale na zašuměných datech selže úplně, proto ho zatím nepoužíváme. Platí, dokud vedoucí nerozhodne, který model se v talku ukáže (RP 9); osnova zůstává na základním modelu.
 * Dá se to nasadit do řízení? Výpočet sítě je rychlý; sběr signálů, systém reálného času a skutečně zašuměné signály jsme neověřovali.
-* Co neobvyklý tvar? Neměřeno (DOPLNIT, nebo přiznat jako mez).
+* Co neobvyklý tvar? Když vynecháme celou rodinu tvarů, chyba je 1,0 až 3,0krát větší bez zhroucení; u nejodlišnějších tvarů je osa 1,6 mm místo 0,7 mm. Neobvyklých je jen 18 výbojů a nikdy nebyly vynechány samostatně, rozdíly 1,1 až 1,3krát jsou v šumu a o tvarech mimo rozsah dat výsledek nic neříká.
 * Co kamera? Samotná je 6 až 8krát horší než magnetická měření na ose (1,54 proti 0,24 mm) a proud plazmatem určit nejde. Měřeno jen na dvou z pěti dělení, kamera zůstává bonus.

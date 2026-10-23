@@ -76,7 +76,7 @@ Věta: Model je křehký vůči šumu, potřebuje dost výbojů a nezná neobvyk
 
 * Šum: osa má chybu 0,38 mm na čistých datech, ale 10,15 mm na datech s šumem; učení na zašuměných datech to srazí na 2,64 mm. Vylepšený model pro čisté vstupy na šumu selže úplně, proto pro zašuměné vstupy použijeme síť učenou se šumem.
 * Množství dat: s 30 výboji je chyba osy 1,47 mm (radiální) a 0,95 mm (svislá). Od 30 do 119 výbojů klesá zhruba na polovinu při zdvojnásobení, ale s pevným počtem 60 epoch, takže část zlepšení tvoří víc kroků učení.
-* Neobvyklý tvar: když při učení vynecháme celou rodinu tvarů, chyba je 1,0 až 3,0krát větší, obvykle 1,2 až 2,4krát, bez zhroucení. Opravdu neobvyklých je ale jen 18 výbojů ze 149 a nikdy nebyly vynechány samostatně, takže o tvarech mimo rozsah dat výsledek nic neříká.
+* Neobvyklý tvar: když při učení vynecháme celou rodinu tvarů, chyba je 1,0 až 3,0krát větší, obvykle 1,2 až 2,4krát, bez zhroucení. Opravdu neobvyklých je ale jen 18 výbojů ze 149 a nikdy nebyly vynechány samostatně, takže o tvarech mimo rozsah dat výsledek nic neříká; rozdíly 1,1 až 1,3krát jsou v šumu měření.
 * Kamera: model naučený na nepohnutých snímcích je křehký, posun o 4 pixely ztrojnásobí chybu osy (z 1,54 na 4,95 mm); učení s posuny a otočením to srovná na asi 2 mm za cenu horší přesnosti na nepohnutých snímcích. Kamera a magnetická měření dohromady magnetickou síť nepřekonaly (1,21 mm proti 0,24 mm). Měřeno jen na dvou z pěti dělení.
 * Ověřeno jen na jednom tokamaku. Model odhaduje jen tvar a řízení plazmatu samo nenahrazuje.
 
