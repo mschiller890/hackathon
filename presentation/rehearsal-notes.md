@@ -38,3 +38,19 @@ Deset otázek poroty s odpověďmi je v souboru pitch script. Zde jsou moje dopl
 * Dá se to nasadit do řízení? Výpočet sítě je rychlý; sběr signálů, systém reálného času a skutečně zašuměné signály jsme neověřovali.
 * Co neobvyklý tvar? Když vynecháme celou rodinu tvarů, chyba je 1,0 až 3,0krát větší bez zhroucení; u nejodlišnějších tvarů je osa 1,6 mm místo 0,7 mm. Neobvyklých je jen 18 výbojů a nikdy nebyly vynechány samostatně, rozdíly 1,1 až 1,3krát jsou v šumu a o tvarech mimo rozsah dat výsledek nic neříká.
 * Co kamera? Je to bonus. Na pěti dělení po výbojích je 3 až 13krát horší než cívky (nejblíž u bodu u limiteru, 1,3krát; nejdál u proudu plazmatu, 13krát). Černobílý snímek nic nezmění.
+
+## Rozpory pitch skriptu s tím, co je dnes ve složce results (pro vedoucího, soubor mu patří)
+
+Čteno z aktuální verze `presentation/pitch-script.md`. Já ho neupravuji. Řádky jsou podle času ve skriptu.
+
+* 5:52 a otázka 2: "neobvyklý tvar jsme neměřili". Dnes je změřený (`ipp1-unusual-shapes.md`): chyba 1,0 až 3,0krát větší, bez zhroucení, s mezemi souboru.
+* Otázka 10: "nemáme odhad nejistoty". Dnes je změřený (`ipp1-uncertainty.md`): pět sítí se nejvíc rozchází na 10 % řádků, které nesou 47 % chyby.
+* Otázka 6: "silnější modely se teprve zkoušejí". Dnes jsou v `ipp1-improve.md` a `ipp1-final.md`.
+* Otázka 4: "v číslech, která ukazujeme, použit není". Podle odpovědí vedoucího se vede vybraným modelem, který lineární model pro proud používá.
+* 4:13 a 4:20 a 4:26: p99 0,0288 ms, 0,032 ms na druhém počítači a 0,24 ms pro grafickou kartu. Dnešní `ipp1-latency.md` dává p99 0,0209 ms a 0,27 ms a 0,032 ms v results není.
+* 3:16 a hlavní věta snímku 6: "roste na začátku a na konci". Opravená formulace: hlavně na konci, na začátku jen u polohy osy.
+* 1:54 až 2:22: mluví o základní síti a lineárním modelu, na obrazovce je vybraný model proti základní síti na 30 výbojích.
+* Otázka 5: věta "architekturu jsme zvolili předem a podle testu neladili" je podle opravné dokumentace jen tehdy, když je pravdivá. Potvrdit s majitelem, jinak ji nahradit větou o chybějící ověřovací části.
+* Snímek 5, otázka 8: čas 0,0145 ms je základní síť. Vybraný model je asi 0,18 ms.
+* Otázka 8: "mezi dvěma řádky dat uplyne asi 0,6 milisekundy" jsem ve složce results nenašel, ověřit.
+* Kamerová obrazovka nemá ve skriptu žádné sekundy a skript o kameře nemluví.
