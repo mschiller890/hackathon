@@ -1,0 +1,106 @@
+{
+ "protocol": "5-fold GroupKFold by discharge (ipp1_common.group_folds); summary = mean nRMSE over 13 targets without the limiter point; hyperparameters chosen on an inner split by discharge of each outer training set",
+ "models": {},
+ "search": {
+  "nn": [
+   {
+    "fold": 0,
+    "n_trials": 49,
+    "seconds": 3396.0518963336945,
+    "best_value": 0.08142168114964779,
+    "best_params": {
+     "arch": "resmlp",
+     "feat": "diff",
+     "width": 192,
+     "depth": 4,
+     "act": "gelu",
+     "dropout": 0.05,
+     "lr": 0.0027720503121023247,
+     "wd": 1.9757212573026566e-06,
+     "epochs": 100,
+     "batch": 512,
+     "sched": "cosine",
+     "loss": "huber",
+     "delta": 0.35552487554850043,
+     "w_lim": 1.4663694996331986,
+     "w_cls": 1.0279938103604904
+    }
+   },
+   {
+    "fold": 1,
+    "n_trials": 49,
+    "seconds": 3481.1459124088287,
+    "best_value": 0.09227230766644845,
+    "best_params": {
+     "arch": "resmlp",
+     "feat": "diff",
+     "width": 256,
+     "depth": 3,
+     "act": "mish",
+     "dropout": 0.05,
+     "lr": 0.0012006351441811985,
+     "wd": 1.2245538875813272e-06,
+     "epochs": 50,
+     "batch": 512,
+     "sched": "cosine",
+     "loss": "huber",
+     "delta": 0.5007766289899087,
+     "w_lim": 1.6685623734557458,
+     "w_cls": 0.7753661671559938
+    }
+   },
+   {
+    "fold": 2,
+    "n_trials": 49,
+    "seconds": 1812.5269572734833,
+    "best_value": 0.10259876981950723,
+    "best_params": {
+     "arch": "resmlp",
+     "feat": "diff",
+     "width": 192,
+     "depth": 3,
+     "act": "relu",
+     "dropout": 0.0,
+     "lr": 0.003643194119459265,
+     "wd": 0.0006725488986420394,
+     "epochs": 90,
+     "batch": 1024,
+     "sched": "cosine",
+     "loss": "huber",
+     "delta": 0.3479146241400932,
+     "w_lim": 0.7479826060214021,
+     "w_cls": 0.31234223554416474
+    }
+   },
+   {
+    "fold": 4,
+    "n_trials": 49,
+    "seconds": 2812.317931175232,
+    "best_value": 0.08609204292297364,
+    "best_params": {
+     "arch": "resmlp",
+     "feat": "diff",
+     "width": 128,
+     "depth": 2,
+     "act": "mish",
+     "dropout": 0.0,
+     "lr": 0.003947954140522148,
+     "wd": 6.696770803384587e-05,
+     "epochs": 110,
+     "batch": 1024,
+     "sched": "onecycle",
+     "loss": "mse",
+     "w_lim": 1.2740492354618884,
+     "w_cls": 0.39729423261694086
+    }
+   }
+  ]
+ },
+ "noisy": {},
+ "recommended": {
+  "fast_limit_ms": 0.1,
+  "best_summary": null,
+  "best_limiter_z": null,
+  "pareto_front": []
+ }
+}
