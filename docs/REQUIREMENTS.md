@@ -5,7 +5,7 @@
 
 ## Status: IMPLEMENTATION (updated Fri 23 Oct 2026 after the independent review and the audit)
 
-Status cells were set by the auditor (`audit.md`, section 2) by reading the evidence file and the script that writes it;
+Status cells were set by the auditor (`docs/internal/audit.md`, section 2) by reading the evidence file and the script that writes it;
 the IPP data are not on the auditor's machine, so nothing was re-run: `DONE` means the committed files agree with each
 other and with the acceptance criterion, with the caveat written in the row. Rows stay `IN PROGRESS` where the audit names
 wording or a deliverable that is still open (listed in the row). Missing notebooks are the main delivery risk before the

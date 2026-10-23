@@ -1,7 +1,7 @@
 # Notebook review (static, Fri 23 Oct 2026)
 
 **Scope.** `notebooks/01` to `05`, read cell by cell with the stored outputs, against `README.md`, `docs/REQUIREMENTS.md`,
-`docs/WORKERS.md`, `docs/claims-corrections.md`, `results/*.md|json`. Nothing was run: no IPP data exist in this mirror.
+`docs/internal/WORKERS.md`, `docs/claims-corrections.md`, `results/*.md|json`. Nothing was run: no IPP data exist in this mirror.
 The notebooks were not edited; the colleague (lane K) owns them. "Cell n" is the 0-based index of the cell in the
 `.ipynb` (markdown cells count), not the `In [ ]` number.
 Severity: **Critical** = a required deliverable is missing, **High** = a wrong or unconditional claim, or a clean run fails,

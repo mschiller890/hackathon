@@ -23,7 +23,7 @@ For the provided noisy inputs a different model is shipped (baseline network tra
 the axis on the same 30. A model trained on clean data fails on them (the plain baseline gives 9.16 mm).
 
 **How to read the numbers** (details and sources in [`results/`](results/) and
-[`docs/review-findings.md`](docs/review-findings.md)). The figures below are for the **baseline network** and 5 folds over
+[`docs/internal/review-findings.md`](docs/internal/review-findings.md)). The figures below are for the **baseline network** and 5 folds over
 all 149 discharges unless a protocol is named:
 
 - Accuracy is measured with folds split by whole discharge, so it is the accuracy on *randomly chosen new
@@ -45,7 +45,7 @@ all 149 discharges unless a protocol is named:
 - The provided `equil_data_noisy.csv` has white noise and no measurable drift; all drift results are synthetic.
 
 **Agents and contributors:** read [`CLAUDE.md`](CLAUDE.md) (Claude Code) or [`AGENTS.md`](AGENTS.md) and then
-[`docs/WORKERS.md`](docs/WORKERS.md); it assigns the lanes and says what each one does first.
+[`docs/internal/WORKERS.md`](docs/internal/WORKERS.md); it assigns the lanes and says what each one does first.
 
 ## Data (not in this repository)
 
@@ -117,7 +117,7 @@ Chrome, ffmpeg and `websocket-client` (none of these were tested on a clean chec
 Commands that run without data: `python -I analysis/make_submission.py --out <path that does not exist yet>` builds the
 submission package and checks it, deck and viewer page included (`docs/SUBMISSION.md`). Every other script and the five notebooks need the data and stop
 with an error without it (even `ipp1_latency.py`, which does not use the data, audit R-1). Not for a first run: `analysis/check_claims.py` rewrites the tracked file
-`docs/claims-audit.md` (restore it with `git restore docs/claims-audit.md`), `analysis/profile_data.py` needs a data path
+`docs/internal/claims-audit.md` (restore it with `git restore docs/internal/claims-audit.md`), `analysis/profile_data.py` needs a data path
 argument, and `viewer/build.py` needs `viewer/data.js`, which is made from the data and is not in git.
 
 `analysis/make_all.py` creates `out/`, runs the analysis scripts in the order their outputs depend on each other and then

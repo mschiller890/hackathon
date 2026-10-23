@@ -1,6 +1,6 @@
 # Claims corrections for the slides, the outline and the pitch (from the claims review, Fri 23 Oct 2026)
 
-Source: `docs/review-findings.md` (reviewers 1 to 3). This file holds the **exact Czech replacement sentences** for the
+Source: `docs/internal/review-findings.md` (reviewers 1 to 3). This file holds the **exact Czech replacement sentences** for the
 lane that owns `presentation/` (outline, deck, pitch script, glossary). I did not edit anything in `presentation/` or
 `viewer/`. The Czech is plain, without English words and without dashes. Every number below was seen in a command output
 or a file in `results/` or `out/`; where my own re-measurement differs from the review, both are named.

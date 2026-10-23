@@ -7,7 +7,7 @@ walk-through in `notebooks/10_synthetic_validation.ipynb`.
 
 ## Plain reading (read this first)
 
-- This is the closed test that `docs/review-physics.md` (H1, section 2) asks for: the truth is known
+- This is the closed test that `docs/internal/review-physics.md` (H1, section 2) asks for: the truth is known
   because we built the plasma. It shows that **the method can recover a known plasma from simulated probe
   signals**: the same masked network recipe as the main work gets the magnetic axis to
   0.728 mm (R) and 0.602 mm (Z), the elongation to 0.00586,

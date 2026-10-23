@@ -58,15 +58,15 @@ Create and maintain five documents; defer the rest until the assignment justifie
 
 | File | Reason |
 |---|---|
-| `docs/ARCHITECTURE.md` | No system exists. Creating it would mean inventing an architecture. |
-| `docs/TESTING.md` | No tests, no build, no commands. Would list nothing verifiable. |
-| `docs/ALGORITHMS.md` | The problem is unknown, so no algorithm is selected. |
-| `docs/RESEARCH.md` | No technical question has been posed to research. |
-| `docs/BENCHMARKS.md` | No performance claim has been made to measure. |
-| `docs/ISSUES.md` | `PLAN.md`'s tracker suffices at current scale. |
-| `docs/SECURITY.md` | No security surface is known yet. |
-| `docs/DEPLOYMENT.md` | No deployment deliverable is known yet. |
-| `docs/CONTRIBUTING.md` | Single contributor; `AGENTS.md` covers the working rules. |
+| `ARCHITECTURE.md` | No system exists. Creating it would mean inventing an architecture. |
+| `TESTING.md` | No tests, no build, no commands. Would list nothing verifiable. |
+| `ALGORITHMS.md` | The problem is unknown, so no algorithm is selected. |
+| `RESEARCH.md` | No technical question has been posed to research. |
+| `BENCHMARKS.md` | No performance claim has been made to measure. |
+| `ISSUES.md` | `PLAN.md`'s tracker suffices at current scale. |
+| `SECURITY.md` | No security surface is known yet. |
+| `DEPLOYMENT.md` | No deployment deliverable is known yet. |
+| `CONTRIBUTING.md` | Single contributor; `AGENTS.md` covers the working rules. |
 
 ### Rationale
 
@@ -154,14 +154,14 @@ Scores are honest but vary by fold; all five folds are reported. Raw R squared a
 millimetre-level errors, hence the physical units. Results: `results/ipp1-baseline.md` and the other
 files in `results/`, summarised in `docs/PLAN.md` IMPL-3 and IMPL-4.
 
-Qualifiers added after the independent review (`docs/review-findings.md`):
+Qualifiers added after the independent review (`docs/internal/review-findings.md`):
 
 - GroupKFold by discharge measures accuracy on *randomly chosen new discharges*. Because the numbers look chronological,
   neighbouring discharges sit in training; on contiguous blocks of discharge numbers the radial axis error is about
   1.5 times larger (0.56 mm against 0.38 mm in a rerun by another worker, 0.57 mm measured by the review). GroupKFold
   stays the primary protocol (the assignment asks for it); the block number is quoted next to it.
 - The headline means hide the tails: radial axis median 0.153 mm, p99 3.74 mm, worst row 64 mm; limited rows are
-  2.3 times worse than divertor rows. A locked test set was promised in `WORKERS.md` and does not exist yet.
+  2.3 times worse than divertor rows. A locked test set was promised in `docs/internal/WORKERS.md` and does not exist yet.
 - No validation split exists, so epochs and hyperparameters were not chosen inside the training data; every
   training result is one seed per fold (seed noise 8 to 19 % per the review), so differences under about 10 to 15 %
   are noise.

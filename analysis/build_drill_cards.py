@@ -2,8 +2,8 @@
 
     python -I analysis/build_drill_cards.py
 
-Sources: docs/REHEARSAL.md section 2 (drill questions with the 15 s answers, star = most dangerous), the current
-presentation/pitch-script.md question sections (long answers, put under `full`) and docs/review-physics.md section 5
+Sources: presentation/REHEARSAL.md section 2 (drill questions with the 15 s answers, star = most dangerous), the current
+presentation/pitch-script.md question sections (long answers, put under `full`) and docs/internal/review-physics.md section 5
 (F1 to F10; the ones the pitch already asks are merged, not repeated). The text is copied as written; no number is typed here. Aggregate statements only.
 """
 import json
@@ -15,7 +15,7 @@ WHO = {"IPP physicist": "IPP fyzik", "ML person": "ML", "Organizer / business": 
 cards = []
 clean = lambda s: re.sub(r"\s+", " ", s.replace("`", "").strip())
 
-drill = (REPO / "docs/REHEARSAL.md").read_text()
+drill = (REPO / "presentation/REHEARSAL.md").read_text()
 sec = drill.split("## 2. Drill sheet", 1)[1].split("## 3.", 1)[0]
 who = None
 for line in sec.splitlines():
@@ -55,7 +55,7 @@ for pid, txt in pitch_full.items():
             short += " " + nxt
         cards.append(dict(id=pid, also=[], who=pitch_who[pid], danger=False, q=pitch_q[pid], a=short, full=txt if txt != short else "", src="presentation/pitch-script.md"))
 
-phys = (REPO / "docs/review-physics.md").read_text().split("## 5. Ten hardest physics questions", 1)[1].split("## 6.", 1)[0]
+phys = (REPO / "docs/internal/review-physics.md").read_text().split("## 5. Ten hardest physics questions", 1)[1].split("## 6.", 1)[0]
 for m in re.finditer(r"\*\*(F\d+)\. (.+?)\*\*\n(.+?)(?=\n\n\*\*F|\Z)", phys, re.S):
     full = clean(m.group(3))
     sent = re.split(r"(?<=[.!?])\s+", full)
@@ -72,9 +72,9 @@ for m in re.finditer(r"\*\*(F\d+)\. (.+?)\*\*\n(.+?)(?=\n\n\*\*F|\Z)", phys, re.
         c = by_id[pitch_f[m.group(1)]]
         if len(full) > len(c["full"] or c["a"]):
             c["full"] = full
-        c["src"] += ", docs/review-physics.md §5 (" + m.group(1) + ")"
+        c["src"] += ", docs/internal/review-physics.md §5 (" + m.group(1) + ")"
         continue
-    cards.append(dict(id=m.group(1), also=[], who="IPP fyzik", danger=False, q=clean(m.group(2)), a=short, full=full if full != short else "", src="docs/review-physics.md §5"))
+    cards.append(dict(id=m.group(1), also=[], who="IPP fyzik", danger=False, q=clean(m.group(2)), a=short, full=full if full != short else "", src="docs/internal/review-physics.md §5"))
 
 out = REPO / "presentation/drill-cards.json"
 out.write_text(json.dumps(cards, ensure_ascii=False, indent=1))

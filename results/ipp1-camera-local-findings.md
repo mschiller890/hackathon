@@ -1,6 +1,6 @@
 # IPP 1: camera model, local run (lane R, second measurement)
 
-The camera lane is the cloud session (`docs/WORKERS.md`, Fri 18:00); this is an independent local run kept as a cross check.
+The camera lane is the cloud session (`docs/internal/WORKERS.md`, Fri 18:00); this is an independent local run kept as a cross check.
 Evidence for REQ-B01, REQ-B03, REQ-B05. Figure: `ipp1-camera-local.png`.
 
 Commands (with `HACKATHON_HOME=<your hackathon folder>`, `~/.venvs/hackathon/bin/python -I`):

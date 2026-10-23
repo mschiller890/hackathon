@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""The 18 oddest discharges held out of training alone (REQ-B08, docs/bonus-gaps.md, item E).
+"""The 18 oddest discharges held out of training alone (REQ-B08, docs/internal/bonus-gaps.md, item E).
 
 Groups, by the median elongation of a discharge (the grouping of ipp1_unusual_shapes.py):
   odd18    the discharges with median elongation below 1.74 (18 of 149: elongation 1.0 to 1.74, triangularity 0.02 to 0.33), trained without them: 131 train, 18 test

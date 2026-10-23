@@ -20,9 +20,9 @@ last unmeasured fact behind the main story (latency of the shipped model), and t
 | Notebooks 06 to 08 do not exist | `git ls-files notebooks`: 01 to 05 only |
 | `results/ipp1-final.md` holds no latency of the shipped model | `grep -i latency results/ipp1-final.md`: no match; KQ-9(c) is still open and the deck quotes 0.18 ms from `ipp1-improve.md` on a loaded machine |
 | Viewer stills of real discharges are in git | `git ls-files presentation/assets/viewer-*.png` (4 files); `results/ipp1-time.png` plots one real discharge (RP-6, owner has not decided) |
-| The Drive file id of the confidential zip is in git | `cloud/BRIEF-search.md` line 13 and `cloud/BRIEF-camera.md` line 12 (`1MBev-...`) |
+| The Drive file id of the confidential zip is in git | `docs/internal/BRIEF-search.md` line 13 and `docs/internal/BRIEF-camera.md` line 12 (`1MBev-...`) |
 | `PLAN.md` has two rows with id IMPL-16 | Packager row and the G2 audit row; "update your row" is ambiguous |
-| The audit leaves 372 of 410 claims matched only by common or medium values | `docs/claims-audit.md` table; the gate passes on a hand read of a few sentences |
+| The audit leaves 372 of 410 claims matched only by common or medium values | `docs/internal/claims-audit.md` table; the gate passes on a hand read of a few sentences |
 
 ## 2. Gaps, impossible dependencies, missing buffers (`TIMELINE.md`)
 
@@ -91,7 +91,7 @@ an existing row or are covered by rehearsal.
 
 ## 6. Edits made by this review
 
-- `docs/GOAL-BRIEF.md`: tightened (scope narrowed to verify only, results and notebooks never committed overnight, cloud fetch is list-only, connectors
+- `docs/internal/GOAL-BRIEF.md`: tightened (scope narrowed to verify only, results and notebooks never committed overnight, cloud fetch is list-only, connectors
   and spending forbidden, push narrowed, usage start threshold 88 %, no wake-ups, `CLAUDE.md` overridden, ordered steps, length about 4,600 characters).
 - `docs/PLAN.md`: rows added to "Rows or items without an owner" for the gaps above. No other row touched.
 - Not edited (proposals above for the Lead): `TIMELINE.md`, `REQUIREMENTS.md`, `WORKERS.md`, `README.md`.

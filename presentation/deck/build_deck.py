@@ -494,7 +494,7 @@ def build():
     # 5 Real time verdict (deck-fixes 11, visual QA 1 and screen 11)
     s = frame(prs, "Verdikt pro řízení v reálném čase", "Výpočet sítě rychlosti nebrání", notes_text(sc[5], "Snímek 5"),
               "02-minutes-vs-ms.png", 0.8)
-    # p99, not the maximum: 5000 calls on an ordinary OS bound nothing (docs/review-findings.md, latency finding)
+    # p99, not the maximum: 5000 calls on an ordinary OS bound nothing (docs/internal/review-findings.md, latency finding)
     tile(s, 0.6, 2.3, 3.85, 2.2, f"{cz(one['median_ms'], 4)} ms", f"základní síť, medián, {lat['cpu']}", ORANGE, 44)
     tile(s, 4.72, 2.3, 3.85, 2.2, f"{cz(one['p99_ms'], 4)} ms", "základní síť, 99 % odhadů rychlejších", BLUE, 44)
     tile(s, 8.84, 2.3, 3.85, 2.2, shipped_txt[0], "vybraný model, limitované plazma", LIGHT, 44)

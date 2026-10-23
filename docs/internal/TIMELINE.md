@@ -1,6 +1,6 @@
 # Timeline: from Fri 23 Oct 19:00 to Sat 24 Oct 14:00 (CEST)
 
-**Authoritative for who does what and when from now on.** What remains to build stays in [`PLAN.md`](PLAN.md); lanes and
+**Authoritative for who does what and when from now on.** What remains to build stays in [`PLAN.md`](../PLAN.md); lanes and
 paths in [`WORKERS.md`](WORKERS.md); the review gates G1 to G7 in [`REVIEW-PLAN.md`](REVIEW-PLAN.md); the hand-over text for the
 night in [`GOAL-BRIEF.md`](GOAL-BRIEF.md). Written Fri 23 Oct about 19:00 by the planner. Assumptions are marked **(A)**; the owner
 corrects them, the Lead re-cuts the plan.
@@ -50,14 +50,14 @@ the cut list below applies, not a bigger budget.
   `results/ipp1-robustness-findings.md`. Own budget.
 - **K:** `analysis/make_all.sh` and the clean top to bottom run of notebooks `01` to `05` on the Linux machine; every failure goes to the IMPL-8 row.
 - **V:** `presentation/video-plan.md` only (no recording yet, owner's order); PDF of the deck to `presentation/deck/`.
-- **T (bladed-85):** finish the claims audit (G2 input: `docs/claims-audit.md`, one unsourced number to fix).
+- **T (bladed-85):** finish the claims audit (G2 input: `docs/internal/claims-audit.md`, one unsourced number to fix).
 - **L:** answer questions in `PLAN.md`, tick the watch loop every 10 minutes, no new analyses.
 - **C1, C2:** continue; told once more: last push at 21:30, hard stop 00:30.
 
 ### Fri 20:00 to 22:00
 - **L (after the 20:10 reset):** read the cloud mirror at 21:30; run the quiet-machine latency rerun when nothing else trains (needs the Mac idle for 2 minutes; if impossible, it is moved to the overnight run at 03:00).
 - **R:** notebook `07` final model, distribution, unusual shapes, uncertainty (from `results/ipp1-final*.md`, `ipp1-distribution.md`, `ipp1-unusual-shapes.md`, `ipp1-uncertainty.md`).
-- **K:** deck v3 with the final wording; reads `docs/claims-audit.md`; second machine runs `make_all`.
+- **K:** deck v3 with the final wording; reads `docs/internal/claims-audit.md`; second machine runs `make_all`.
 - **V:** video plan finished; deck PDF.
 - **Buffer:** 21:30 to 22:00 is slack for the gate.
 
@@ -98,7 +98,7 @@ results, any wording change that makes a claim stronger, rehearsal, recording of
 - **L:** integrate the last cloud pushes (CP4 rule, WORKERS.md), answer the overnight "Needs owner" list in order.
 
 ### Sat 08:00: CP4 and G4 (independent critic)
-- **G4:** a fresh reviewer (a cheap agent or the colleague's Claude) sees only the deck, viewer stills, pitch and assignment, writes `docs/review-findings-2.md`: ten hostile questions, what is unclear or overclaimed. Pass: no blocker; every hostile question has a truthful answer in the pitch.
+- **G4:** a fresh reviewer (a cheap agent or the colleague's Claude) sees only the deck, viewer stills, pitch and assignment, writes `docs/internal/review-findings-2.md`: ten hostile questions, what is unclear or overclaimed. Pass: no blocker; every hostile question has a truthful answer in the pitch.
 - Reel first cut starts (O and the colleague, with V); second device test of the viewer starts.
 
 ### Sat 08:00 to 10:00

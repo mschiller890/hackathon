@@ -7,7 +7,7 @@ held out by the usual random 5-fold split by discharge, so a difference comes fr
 the choice of discharges. `nn_distance` is how far the held-out discharges lie from the nearest training discharge in
 (elongation, triangularity), in ranks: it shows how much more unusual the cluster split is than the random one.
 
-Discharge ids are chronological, so the random split still leaves near neighbours in training (docs/review-findings.md);
+Discharge ids are chronological, so the random split still leaves near neighbours in training (docs/internal/review-findings.md);
 the random-fold error is therefore an optimistic baseline.
 
 Run: HACKATHON_HOME=... ~/.venvs/hackathon/bin/python -I analysis/ipp1_unusual_shapes.py

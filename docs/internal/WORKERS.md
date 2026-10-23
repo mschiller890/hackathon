@@ -1,8 +1,8 @@
 # Work split (who does what)
 
 **Authoritative for who owns which task and which paths.** The task board stays in
-[`PLAN.md`](PLAN.md); requirements in [`REQUIREMENTS.md`](REQUIREMENTS.md). Read `../AGENTS.md`,
-`../README.md`, `PLAN.md`, `REQUIREMENTS.md` and this file before starting. Event ends Sat 24 Oct 14:00;
+[`PLAN.md`](../PLAN.md); requirements in [`REQUIREMENTS.md`](../REQUIREMENTS.md). Read `../../AGENTS.md`,
+`../../README.md`, `PLAN.md`, `REQUIREMENTS.md` and this file before starting. Event ends Sat 24 Oct 14:00;
 feature freeze Sat 10:00.
 
 ## Rules for every lane
@@ -138,8 +138,8 @@ The five notebooks in `notebooks/` were executed on the Lead's Mac with files in
 ### Cloud environment (two Claude cloud sessions, started by the owner Fri 16:47)
 Repository: private mirror `BLADED-K/hackathon-cloud` (the local remote `cloud` of `hackathon/repo`). It holds code, docs and aggregate
 results only, never data; the sessions download the data themselves with gdown from the organizers' Drive and keep it in their sandbox.
-- `cloud/camera`: independent second camera model (`cloud/BRIEF-camera.md`); files `analysis/cloud_camera*.py`, `results/cloud-camera-findings.md`.
-- `cloud/search`: large model search for the magnetic part (`cloud/BRIEF-search.md`); files `analysis/cloud_search*.py`, `results/cloud-search.*`.
+- `cloud/camera`: independent second camera model (`docs/internal/BRIEF-camera.md`); files `analysis/cloud_camera*.py`, `results/cloud-camera-findings.md`.
+- `cloud/search`: large model search for the magnetic part (`docs/internal/BRIEF-search.md`); files `analysis/cloud_search*.py`, `results/cloud-search.*`.
 - They cannot see the owner's `out/` folder or the team repository: everything they need must be in git (`results/`, `docs/`).
 - No notice arrives when a cloud session ends. The Lead checks `git fetch cloud` and the pull requests at CP2 (Fri 22:00) and CP4 (Sat 08:00),
   reads the findings, reruns the best script on the owner's Mac when the claim matters, and copies only verified files (`results/`, scripts) into

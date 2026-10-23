@@ -1,6 +1,6 @@
 # Numbers cited by the pitch that were missing from results/
 
-Made by `analysis/ipp1_claim_support.py` (gate G2, `docs/claims-audit.md`).
+Made by `analysis/ipp1_claim_support.py` (gate G2, `docs/internal/claims-audit.md`).
 
 ## Variance of the 24 inputs in principal components (inputs standardized, all 42,972 rows)
 
