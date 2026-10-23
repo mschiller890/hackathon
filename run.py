@@ -1,0 +1,100 @@
+#!/usr/bin/env python
+"""One file that runs the whole project: python run.py
+
+    python run.py            training live, test on unseen discharges, export of the model, a first estimate (about 3 minutes)
+    python run.py --full     everything: all analysis steps and all ten notebooks (about 9 minutes)
+    python run.py --check    only check the Python packages and the data
+
+The IPP data are confidential and are not in git. Put them in ./data (the layout of data/raw/... is checked below) or set
+HACKATHON_HOME to the folder that holds data/. The live demo prints rows of the data to the terminal: show it in the room, do not record or send it.
+"""
+import argparse
+import importlib
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+EQUIL = Path("data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.csv")
+B, G, R, D, X = "\033[1m", "\033[32m", "\033[31m", "\033[2m", "\033[0m"
+
+
+def step(title):
+    print(f"\n{B}=== {title} ==={X}", flush=True)
+
+
+def check_packages():
+    step("1. Python packages")
+    if sys.version_info < (3, 10):
+        sys.exit(f"{R}Python 3.10 or newer is needed (3.12 recommended), this is {sys.version.split()[0]}{X}")
+    missing = []
+    for mod, pip in [("numpy", "numpy"), ("pandas", "pandas"), ("sklearn", "scikit-learn"), ("scipy", "scipy"), ("torch", "torch"),
+                     ("matplotlib", "matplotlib"), ("nbformat", "nbformat"), ("nbconvert", "nbconvert"), ("ipykernel", "ipykernel")]:
+        try:
+            importlib.import_module(mod)
+        except ImportError:
+            missing.append(pip)
+    if missing:
+        sys.exit(f"{R}Missing packages: {', '.join(missing)}{X}\nInstall all with:  {sys.executable} -m pip install -r requirements.txt")
+    print(f"{G}all packages found{X} (Python {sys.version.split()[0]})")
+
+
+def find_home():
+    step("2. Data")
+    for home in [os.environ.get("HACKATHON_HOME"), str(HERE)]:
+        if home and (Path(home) / EQUIL).exists():
+            print(f"{G}data found{X} in {Path(home) / EQUIL.parent}")
+            return Path(home)
+    sys.exit(f"{R}The data were not found.{X}\nThe IPP data are not in git. Copy equil_data.csv and equil_data_noisy.csv to\n"
+             f"  {HERE / EQUIL.parent}\nor set HACKATHON_HOME to a folder that holds {EQUIL.parent}.")
+
+
+def run(cmd, env, title=None):
+    if title:
+        print(f"{D}$ {' '.join(str(c) for c in cmd)}{X}", flush=True)
+    t0 = time.time()
+    rc = subprocess.run(cmd, cwd=HERE, env=env).returncode
+    if rc:
+        sys.exit(f"{R}Step failed (exit code {rc}).{X}")
+    print(f"{D}done in {time.time() - t0:.0f} s{X}", flush=True)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--full", action="store_true", help="all analysis steps and all ten notebooks (about 9 minutes)")
+    ap.add_argument("--check", action="store_true", help="only check packages and data")
+    a = ap.parse_args()
+    print(f"{B}Plasma shape from magnetic measurements (COMPASS, task IPP 1){X}")
+    check_packages()
+    home = find_home()
+    if a.check:
+        print(f"\n{G}OK{X}: run `python run.py` for the live demo or `python run.py --full` for everything.")
+        return
+    env = {**os.environ, "HACKATHON_HOME": str(home), "PYTHONPATH": str(HERE / "analysis") + os.pathsep + os.environ.get("PYTHONPATH", "")}
+    py = sys.executable
+    if a.full:
+        step("3. Everything: all analysis steps, then all ten notebooks")
+        run([py, "-I", "analysis/make_all.py", "--quick", "--notebooks"], env, True)
+        print(f"\n{G}Finished.{X} Executed notebooks: {home / 'out' / 'notebooks'}")
+        return
+    step("3. Live training and test on discharges the network never saw")
+    run([py, "-u", "analysis/ipp1_live_train_fast.py"], env, True)
+    step("4. Train the shipped model and export it (model/ipp1-selected.npz)")
+    run([py, "-I", "analysis/export_model.py"], env, True)
+    step("5. First estimate with the exported model (reference reconstruction against our estimate)")
+    code = (
+        "import sys, numpy as np, pandas as pd; sys.path.insert(0, 'analysis'); import predict;"
+        "df = pd.read_csv('%s'); m = predict.Model('%s');"
+        "x = df[m.inputs].values[:5]; e = m.estimates(x); j = m.outputs.index('R_mag_axis_mm') if 'R_mag_axis_mm' in m.outputs else None;"
+        "print('outputs:', len(m.outputs)); "
+        "ref = df['R_mag_axis'].values[:5] * 1000;"
+        "[print(f'  row {i}: reference R axis {ref[i]:.2f} mm, estimate {e[i, m.outputs.index(\"R_mag_axis\")]:.2f} mm') for i in range(5)] if 'R_mag_axis' in m.outputs else print(e[:2])"
+        % ((home / EQUIL).as_posix(), (home / "out" / "model" / "ipp1-selected.npz").as_posix()))
+    run([py, "-I", "-c", code], env)
+    print(f"\n{G}Done.{X} Everything: python run.py --full. Try the model on your own file: python predict.py input.csv --model {home / 'out' / 'model' / 'ipp1-selected.npz'}")
+
+
+if __name__ == "__main__":
+    main()

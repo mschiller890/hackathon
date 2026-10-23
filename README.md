@@ -11,13 +11,23 @@ CVUT ML Hackathon 2026. A small neural network estimates 16 numbers that describ
 | `notebooks/01 .. 10` | The notebooks with all conclusions, executed (outputs are saved, they can be read without running). Order: 01 data, 02 baseline models, 03 inputs and importance, 04 stability over time, 05 latency, 06 camera, 07 uneven distribution and unusual shapes, 08 noise, drift and amount of data, 09 shipped model on the 30 set-aside discharges, 10 synthetic test with a known truth |
 | `slides.pdf`, `slides.pptx` | The presentation (7 minutes, with a live demo of the shape viewer) |
 | `handout.pdf` | One-page summary for the jury (Czech) |
-| `analysis/ipp1_common.py`, `analysis/ipp1_final.py`, `analysis/export_model.py` | The training: the network, the masked loss, the training loop (`fit_net`) and the export of the trained model. `python analysis/export_model.py` trains the shipped model from the data (about 30 s) and writes `model/ipp1-selected.npz`. Needs the IPP data (`HACKATHON_HOME`) |
 | `requirements.txt` | Python 3.12 packages with the versions that produced the results (`python -m pip install -r requirements.txt`) |
+| `run.py` | **The one file that runs everything** (see below) |
+| `analysis/` | All scripts: the pipeline of `make_all.py`, the training (`ipp1_common.py`, `ipp1_final.py`, `export_model.py`), the live training demo (`ipp1_live_train_fast.py`) and the checks |
+| `results/` | The aggregate results and figures that the notebooks read |
+| `viewer/` | Sources of the shape viewer (`build.py` writes one HTML file from local data) |
 | `predict.py` | Try the model: `python predict.py input.csv` (numpy only). The CSV has the columns IPR01..IPR16 and FL01..FL08; the output is the 16 estimates per row in mm and kA. Needs `model/ipp1-selected.npz` and `model/ipp1-selected.json` (given to the organisers separately: the weights are derived from the confidential IPP data and are not published) |
 
-## Run it again (needs the IPP data)
+## Run it: one file
 
-The code that regenerates every number (`analysis/`, `results/`, `viewer/`, one command `python analysis/make_all.py --quick --notebooks`, about 9 minutes) is in the project repository, branch `main`: github.com/mschiller890/hackathon (private; access on request). It is not duplicated here, so that this folder contains only what is read or tried. The data are confidential (IPP provided them only for this hackathon) and are not included anywhere; no raw rows are in this folder.
+```
+python -m pip install -r requirements.txt
+python run.py            # about 2 minutes: live training, test on unseen discharges, export of the model, a first estimate
+python run.py --full     # about 9 minutes: all analysis steps and all ten notebooks, executed
+python run.py --check    # only checks the packages and the data
+```
+
+`run.py` needs the IPP data in `data/raw/ipp1-magnetic/uloha_1-magneticka_data/` (`equil_data.csv`, `equil_data_noisy.csv`) or `HACKATHON_HOME` pointing to a folder that holds `data/`. The data are confidential (IPP provided them only for this hackathon) and are **not in git**; no raw rows are in the repository. The live demo (`analysis/ipp1_live_train_fast.py`, written by the team's second member) prints rows of the data to the terminal: show it in the room, do not record or send it. Try the exported model on your own file with `python predict.py input.csv --model out/model/ipp1-selected.npz`.
 
 ## Limits (what was not shown)
 

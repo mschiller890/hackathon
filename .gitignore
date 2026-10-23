@@ -1,0 +1,9 @@
+# confidential or generated, never in git (IPP data must not leave the participants)
+data/
+out/
+model/
+.venv/
+venv/
+__pycache__/
+*.pyc
+vstup.csv
