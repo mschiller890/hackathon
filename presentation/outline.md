@@ -7,6 +7,7 @@ Zdroje čísel: soubory ipp1 final, ipp1 baseline, ipp1 inputs, ipp1 time a ipp1
 Pravidla pro všechna čísla:
 
 * Dva modely se nezaměňují. Základní síť: 24 vstupů, 107 152 parametrů. Vybraný model: základní síť plus rozdíly sousedních cívek, lineární model pro proud a zvláštní síť pro bod u limiteru. Pro zašuměné vstupy se používá síť učená se šumem.
+* Slovo odložené nahlas doplnit: nejsou zcela nezávislé, náměty na úpravy vznikly na všech 149 výbojích; v malém písmu stojí odložené před výběrem.
 * Pod každým číslem přesnosti stojí protokol: 30 odložených výbojů (osa 0,133 mm), křížová validace na 119 výbojích (0,230 mm), novější čísla výbojů (0,397 mm), u základní sítě pět dělení po výbojích (0,377 mm).
 * Každá rychlost má model a procesor: základní síť 0,0145 ms, Apple M5; vybraný model medián asi 0,03 ms, 99 % pod 0,1 ms (Apple M5, vytížený počítač, `results/ipp1-latency-shipped.md`).
 * Slova zamčená a nikdo neviděl se nepoužívají. Říká se odložené výboje (odložené před finálním výběrem).
@@ -51,7 +52,7 @@ Věta: Na 30 odložených výbojích se vybraný model od rekonstrukce ústavu l
 * Poctivě k chvostům: model je lepší v průměru a ve většině řádků, ale několik jednotlivých řádků je horších, například střední kvadratická chyba radiálního bodu X je 0,454 mm proti 0,305 mm.
 * Základní síť, pět dělení po výbojích: osa 0,38 mm a 0,39 mm, lineární model 2,4 a 2,66 mm, tedy u osy více než šestkrát hůř. Průměr skrývá chvosty: medián radiální osy je 0,153 mm, 99 % řádků je pod 3,74 mm, nejhorší řádek má 64 mm, hlavně na konci výboje. Limitované plazma je asi 2,3krát horší než divertorové.
 * Zda je plazma opřeno o limiter, určí základní síť správně v 99,3 % případů (pět dělení), vybraný model v 99,16 % na 30 odložených výbojích; chyby jsou posuny o pár řádků na přechodu.
-* Pro zašuměné vstupy vybraný model nepoužijeme: na šumu selže (osa 190 mm). Tam nasadíme síť učenou se šumem a posunem, viz snímek 7.
+* Čisté vstupy 0,13 mm, zašuměné vstupy 2,38 mm (síť učená se šumem); slogan vždy s doplněním Na čistých vstupech. Pro zašuměné vstupy vybraný model nepoužijeme: na šumu selže (osa 190 mm). Tam nasadíme síť učenou se šumem a posunem, viz snímek 7.
 * Méně vstupů (základní síť, pět dělení): se všemi 24 vstupy je souhrnná relativní chyba 0,063, s nejlepšími 12 je 0,077, s nejlepšími 8 je 0,094 (osa R 0,904 mm proti 0,377 mm).
 * Samotných 16 cívek IPR dává souhrnnou chybu 0,066, samotných 8 smyček toku 0,285, tedy 4,3krát horší. Mluví se takto: samotné cívky stačí na skoro stejnou souhrnnou chybu, osm nejlepších už ne. Žádné jedno čidlo není samo nezbytné: pořadí podle tří způsobů se téměř neshodují. Neříkáme, která čidla jsou důležitá, říkáme jen výsledek po rodinách.
 * Obrázek: graf chyby podle počtu vstupů (soubor ipp1 inputs ve složce results).
@@ -62,7 +63,7 @@ Věta: V prohlížeči vidíte na výbojích odložených před výběrem skute�
 
 * Posuvník času, stěna komory, skutečné a odhadnuté body, tabulka chyb. Vybraný model nepředpovídá celý obrys plazmatu, jen body; legenda v prohlížeči to říká. Podrobný scénář je v souboru pitch script.
 * Prohlížeč přehrává předpovědi vybraného modelu na 30 odložených výbojích. Obrys v ukázce je z rekonstrukce ústavu, síť odhaduje jen označené body. Číslo, jak dobře síť sedí, je shoda s rekonstrukcí ústavu, ne s opravdovým plazmatem.
-* Výboj 85 je typický (chyba osy 0,18 mm, medián z 30 odložených). Výboj 147 je záměrně špatný konec: v posledním snímku chyba osy 33,7 mm a bodu u limiteru 105,5 mm, průměr výboje 0,85 mm. Všech 30 odložených výbojů má průměrnou chybu osy pod 1 mm, žádný přes 5 mm. Čísla jsou z `docs/demo-facts.md`, počítaná z prohlížeče, a ve složce results nejsou.
+* Výboj 85 je typický (chyba osy 0,18 mm, medián z 30 odložených). Výboj 147 je záměrně špatný konec: v posledním snímku chyba osy 33,7 mm a bodu u limiteru asi 105 mm (zaokrouhleno, nehlásit na desetiny), průměr výboje 0,85 mm. Všech 30 odložených výbojů má průměrnou chybu osy pod 1 mm, žádný přes 5 mm. Čísla jsou z `docs/demo-facts.md`, počítaná z prohlížeče, a ve složce results nejsou.
 * Podíl výbojů: 128 ze 149 (85,9 %) má průměrnou chybu osy pod 1 mm, 3 přes 5 mm (základní síť, pět dělení).
 
 ## Snímek 5: Verdikt pro řízení v reálném čase (37 s)
@@ -86,6 +87,8 @@ Věta: Nejhůř se odhaduje bod u limiteru (vybraný model 4,55 a 8,35 mm na 30 
 * Kolísání (jen poznámka pod čarou, nahlas se neříká): na čistých vstupech 0,96 až 1,07 u 13 veličin (u sedmi veličin tabulky 0,97 až 1,07). Na zašuměných vstupech kolísá výstup sítě naučené na čistých datech 8,4krát (osa R) a 3,3krát (osa Z) víc než skutečnost, po učení se šumem a posunem 1,7krát a 1,65krát. Nikdy neříkáme jen 0,97.
 * Čísla výbojů jsou zřejmě seřazena podle času, což jsme s organizátory neověřili. Na souvislých blocích čísel je chyba základní sítě 1,5 až 2,9krát větší (osa R 1,23 mm místo 0,448 mm), z části i proto, že je méně učících výbojů.
 * S menším počtem vstupů přesnost klesá: se 4 vstupy je souhrnná chyba 0,204.
+* Obrácená polarita: 7 procent řádků a 78 procent kvadratické chyby osy R. Kanonizaci znaménka jsme zkoušeli a nenasadili, na běžné polaritě stojí asi 20 procent.
+* Pro čisté a zašuměné vstupy máme dva modely; přepínání mezi nimi jsme netestovali.
 
 ## Snímek 7: Co model neumí (76 s)
 
@@ -114,7 +117,7 @@ Podle rozhodnutí vedoucího (RP 11) platí časy ze souboru pitch script, přep
 
 ## Záloha: kamera (skrytý snímek, 20 s jen když je mezera)
 
-Věta: Malá kamerová síť (snímky 48 na 64 bodů) je 1,3 až 13krát horší než cívky.
+Věta: Malá kamerová síť (snímky 48 na 64 bodů) je 1,3 až 13krát horší než cívky; měřeno na dvou až pěti dělení, čísla ještě nepotvrdil vedoucí a po bráně v 22:00 se bez potvrzení vyřadí.
 
 * Pět dělení po výbojích, 78 výbojů, 12 epoch, každý osmý snímek (`results/cloud-camera-findings.md`). Radiální osa 1,79 mm (šedě 1,70 mm) proti 0,377 mm u cívek, srovnání je orientační, protože jsou to jiné řádky. Nejblíž je u bodu u limiteru (1,3krát horší v relativní chybě), nejdál u proudu plazmatem (13krát horší než základní síť; vůči lineárnímu modelu mnohem víc). Barva nepomáhá.
 * Říká to něco o této malé síti, ne o tom, že kamera nenese informaci.

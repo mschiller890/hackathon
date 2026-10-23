@@ -25,3 +25,7 @@ DOPLNIT: skutečný čas po přečtení se stopkami (maximum 7:00) a zapsat sem 
 ## Otázky poroty
 
 Deset zlých otázek a třináct dalších od kritika 2 s upřímnými odpověďmi je v souboru pitch script (část Deset zlých otázek a Příloha). Starší zde psané odpovědi byly zrušeny, protože se rozcházely s finálním hodnocením (jedna rychlost, osa 0,38 mm bez protokolu, "od 30 výbojů se chyba půlí" bez poznámky o epochách).
+
+## Časový odhad od vedoucího (nástroj presentation/timing.py)
+
+Odhad 7:20 při 1,8 slova za sekundu, 8:15 při 1,6, 6:36 při 2,0. Napsané sekundy dávají dohromady 6:45. Majitel čte přednášku nahlas se stopkami dnes asi ve 22:30, vedoucí rozhoduje o škrtech. Pořadí škrtů: řádek o grafické kartě, řádek o druhém počítači, detail šumu na snímku 7, vysvětlivka na snímku 8. Kamerový snímek je už skrytý.
