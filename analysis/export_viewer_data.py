@@ -18,9 +18,10 @@ import pandas as pd
 ROOT = Path(os.environ.get("HACKATHON_HOME", "."))
 DATA = ROOT / "data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.csv"
 PRED = ROOT / "out/ipp1-predictions.csv"
+NOISE = ROOT / "out/ipp1-predictions-noise.csv"
 WALL = ROOT / "data/raw/organizers/COMPASS_stena.csv"
 TARGET = Path(__file__).resolve().parents[1] / "viewer/data.js"
-STEP = 2  # time resolution is far finer than the screen needs; this keeps the page near 7 MB
+STEP = 3  # time resolution is far finer than the screen needs; with the noise predictions this keeps the page near 12 MB
 
 TRUE_COLS = ["time", "is_limited", "plasma_current", "elongation", "triangularity", "triangularity_upper",
              "triangularity_lower", "a", "R_geom", "Z_geom", "R_top", "Z_top", "R_bottom", "Z_bottom",
@@ -42,15 +43,24 @@ assert len(true) == len(pred), (len(true), len(pred))
 assert (true["discharge"].values == pred["discharge"].values).all()
 assert np.allclose(true["time"].values, pred["time"].values, atol=1e-5)
 pred_cols = [c for c in pred.columns if c.endswith("_pred")]
-frame = pd.concat([true.reset_index(drop=True), pred[pred_cols + ["fold"]].reset_index(drop=True)], axis=1)
+parts = [true.reset_index(drop=True), pred[pred_cols + ["fold"]].reset_index(drop=True)]
+noise_cols = []
+if NOISE.exists():  # a plain and a hardened network on the provided noisy inputs, same row order
+    noise = pd.read_csv(NOISE)
+    assert len(noise) == len(true) and (noise["discharge"].values == true["discharge"].values).all()
+    assert np.allclose(noise["time"].values, true["time"].values, atol=1e-5)
+    noise_cols = [c for c in noise.columns if c.endswith(("_clean_on_noisy", "_hardened_on_noisy"))]
+    parts.append(noise[noise_cols].reset_index(drop=True))
+frame = pd.concat(parts, axis=1)
 frame["is_limited"] = frame["is_limited"].astype(float)
 
 discharges = []
 for did, g in frame.groupby("discharge", sort=True):
     g = g.iloc[::STEP]
     err = np.hypot(g["R_mag_axis"] - g["R_mag_axis_pred"], g["Z_mag_axis"] - g["Z_mag_axis_pred"]) * 1000
-    cols = {c: column(g[c].values, 0 if c == "plasma_current" else 5) for c in TRUE_COLS + pred_cols}
-    cols["is_limited_pred"] = column(g["is_limited_pred"].values, 3)
+    cols = {c: column(g[c].values, 0 if c.startswith("plasma_current") else 5) for c in TRUE_COLS + pred_cols + noise_cols}
+    for c in ["is_limited_pred"] + [n for n in noise_cols if n.startswith("is_limited")]:
+        cols[c] = column(g[c].values, 3)
     discharges.append({"id": int(did), "fold": int(g["fold"].iloc[0]), "n": len(g),
                        "axisErrMm": round(float(err.mean()), 2),
                        "limitedShare": round(float(g["is_limited"].mean()), 3), "c": cols})
@@ -67,8 +77,8 @@ view = {"R": [round(float(R_all.min()) - pad, 3), round(float(R_all.max()) + pad
         "Z": [round(float(Z_all.min()) - pad, 3), round(float(Z_all.max()) + pad, 3)]}
 
 payload = {"generated": datetime.now().strftime("%Y-%m-%d %H:%M"), "step": STEP, "wall": wall, "view": view,
-           "predColumns": pred_cols, "discharges": discharges}
+           "predColumns": pred_cols, "hasNoise": bool(noise_cols), "discharges": discharges}
 TARGET.parent.mkdir(parents=True, exist_ok=True)
 TARGET.write_text("window.VIEWER = " + json.dumps(payload, separators=(",", ":")) + ";\n", encoding="utf-8")
 print(f"wrote {TARGET}: {len(discharges)} discharges, {sum(d['n'] for d in discharges)} rows, "
-      f"{TARGET.stat().st_size / 1e6:.1f} MB, wall: {'yes' if wall else 'no'}")
+      f"{TARGET.stat().st_size / 1e6:.1f} MB, noise: {'yes' if noise_cols else 'no'}, wall: {'yes' if wall else 'no'}")

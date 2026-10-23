@@ -63,7 +63,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 12px; pa
 .rail { border-right: 1px solid var(--border); background: #fafbfd; padding: 12px; display: grid; gap: 9px; align-content: start; overflow: auto; }
 .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px 9px 14px; display: grid; gap: 1px; position: relative; }
 .kpi::before { content: ""; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 0 2px 2px 0; background: var(--ink); }
-.kpi.hot::before { background: var(--signal); }
+.kpi.hot::before { background: var(--signal); } .kpi.ok::before { background: #0b8f7c; }
 .kpi span { font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 650; }
 .kpi b { font: 600 24px/1.15 var(--mono); color: var(--ink); letter-spacing: -0.02em; } .kpi b small { font: 500 12px var(--ui); color: var(--muted); margin-left: 5px; letter-spacing: 0; }
 .kpi em { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: normal; font-size: 11.5px; color: var(--muted); font-family: var(--mono); }
@@ -77,7 +77,7 @@ th:first-child, td:first-child { text-align: left; }
 th:nth-child(2), td:nth-child(2) { width: 48px; }
 td { padding: 4px 12px; border-bottom: 1px solid #f0f3f7; text-align: right; white-space: nowrap; }
 tbody tr:not(.grp):hover td { background: #f6f8fc; }
-td.n { font-family: var(--mono); font-size: 12.5px; } td.t { color: var(--true); } td.p { color: var(--pred); font-weight: 550; } td.d { color: var(--muted); } td.u { color: var(--muted); text-align: left; }
+td.n { font-family: var(--mono); font-size: 12.5px; } td.t { color: var(--true); } td.p { color: var(--pred); font-weight: 550; } td.d { color: var(--muted); } td.k { color: #0b8f7c; font-weight: 600; } td.u { color: var(--muted); text-align: left; }
 tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-size: 12px; padding: 5px 12px; border-top: 1px solid var(--border); text-align: left; }
 .sum { border-top: 1px solid var(--border); background: var(--head); padding: 9px 14px; font-size: 12.5px; display: grid; gap: 3px; }
 .sum span { color: var(--muted); } .sum b { font-family: var(--mono); font-weight: 600; color: var(--ink); }
@@ -119,6 +119,7 @@ tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-s
   <div class="group">
     <label class="chip" style="--c:#0f172a"><input type="checkbox" id="showTrue" checked><span class="g"></span>Skutečnost</label>
     <label class="chip" style="--c:#e5502f"><input type="checkbox" id="showPred" checked><span class="g dash"></span>Předpověď</label>
+    <label class="chip" id="chipNoise" style="--c:#0b8f7c"><input type="checkbox" id="showNoise"><span class="g dot"></span>Šum měření</label>
     <label class="chip" style="--c:#101d42"><input type="checkbox" id="showPts" checked><span class="g dot"></span>Body</label>
     <label class="chip" style="--c:#101d42"><input type="checkbox" id="showGrid" checked><span class="g grid"></span>Mřížka</label>
   </div>
@@ -131,7 +132,7 @@ tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-s
   </div>
   <section class="panel tablepanel">
     <div class="ph">Parametry v tomto snímku</div>
-    <div class="scroll"><table><thead><tr><th>Parametr</th><th style="text-align:left">Jedn.</th><th>Skutečnost</th><th>Předpověď</th><th>Δ</th></tr></thead><tbody id="rows"></tbody></table></div>
+    <div class="scroll"><table><thead><tr><th>Parametr</th><th style="text-align:left">Jedn.</th><th>Skutečnost</th><th id="th4">Předpověď</th><th id="th5">Δ</th></tr></thead><tbody id="rows"></tbody></table></div>
     <div class="sum" id="sum"></div>
   </section>
 </main>
@@ -153,7 +154,11 @@ function fmt(v, d) {
 }
 const fmtSigned = (v, d) => (v == null ? "–" : (v >= 0 && fmt(v, d)[0] !== MINUS ? "+" : "") + fmt(v, d));
 const show = { true: true, pred: true, pts: true, grid: true };
-const state = { di: 0, i: 0, playing: false, speed: 2, param: "axis", hover: null };
+const state = { di: 0, i: 0, playing: false, speed: 2, param: "axis", hover: null, noise: false };
+const TEAL = "#0b8f7c";
+// Prediction sets drawn right now: [column suffix, colour, label]. The noise mode compares a plain and a hardened network on noisy inputs.
+const sets = () => (state.noise ? [["_clean_on_noisy", COL.pred, "Běžná síť, zašuměná měření"], ["_hardened_on_noisy", TEAL, "Odolná síť, zašuměná měření"]] : [["_pred", COL.pred, "Předpověď sítě"]]);
+const sfxOf = (pred) => (pred === true ? "_pred" : pred || "");
 
 // Rows of the table: group, label, column, factor, unit, decimals.
 const ROWS = [
@@ -174,13 +179,13 @@ function strikes(c, i, suffix) {
   return a[0] <= b[0] ? [a, b] : [b, a];
 }
 function value(c, i, name, pred) {
-  const m = name.match(/^sp:(\d):([RZ])$/);
-  if (m) { const s = strikes(c, i, pred ? "_pred" : "")[+m[1]]; return s ? s[m[2] === "R" ? 0 : 1] : null; }
-  const v = c[name + (pred ? "_pred" : "")]?.[i];
+  const sfx = sfxOf(pred), m = name.match(/^sp:(\d):([RZ])$/);
+  if (m) { const s = strikes(c, i, sfx)[+m[1]]; return s ? s[m[2] === "R" ? 0 : 1] : null; }
+  const v = c[name + sfx]?.[i];
   return v == null ? null : v;
 }
 const cur = () => D.discharges[state.di];
-const isLimited = (c, i, pred) => (pred ? (c.is_limited_pred[i] ?? 0) > 0.5 : c.is_limited[i] > 0.5);
+const isLimited = (c, i, pred) => { const s = sfxOf(pred); return s ? (c["is_limited" + s][i] ?? 0) > 0.5 : c.is_limited[i] > 0.5; };
 
 // Boundary of the plasma as four superellipses (Luce 2013), as in the organisers' notebook.
 function boundary(get, n = 60) {
@@ -269,14 +274,14 @@ function drawAxes(ctx, t) {
   ctx.save(); ctx.translate(v.x0 - 46, v.y0 + v.ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText("Z (m)", 0, 0); ctx.restore();
 }
 function drawLegend(ctx) {
-  const v = view, rows = [["line", "Skutečnost (reference)"], ["dash", "Předpověď sítě"], ["circle", "Magnetická osa"], ["x", "X-bod"], ["tri", "Strike point"], ["square", "Bod dotyku s limiterem"]];
-  const w = 168, h = rows.length * 17 + 10, outside = v.w - (v.x0 + v.pw) - 12 >= w + 8;
+  const v = view, rows = [["line", "Skutečnost (reference)", COL.true], ...sets().map(([, col, label]) => ["dash", label, col]), ["circle", "Magnetická osa"], ["x", "X-bod"], ["tri", "Strike point"], ["square", "Bod dotyku s limiterem"]];
+  const w = state.noise ? 214 : 168, h = rows.length * 17 + 10, outside = v.w - (v.x0 + v.pw) - 12 >= w + 8;
   const x = outside ? v.x0 + v.pw + 14 : v.x0 + v.pw - w - 10, y = v.y0 + (outside ? 0 : 10);
   ctx.fillStyle = "rgba(255,255,255,0.94)"; ctx.fillRect(x, y, w, h); ctx.strokeStyle = COL.border; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w, h);
   ctx.font = FONT; ctx.textAlign = "left"; ctx.fillStyle = "#334155";
-  rows.forEach(([k, label], n) => {
+  rows.forEach(([k, label, rc], n) => {
     const cy = y + 14 + n * 17;
-    if (k === "line" || k === "dash") { ctx.strokeStyle = k === "line" ? COL.true : COL.pred; ctx.lineWidth = 2; ctx.setLineDash(k === "dash" ? [6, 4] : []); ctx.beginPath(); ctx.moveTo(x + 8, cy); ctx.lineTo(x + 32, cy); ctx.stroke(); ctx.setLineDash([]); }
+    if (k === "line" || k === "dash") { ctx.strokeStyle = rc; ctx.lineWidth = 2; ctx.setLineDash(k === "dash" ? [6, 4] : []); ctx.beginPath(); ctx.moveTo(x + 8, cy); ctx.lineTo(x + 32, cy); ctx.stroke(); ctx.setLineDash([]); }
     else marker(ctx, k, x + 20, cy, "#64748b", false, 4.5);
     ctx.fillStyle = "#334155"; ctx.fillText(label, x + 40, cy + 4);
   });
@@ -292,14 +297,14 @@ function drawStage() {
     ctx.fillStyle = "#e2e8f0"; ctx.fill("evenodd");
     path(ctx, D.wall.R, D.wall.Z, true); ctx.lineWidth = 2.2; ctx.strokeStyle = "#475569"; ctx.stroke();
   }
-  const draw = (pred) => {
-    const color = pred ? COL.pred : COL.true, sfx = pred ? "_pred" : "", g = (n) => c[n + sfx][i];
-    if (!pred || HAS_PRED_BOUNDARY) {
+  const draw = (sfx, color) => {
+    const pred = sfx !== "", g = (n) => c[n + sfx][i];
+    if (!pred || (sfx === "_pred" && HAS_PRED_BOUNDARY)) {
       const [R, Z] = boundary(g); path(ctx, R, Z, true);
       ctx.lineWidth = 2; ctx.strokeStyle = color; ctx.setLineDash(pred ? [7, 4] : []); ctx.stroke(); ctx.setLineDash([]);
     }
     if (!show.pts) return;
-    const lim = isLimited(c, i, pred);
+    const lim = isLimited(c, i, sfx);
     const pt = (kind, rn, zn) => { const R = c[rn + sfx][i], Z = c[zn + sfx][i]; if (R != null && Z != null) marker(ctx, kind, X(R), Y(Z), color, pred); };
     if (!lim) {
       const sp = strikes(c, i, sfx), xr = c["R_x_point" + sfx][i], xz = c["Z_x_point" + sfx][i];
@@ -310,8 +315,8 @@ function drawStage() {
     } else pt("square", "R_limiter", "Z_limiter");
     pt("circle", "R_mag_axis", "Z_mag_axis");
   };
-  if (show.true) draw(false);
-  if (show.pred) draw(true);
+  if (show.true) draw("", COL.true);
+  if (show.pred) for (const [s, col] of sets()) draw(s, col);
   if (state.hover) {
     ctx.strokeStyle = "rgba(16,29,66,0.45)"; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.beginPath();
     ctx.moveTo(state.hover.x, v.y0); ctx.lineTo(state.hover.x, v.y0 + v.ph); ctx.moveTo(v.x0, state.hover.y); ctx.lineTo(v.x0 + v.pw, state.hover.y); ctx.stroke(); ctx.setLineDash([]);
@@ -321,16 +326,30 @@ function drawStage() {
 }
 
 // ---- table -------------------------------------------------------------------------------------
-function axisErr(c, i) { return Math.hypot(c.R_mag_axis[i] - c.R_mag_axis_pred[i], c.Z_mag_axis[i] - c.Z_mag_axis_pred[i]) * 1000; }
+function axisErr(c, i, sfx = "_pred") { return Math.hypot(c.R_mag_axis[i] - c["R_mag_axis" + sfx][i], c.Z_mag_axis[i] - c["Z_mag_axis" + sfx][i]) * 1000; }
+const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
 function drawRail() {
   const c = cur().c, i = state.i, d = cur(), lt = isLimited(c, i, false), lp = isLimited(c, i, true);
   const e = d.c.R_mag_axis.map((_, n) => axisErr(d.c, n)), mean = e.reduce((a, b) => a + b, 0) / e.length;
-  const tile = (label, val, unit, sub, hot) => `<div class="kpi${hot ? " hot" : ""}"><span>${label}</span><b>${val}<small>${unit}</small></b><em>${sub}</em></div>`;
+  const tile = (label, val, unit, sub, hot) => `<div class="kpi${hot === true ? " hot" : hot ? " " + hot : ""}"><span>${label}</span><b>${val}<small>${unit}</small></b><em>${sub}</em></div>`;
   const pair = (name, k, dec, label, unit) => {
     const t = value(c, i, name, false), p = value(c, i, name, true);
     return tile(label, fmt(p == null ? null : p * k, dec), unit, t == null || p == null ? "–" : `Δ ${fmtSigned((p - t) * k, dec)} · skut. ${fmt(t * k, dec)}`);
   };
   const key = lt ? ["R_limiter", "Z_limiter", "bodu limiteru"] : ["R_x_point", "Z_x_point", "X-bodu"];
+  if (state.noise) {
+    const tr = [value(c, i, key[0], ""), value(c, i, key[1], "")];
+    const kerrOf = (s) => { const p = [value(c, i, key[0], s), value(c, i, key[1], s)]; return tr[0] == null || p[0] == null || tr[1] == null || p[1] == null ? null : Math.hypot(p[0] - tr[0], p[1] - tr[1]) * 1000; };
+    const cur_ = (s) => { const a = value(c, i, "plasma_current", ""), b = value(c, i, "plasma_current", s); return a == null || b == null ? null : Math.abs(b - a) * 1e-3; };
+    const ax = (s) => d.c.R_mag_axis.map((_, n) => axisErr(d.c, n, s));
+    $("#rail").innerHTML =
+      tile("Chyba osy, běžná síť", fmt(axisErr(c, i, "_clean_on_noisy"), 2), "mm", `ve výboji Ø ${fmt(avg(ax("_clean_on_noisy")), 2)} mm`, true) +
+      tile("Chyba osy, odolná síť", fmt(axisErr(c, i, "_hardened_on_noisy"), 2), "mm", `ve výboji Ø ${fmt(avg(ax("_hardened_on_noisy")), 2)} mm`, "ok") +
+      tile("Chyba " + key[2] + ", běžná", fmt(kerrOf("_clean_on_noisy"), 1), "mm", "zašuměná měření", true) +
+      tile("Chyba " + key[2] + ", odolná", fmt(kerrOf("_hardened_on_noisy"), 1), "mm", "zašuměná měření", "ok") +
+      tile("Chyba proudu", `${fmt(cur_("_clean_on_noisy"), 1)} / ${fmt(cur_("_hardened_on_noisy"), 1)}`, "kA", "běžná / odolná");
+    return;
+  }
   const kt = [value(c, i, key[0], false), value(c, i, key[1], false)], kp = [value(c, i, key[0], true), value(c, i, key[1], true)];
   const kerr = kt[0] == null || kp[0] == null || kt[1] == null || kp[1] == null ? null : Math.hypot(kp[0] - kt[0], kp[1] - kt[1]) * 1000;
   $("#rail").innerHTML =
@@ -340,6 +359,22 @@ function drawRail() {
 }
 function drawTable() {
   const c = cur().c, i = state.i, d = cur(), out = [];
+  $("#th4").textContent = state.noise ? "Δ běžná síť" : "Předpověď"; $("#th5").textContent = state.noise ? "Δ odolná síť" : "Δ";
+  if (state.noise) {
+    const A = "_clean_on_noisy", B = "_hardened_on_noisy", lt = isLimited(c, i, ""), la = isLimited(c, i, A), lb = isLimited(c, i, B);
+    out.push(`<tr class="grp"><td colspan="5">Konfigurace</td></tr><tr><td>Typ plazmatu</td><td class="u"></td><td class="n t">${lt ? "limiterové" : "divertorové"}</td><td class="n p">${lt === la ? "shoda" : "rozdíl"}</td><td class="n k">${lt === lb ? "shoda" : "rozdíl"}</td></tr>`);
+    let group = "";
+    for (const [g, label, name, k, unit, dec] of ROWS) {
+      if (g !== group) { out.push(`<tr class="grp"><td colspan="5">${g}</td></tr>`); group = g; }
+      const t = value(c, i, name, ""), a = value(c, i, name, A), b = value(c, i, name, B);
+      out.push(`<tr><td>${label}</td><td class="u">${unit}</td><td class="n t">${t == null ? "–" : fmt(t * k, dec)}</td><td class="n p">${t == null || a == null ? "–" : fmtSigned((a - t) * k, dec)}</td><td class="n k">${t == null || b == null ? "–" : fmtSigned((b - t) * k, dec)}</td></tr>`);
+    }
+    $("#rows").innerHTML = out.join("");
+    const ea = d.c.R_mag_axis.map((_, n) => axisErr(d.c, n, A)), eb = d.c.R_mag_axis.map((_, n) => axisErr(d.c, n, B));
+    $("#sum").innerHTML = `<div><span>Chyba osy v tomto snímku:</span> běžná <b>${fmt(axisErr(c, i, A), 2)}</b>, odolná <b>${fmt(axisErr(c, i, B), 2)} mm</b></div>` +
+      `<div><span>Ve výboji ${d.id}, průměr:</span> běžná <b>${fmt(avg(ea), 2)}</b>, odolná <b>${fmt(avg(eb), 2)} mm</b></div>`;
+    return;
+  }
   const lt = isLimited(c, i, false), lp = isLimited(c, i, true);
   out.push(`<tr class="grp"><td colspan="5">Konfigurace</td></tr><tr><td>Typ plazmatu</td><td class="u"></td><td class="n t">${lt ? "limiterové" : "divertorové"}</td><td class="n p">${lp ? "limiterové" : "divertorové"}</td><td class="n d">${lt === lp ? "shoda" : "rozdíl"}</td></tr>`);
   let group = "";
@@ -357,11 +392,11 @@ function drawTable() {
 // ---- error chart -------------------------------------------------------------------------------
 const FLAT = ROWS.filter((r) => !r[2].startsWith("sp:"));
 const PARAMS = [["axis", "Poloha magnetické osy (mm)"], ...FLAT.map((r) => [r[2], `${r[0] === r[1] ? r[0] : r[0] + ", " + r[1]}${r[4] ? " (" + r[4] + ")" : ""}`])];
-function series(param) {
+function series(param, sfx = "_pred") {
   const c = cur().c, n = cur().n, out = [];
   for (let i = 0; i < n; i++) {
-    if (param === "axis") { out.push(axisErr(c, i)); continue; }
-    const row = ROWS.find((r) => r[2] === param), t = c[param][i], p = c[param + "_pred"][i];
+    if (param === "axis") { out.push(axisErr(c, i, sfx)); continue; }
+    const row = ROWS.find((r) => r[2] === param), t = c[param][i], p = c[param + sfx][i];
     out.push(t == null || p == null ? null : (p - t) * row[3]);
   }
   return out;
@@ -369,9 +404,10 @@ function series(param) {
 const chart = $("#chart"), cctx = chart.getContext("2d");
 let cgeom = null;
 function drawChart() {
-  const f = fitCanvas(chart), ctx = cctx, s = series(state.param), n = s.length, valid = s.filter((v) => v != null), signed = state.param !== "axis";
+  const f = fitCanvas(chart), ctx = cctx, ss = sets().map(([sfx, col, label]) => ({ s: series(state.param, sfx), col, label })), n = cur().n;
+  const valid = ss.flatMap((q) => q.s.filter((v) => v != null)), signed = state.param !== "axis";
   const c = cur().c, L = 56, R = 14, T = 10, B = 30, W = f.w - L - R, H = f.h - T - B;
-  cgeom = { L, W, n, s };
+  cgeom = { L, W, n, ss };
   ctx.setTransform(f.dpr, 0, 0, f.dpr, 0, 0); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, f.w, f.h);
   if (!valid.length) { ctx.fillStyle = COL.muted; ctx.font = FONT; ctx.fillText("Pro tento výboj tento parametr neexistuje (platí jen pro jednu z konfigurací).", L, T + 24); $("#chartStats").textContent = ""; return; }
   const sorted = [...valid].map(Math.abs).sort((a, b) => a - b), cap = (sorted[Math.floor(0.97 * (sorted.length - 1))] || 1) * 1.35;
@@ -389,26 +425,29 @@ function drawChart() {
   for (const v of tx.major) { const x = Math.round(L + v * W) + 0.5; ctx.moveTo(x, T); ctx.lineTo(x, T + H); }
   ctx.stroke();
   if (signed) { ctx.strokeStyle = "#94a3b8"; ctx.beginPath(); ctx.moveTo(L, py(0) + 0.5); ctx.lineTo(L + W, py(0) + 0.5); ctx.stroke(); }
-  ctx.beginPath(); let open = false;
-  s.forEach((v, i) => { if (v == null) { open = false; return; } open ? ctx.lineTo(px(i), py(v)) : ctx.moveTo(px(i), py(v)); open = true; });
-  ctx.lineWidth = 1.6; ctx.strokeStyle = COL.pred; ctx.stroke();
+  for (const q of ss) {
+    ctx.beginPath(); let open = false;
+    q.s.forEach((v, i) => { if (v == null) { open = false; return; } open ? ctx.lineTo(px(i), py(v)) : ctx.moveTo(px(i), py(v)); open = true; });
+    ctx.lineWidth = 1.6; ctx.strokeStyle = q.col; ctx.stroke();
+  }
   ctx.strokeStyle = "#334155"; ctx.lineWidth = 1; ctx.strokeRect(L + 0.5, T + 0.5, W, H);
   ctx.font = FONT; ctx.fillStyle = "#334155"; ctx.textAlign = "right";
   ctx.beginPath(); for (const v of ty.major) { const y = Math.round(py(v)) + 0.5; ctx.moveTo(L, y); ctx.lineTo(L + 5, y); ctx.fillText(fmt(v, ty.step < 1 ? 2 : ty.step < 10 ? 1 : 0), L - 7, y + 4); } ctx.stroke();
   ctx.textAlign = "center"; ctx.beginPath(); for (const v of tx.major) { const x = Math.round(L + v * W) + 0.5; ctx.moveTo(x, T + H); ctx.lineTo(x, T + H - 5); ctx.fillText(fmt(v, 1), x, T + H + 15); } ctx.stroke();
   ctx.fillText("relativní čas ve výboji", L + W / 2, f.h - 3);
   const x = Math.round(px(state.i)) + 0.5; ctx.strokeStyle = "#101d42"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + H); ctx.stroke();
-  const a = valid.map(Math.abs), mean = a.reduce((p, q) => p + q, 0) / a.length;
-  $("#chartStats").textContent = `${signed ? "Δ = předpověď − skutečnost · " : ""}průměr |Δ| ${fmt(mean, 2)} · největší |Δ| ${fmt(Math.max(...a), 1)}`;
+  const stat = (q) => { const a = q.s.filter((v) => v != null).map(Math.abs); return a.length ? `${fmt(avg(a), 2)}` : "–"; };
+  $("#chartStats").textContent = state.noise ? `${signed ? "Δ = předpověď − skutečnost · " : ""}průměr |Δ|: běžná síť ${stat(ss[0])} · odolná síť ${stat(ss[1])}`
+    : `${signed ? "Δ = předpověď − skutečnost · " : ""}průměr |Δ| ${stat(ss[0])} · největší |Δ| ${fmt(Math.max(...valid.map(Math.abs)), 1)}`;
 }
 function chartSeek(ev) {
   if (!cgeom) return; const r = chart.getBoundingClientRect();
   state.i = clamp(Math.round(((ev.clientX - r.left - cgeom.L) / cgeom.W) * (cgeom.n - 1)), 0, cgeom.n - 1); render();
 }
 chart.addEventListener("mousemove", (ev) => {
-  if (!cgeom || !cgeom.s) return; const r = chart.getBoundingClientRect();
-  const i = clamp(Math.round(((ev.clientX - r.left - cgeom.L) / cgeom.W) * (cgeom.n - 1)), 0, cgeom.n - 1), v = cgeom.s[i];
-  $("#sbCursor").textContent = `Graf: t = ${fmt(cur().c.time[i], 3)}   hodnota = ${v == null ? "–" : fmt(v, 2)}`;
+  if (!cgeom || !cgeom.ss) return; const r = chart.getBoundingClientRect();
+  const i = clamp(Math.round(((ev.clientX - r.left - cgeom.L) / cgeom.W) * (cgeom.n - 1)), 0, cgeom.n - 1);
+  $("#sbCursor").textContent = `Graf: t = ${fmt(cur().c.time[i], 3)}   ` + cgeom.ss.map((q) => `${q.s[i] == null ? "–" : fmt(q.s[i], 2)}`).join(" / ");
 });
 chart.addEventListener("mouseleave", () => ($("#sbCursor").textContent = "R = –   Z = –"));
 let dragging = false;
@@ -420,7 +459,7 @@ window.addEventListener("mouseup", () => (dragging = false));
 function status() {
   const d = cur(), c = d.c, i = state.i;
   $("#sbFrame").textContent = `Výboj ${d.id} | validační skupina ${d.fold + 1} z 5 | snímek ${i + 1} / ${d.n}`;
-  $("#sbModel").textContent = "Předpověď: neuronová síť, výboj nebyl v učení";
+  $("#sbModel").textContent = state.noise ? "Vstupy: zašuměná měření (šum a drift), výboj nebyl v učení" : "Předpověď: neuronová síť, výboj nebyl v učení";
   $("#sbWall").textContent = D.wall ? "Obrys stěny: načten" : "Obrys stěny: nenačten";
   $("#cfgTag").textContent = `${isLimited(c, i, false) ? "limiterová" : "divertorová"} konfigurace · t = ${fmt(c.time[i], 3)}`;
   $("#tbox").value = `t = ${fmt(c.time[i], 3)}`;
@@ -435,6 +474,7 @@ function init() {
   const median = [...D.discharges].sort((a, b) => a.axisErrMm - b.axisErrMm)[Math.floor(D.discharges.length / 2)];
   layoutStage(); selectDischarge(byId >= 0 ? byId : D.discharges.indexOf(median));
   if (q.get("f")) { state.i = clamp(Math.round(+q.get("f") * (cur().n - 1)), 0, cur().n - 1); render(); }
+  if (q.get("noise") === "1" && D.hasNoise) { state.noise = true; $("#showNoise").checked = true; render(); }
   if (q.get("play") === "1") play(true);
 }
 let timer = null;
@@ -451,6 +491,8 @@ $("#slider").oninput = (e) => { state.i = +e.target.value; render(); };
 $("#discharge").onchange = (e) => selectDischarge(+e.target.value);
 $("#speed").onchange = (e) => (state.speed = +e.target.value);
 $("#param").onchange = (e) => { state.param = e.target.value; drawChart(); };
+if (!D.hasNoise) $("#chipNoise").style.display = "none";
+$("#showNoise").onchange = (e) => { state.noise = e.target.checked; render(); };
 for (const [id, key] of [["showTrue", "true"], ["showPred", "pred"], ["showPts", "pts"], ["showGrid", "grid"]]) $("#" + id).onchange = (e) => { show[key] = e.target.checked; drawStage(); };
 $("#export").onclick = () => stage.toBlob((b) => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `vyboj${cur().id}_t${cur().c.time[state.i].toFixed(3)}.png`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); });
 stage.addEventListener("mousemove", (e) => {
