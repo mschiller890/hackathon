@@ -71,6 +71,20 @@ verdict, the limits, what the model cannot do. Use plain Czech without English w
 that do not exist yet stay marked `DOPLNIT`. (3) Later: material for the motion reel; the owner starts it after the
 results exist (not before Sat 08:00).
 
-### Later, decided at checkpoint CP2 (Fri 22:00)
-Camera model (IMPL-6, IMPL-7, REQ-B01, REQ-B03, REQ-B05). The first free lane with spare budget takes it; the GPT lane
-is preferred because it has its own budget.
+### R also takes the camera model now (decided Fri 17:00, GPT has only 25 % of its limit used)
+IMPL-6, IMPL-7, REQ-B01, REQ-B03, REQ-B05. Do this right after the three experiments above, or in parallel if you can.
+1. Extract `$HACKATHON_HOME/data/raw/ipp1-photron-zip/uloha_1-photron.zip` (876 MB, already downloaded and complete) into
+   its own new empty folder `data/raw/ipp1-photron/` (check the entry names for absolute or parent paths first, make the
+   folder read-only afterwards). Profile it: number of JPEGs, resolution, the CSV that maps images to discharge and time.
+2. `analysis/ipp1_camera_prepare.py`: match every image to a row of `equil_data.csv` (interpolate in time within the
+   discharge as the organizers' notebook describes), downscale to a small grayscale array, cache it as `.npy` outside git.
+3. `analysis/ipp1_camera_model.py`: a small convolutional network (Apple GPU via `torch.backends.mps` if available) that
+   predicts the main shape parameters from the image; split by whole discharges; per-target MAE in mm against the
+   magnetic baseline `results/ipp1-baseline.md`. Then black and white against colour (REQ-B03) and the effect of a shifted
+   or rotated image (REQ-B05). Outputs `out/ipp1-camera*.{json,md,png}` and a summary in `results/ipp1-camera-findings.md`.
+Never commit images or arrays (the `.gitignore` covers `data/` and `out/`).
+
+### Lane L now also runs a Claude workflow (Fri 17:00)
+The Lead's side takes: a stronger model for the weak targets (`analysis/ipp1_improve.py`), an independent review of all
+analysis code and claims, the executed notebooks in `notebooks/`, the presentation images (`presentation/assets/`) and a
+Czech pitch script. Lane U continues to polish the viewer; lane K continues with the reproducibility check and the outline.
