@@ -35,8 +35,14 @@ STEPS = [
     ("ipp1_inputs.py", ["ipp1-inputs.json"], "about 1 h"),
     ("ipp1_latency.py", ["ipp1-latency.json"], "10 s"),
 ]
+# Notebook 09 reads the predictions that ipp1_final.py caches in out/ipp1-final-cache/: the recipes `base`, `cand` and `base_aug` (the noisy-input
+# model) on the 30 locked discharges, on the blocked split and on the 5 development folds, 21 networks. One job each (295 s in total on an Apple M5, the longest 32 s);
+# `--report` is not run here because it rewrites the committed results/ipp1-final.md.
+FINAL_JOBS = ([f"locked:{r}" for r in ("base", "cand", "base_aug")] + [f"blocked:{r}" for r in ("base", "cand", "base_aug")]
+              + [f"cv:{r}:{k}" for r in ("base", "cand", "base_aug") for k in range(5)])
+STEPS += [(f"ipp1_final.py --job {j}", [f"ipp1-final-cache/{j.replace(':', '_')}.npz"], "5 min in total") for j in FINAL_JOBS]
 SLOW = {"ipp1_inputs.py"}  # over 10 minutes: --quick copies results/<output> instead
-# Executing the five notebooks afterwards takes about 2 minutes.
+# Executing the notebooks afterwards takes about 2 minutes.
 VIEWER_STEPS = [
     ("analysis/ipp1_oof_full.py", ["ipp1-predictions-full.csv"]),  # needs ipp1-predictions-noise.csv from STEPS
     ("analysis/export_viewer_data.py", []),                          # writes viewer/data.js, not out/
@@ -72,16 +78,17 @@ def main():
     out.mkdir(exist_ok=True)  # ipp1_inputs.py and ipp1_latency.py write into it without creating it
     env = {**os.environ, "HACKATHON_HOME": str(home)}
 
-    for script, outputs, _ in STEPS:
+    for step, outputs, _ in STEPS:
+        script, *extra = step.split()  # a step may carry arguments: "ipp1_final.py --job cv:cand:0"
         if args.missing and all((out / o).exists() for o in outputs):
-            print(f"skip {script}: {', '.join(outputs)} present")
+            print(f"skip {step}: {', '.join(outputs)} present")
             continue
         if args.quick and script in SLOW:
             for o in outputs:
                 shutil.copyfile(REPO / "results" / o, out / o)
             print(f"quick: copied results/{', results/'.join(outputs)} instead of running {script}")
             continue
-        run([sys.executable, "-I", f"analysis/{script}"], env)
+        run([sys.executable, "-I", f"analysis/{script}", *extra], env)
 
     if args.viewer:
         for script, outputs in VIEWER_STEPS:
