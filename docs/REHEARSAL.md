@@ -5,16 +5,16 @@ the rest is English. Numbers only from `results/`, source named per row. State o
 
 ## 1. Demo run sheet (slot 2:24 to 3:52, 88 s, between slide 4 and slide 5)
 
-**Before the slot:** Chrome only (`viewer/README.md`). Tab 1 `viewer/dist/index.html#d=123`, speed 1x, stopped; tab 2 `...#d=0`; deck on slide 4; Wi-Fi and notifications off.
+**Before the slot:** Chrome only (`viewer/README.md`). Tab 1 `viewer/dist/index.html#d=85`, speed 1x, stopped; tab 2 `...#d=147`; deck on slide 4; Wi-Fi and notifications off.
 
 | Time | Click / key (A unless noted) | Say (Czech) |
 |---|---|---|
 | 2:24 | Cmd+Tab to Chrome, tab 1 | "Teď naživo. Prohlížeč běží bez internetu. Vidíte základní síť, ne vybraný model, který je u osy na odložených výbojích asi dvakrát přesnější." |
-| 2:37 | Point to chips *Skutečnost* and *Předpověď*; press **Space** | "Tmavá čára je skutečný tvar, oranžová odhad sítě. Výboj číslo 123 síť neviděla, nepatří ani mezi odložených třicet." |
+| 2:37 | Point to chips *Skutečnost* and *Předpověď*; press **Space** | "Tmavá čára je referenční tvar z rekonstrukce ústavu, body jsou odhad vybraného modelu. Výboj číslo 85 patří mezi odložených třicet, vybraný model ho při učení neviděl." |
 | 2:49 | Nothing; let it run twice (if it stops, Space) | (ticho, 7 s) |
 | 2:56 | Point to the circle (axis), the cross (X point), the error chart below | "Kroužek je osa, křížek bod X. Dole je chyba v čase, v tomto výboji roste na začátku a na konci." Rehearsal check: if the chart does not show it, say only the first sentence. |
 | 3:08 | Point to the tile *Doba jednoho odhadu 0,0145 ms* | "Jeden odhad základní sítě trvá 0,0145 milisekundy, přehráváme zpomaleně." The tile does not name the network, so say it. First to cut if late. |
-| 3:14 | Click tab 2 (`#d=0`), **Space** | "Teď záměrně špatný výboj, číslo 0. Rozdíl je vidět, chyba osy je podle prohlížeče ___ milimetru." Fill the blank only with the number replayed the day before (blank: ______). No number: stop after "Rozdíl je vidět." |
+| 3:14 | Click tab 2 (`#d=147`), **Space** | "Teď záměrně špatný výboj, číslo 0. Rozdíl je vidět, chyba osy je podle prohlížeče ___ milimetru." Fill the blank only with the number replayed the day before (blank: ______). No number: stop after "Rozdíl je vidět." |
 | 3:28 | Point to where the two lines part | (ticho, 6 s) |
 | 3:34 | B speaks, no click | "Takových výbojů je málo: u základní sítě má chybu osy pod milimetrem 86 procent výbojů, tedy 128 ze 149." (`results/ipp1-claim-support.md`) |
 | 3:48 | Cmd+Tab to the deck, click to slide 5 | "Typický výboj sedí, chybují jen vzácné výjimky." |
@@ -23,13 +23,13 @@ Hard rule: slide 5 is on screen at 3:52. Over time: drop 3:28 and 3:34 first, th
 
 | If | Do (5 s at most, then switch; never debug on stage) | Say |
 |---|---|---|
-| The viewer does not open / blank page | Deck, hidden **slide 10** (key **H**, or `10` + Enter): stills of discharge 123 | "Ukázka se nespustila, ukážu uložené obrázky." 45 s, skip the bad-discharge rows |
+| The viewer does not open / blank page | Deck, hidden **slide 10** (key **H**, or `10` + Enter): stills of discharge 85 | "Ukázka se nespustila, ukážu uložené obrázky." 45 s, skip the bad-discharge rows |
 | The viewer freezes mid-run | Space; then Cmd+R (the address restores the discharge, not the position); still frozen: stills | Keep going, apologise once |
 | The laptop has no network | Nothing: one file, data inlined, no external URL (`PLAN.md` IMPL-10, tested with DNS blocked) | none |
 | Laptop dead / no video out | Second device, or the PDF on the USB stick | One sentence, continue |
 | Everything fails | 60 s clip, A talks over it | "Pustím záznam, je to stejná ukázka." |
 
-Backup order: (1) stills in hidden slide 10 (`presentation/assets/viewer-*.png`); (2) 60 s clip (discharge 123, then 4 with the *Šum měření* chip); (3) PDF of the deck.
+Backup order: (1) stills in hidden slide 10 (`presentation/assets/viewer-*.png`); (2) 60 s clip (discharge 85); (3) PDF of the deck.
 **Missing today:** the 60 s clip (only the 15 s `out/viewer-demo.mp4` exists, outside git) and the PDF (`docs/SUBMISSION.md`). `viewer/dist/index.html` (11 MB, IPP data, gitignored, CON-001) goes to the second device by USB or AirDrop only.
 
 ## 2. Drill sheet (23 questions; ★ = the five most dangerous)
@@ -48,7 +48,7 @@ Unknown? "Tohle jsme neměřili." and continue with what was measured. Never gue
 | N6 | Jak jste na zánicích a startu? | "Nejhůř na koncích: v posledních dvou procentech je osa 0,58 milimetru proti 0,11 uprostřed. Náhlé zániky v datech ani v našich zkouškách nejsou." | `ipp1-final.md` |
 | N8 | Proč nezprůměrovat řádky? | "Zkusili jsme tři: na šumu klesla chyba osy z 2,64 na 2,33, na čistých vstupech se zhoršila z 0,38 na 0,57 milimetru. Delší okna jsme nezkoušeli." | `ipp1-robustness-findings.md` |
 | N9 | Přežije se výpadek cívky? | "Netestovali jsme. Samotných 16 cívek dává souhrnnou chybu 0,066 proti 0,063 se všemi 24 vstupy. Žádné čidlo nejmenujeme, pořadí není stabilní." | `ipp1-inputs.md`, `ipp1-inputs-controls.md` |
-| N11 | Zadání má 17 parametrů, vy 16. | "Vybraný model předpovídá 16 hlavních sloupců z 31 v souboru. Ostatních patnáct jsou doplňkové veličiny pro obrys; ty předpovídá jen základní síť a čísla pro ně zatím nepublikujeme." (oprava podle docs/bonus-gaps.md) | `ipp1-data.md` |
+| N11 | Zadání má 17 parametrů, vy 16. | "Vybraný model předpovídá 16 hlavních sloupců z 31 v souboru. Ostatních patnáct sloupců jsou doplňkové veličiny pro obrys; ty předpovídá jen základní síť, vybraný model je nepředpovídá." | `ipp1-data.md` |
 
 **ML person**
 
@@ -74,15 +74,15 @@ Unknown? "Tohle jsme neměřili." and continue with what was measured. Never gue
 
 Ids: Q1 to Q10 from `pitch-script.md`; N1 to N13 from `docs/review-findings-2.md` (it lists 13, not 10). Q3 and N1, Q5 and N2 share one answer.
 
-**Conflicts for the Lead (not decided here)**
-1. `pitch-script.md` still has `[[latency shipped]]` and, in N5, the 0,1775 ms estimate ("twelve times"). `results/ipp1-latency-shipped.md` measures the shipped pair at 0,0154 ms (diverted) and 0,0274 ms (limited) on a busy machine (load about 7): about twice the baseline. "Desetiny milisekundy" in the slogan is then not true; ask which slogan to speak, do not improvise it.
-2. The viewer tile does not say "základní síť" (`viewer/index.html:373`).
-3. Replay discharges 123 and 0 and note the axis error and frame count the viewer shows; the old "5,7 mm" and "219 frames" are not used.
+**Wording fixed with the Lead's decisions (23 Oct, after the physics rewrite of the pitch)**
+1. Slogan: "Desetiny milimetru shody s rekonstrukcí, setiny milisekundy výpočtu." Measured: selected model 0,027 ms limited and 0,015 ms diverted, basic network 0,0145 ms (`results/ipp1-latency-shipped.md`, `results/ipp1-latency.md`). Say "vybraný model" for the viewer tile; the old 0,1775 ms estimate is not used.
+2. Reference wording: say "referenční tvar" or "rekonstrukce ústavu", not "skutečný tvar". Q1 keeps "skutečné plazma" only as the contrast ("ne proti skutečnému plazmatu").
+3. Demo discharges are 85 (typical, set-aside) and 147 (rough end); the median of the mean axis error over the set-aside discharges is "asi 0,2 mm" (0,19 mm, `results/ipp1-demo-facts.md`). The old discharges 123 and 0, the "5,7 mm" and "219 frames" are not used.
 
 ## 3. G5 checklist (Sat 09:00, owner and colleague; tick with evidence, name the person for each line)
 
-- [ ] **Second device:** `viewer/dist/index.html` (copied by USB) in a clean Chrome profile; discharge 123 plays, the *Šum měření* chip works.
-- [ ] **`file://` open** on the presentation laptop (double click and typed path), `#d=123` and `#d=0`; default browser is Chrome.
+- [ ] **Second device:** `viewer/dist/index.html` (copied by USB) in a clean Chrome profile; discharge 85 plays, the *Šum měření* chip works.
+- [ ] **`file://` open** on the presentation laptop (double click and typed path), `#d=85` and `#d=147`; default browser is Chrome.
 - [ ] **Fonts offline:** Wi-Fi off, page plays; viewer uses the system font stack, deck uses Arial; Czech diacritics checked on all 14 slides on both devices.
 - [ ] **Battery:** on mains, sleep and screensaver off, Do Not Disturb on, other apps closed; spare charger and video adapter in the bag.
 - [ ] **Screen share:** mirror at 1920x1080 and 1366x768; viewer legible from the back (toolbar not clipped, magnifier tiles visible).
