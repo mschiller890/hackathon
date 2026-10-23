@@ -148,6 +148,13 @@ Notes from the second-machine check (`docs/PLAN.md`, RP-1 to RP-14):
 - Versions that reproduced `results/ipp1-baseline.md` on the second machine: Python 3.12.15, torch 2.14.1, numpy 2.5.4,
   pandas 3.1.0, scikit-learn 1.9.1, scipy 1.18.1, nbconvert 7.17.2. Latency figures depend on the processor.
 
+## Try the model
+
+The shipped model (recipe `cand`, `results/ipp1-final.md`) runs without torch or pandas, from the 24 magnetic measurements to 16 estimates of the institute's reference reconstruction.
+1. `python -I analysis/export_model.py` trains it on the 119 development discharges (about 30 s, needs the data) and writes `out/model/ipp1-selected.npz` (0.9 MB). **The weights come from the confidential data**: `out/` is git-ignored and the file goes only into the submission package.
+2. `python analysis/predict.py input.csv` reads a CSV with the columns `IPR01` to `IPR16` and `FL01` to `FL08` (one row per time instant) and prints the 16 estimates (mm, kA) and `is_limited_flag`; `--out file.csv` writes every row, `--all` keeps the cells that do not apply to the configuration. Only numpy is needed. Rows are independent: the "neighboring coil" differences are between adjacent coils inside a row, not between time steps.
+3. `python -I analysis/check_predict.py` shows that `predict.py` reproduces the cached predictions for the 30 set-aside discharges (largest difference 0.0006 mm, about 5 microseconds per row for a whole file on one core), as a library and as a command line.
+
 ## Engineering approach
 
 Development follows [`AGENTS.md`](AGENTS.md): requirements-driven work, claims backed by evidence, small
