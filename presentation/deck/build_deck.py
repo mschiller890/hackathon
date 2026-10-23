@@ -36,6 +36,9 @@ OUT = Path(__file__).resolve().parent / "slides.pptx"
 NAVY, PANEL, LINE = RGBColor(0x0B, 0x17, 0x30), RGBColor(0x14, 0x25, 0x4A), RGBColor(0x2A, 0x3D, 0x66)
 TEXT, MUTED = RGBColor(0xF2, 0xF5, 0xFA), RGBColor(0x9A, 0xA9, 0xC6)
 ORANGE, BLUE = RGBColor(0xFF, 0x8A, 0x3D), RGBColor(0x4C, 0x9B, 0xFF)
+# LIGHT: the comparison series, lighter than MUTED so it differs from orange in luminance too; BAD: highlight for a failure,
+# so that orange keeps one meaning on every chart ("the model we use").
+LIGHT, BAD = RGBColor(0xD5, 0xDC, 0xEB), RGBColor(0xD5, 0x5E, 0x00)
 FONT = "Arial"  # present on Mac, Windows and LibreOffice; carries Czech diacritics
 
 W, H = Emu(12192000), Emu(6858000)  # 13.333 x 7.5 in, 16:9
@@ -159,12 +162,12 @@ def text(slide, x, y, w, h, runs, size=18, color=TEXT, bold=False, align=PP_ALIG
     return tb
 
 
-def tile(slide, x, y, w, h, number, label, accent=ORANGE, size=44):
+def tile(slide, x, y, w, h, number, label, accent=ORANGE, size=44, label_size=16):
     box(slide, x, y, w, h, fill=PANEL)
     box(slide, x, y + 0.18, 0.07, h - 0.36, fill=accent)
-    text(slide, x + 0.3, y + 0.15, w - 0.45, h * 0.55, number, size=size, color=accent, bold=True,
+    text(slide, x + 0.3, y + 0.1, w - 0.45, h * 0.5, number, size=size, color=accent, bold=True,
          anchor=MSO_ANCHOR.MIDDLE)
-    text(slide, x + 0.3, y + 0.15 + h * 0.55, w - 0.45, h * 0.4 - 0.2, label, size=14, color=MUTED)
+    text(slide, x + 0.3, y + 0.1 + h * 0.5, w - 0.45, h * 0.45 - 0.1, label, size=label_size, color=MUTED)
 
 
 def frame(prs, kicker, title, notes, background=None, shade=0.0):
@@ -181,8 +184,6 @@ def frame(prs, kicker, title, notes, background=None, shade=0.0):
     text(s, 0.6, 0.72, 10, 0.35, kicker.upper(), size=13, color=ORANGE, bold=True)
     if title:
         text(s, 0.6, 1.05, 12.1, 0.9, title, size=30, bold=True)
-    text(s, 0.6, 7.0, 9, 0.3, "Tvar plazmatu z magnetických měření · tokamak COMPASS · úloha ÚFP 1", size=10,
-         color=MUTED)
     s.notes_slide.notes_text_frame.text = notes
     return s
 
@@ -212,8 +213,19 @@ def log_axis(axis, lo, hi):
     axis.minimum_scale, axis.maximum_scale = lo, hi
 
 
-def caption(slide, x, y, w, words):
-    text(slide, x, y, w, 0.3, words, size=11, color=MUTED)
+def caption(slide, x, y, w, words, size=14):
+    text(slide, x, y, w, 0.4, words, size=size, color=MUTED)
+
+
+def chart_title(slide, x, y, w, words):
+    """The chart's own title with its unit at 16 pt (the value axes stay hidden; the data labels carry the values)."""
+    text(slide, x, y, w, 0.45, words, size=16, color=TEXT, bold=True)
+
+
+def notes_extra(slide, lines):
+    """Text taken off the screen for the projector (fix 1) stays in the speaker notes, ready for questions."""
+    tf = slide.notes_slide.notes_text_frame
+    tf.text = tf.text + "\nNa obrazovce není, řekni při dotazu:\n" + "\n".join("• " + l for l in lines)
 
 
 def style_chart(chart, legend=True, size=12):
@@ -253,6 +265,7 @@ def chart(slide, x, y, w, h, kind, cats, series, colors):
     gf = slide.shapes.add_chart(kind, Emu(int(x * IN)), Emu(int(y * IN)), Emu(int(w * IN)), Emu(int(h * IN)), cd)
     c = gf.chart
     c.has_title = False
+    c.value_axis.minimum_scale = 0
     for s, col in zip(c.plots[0].series, colors):
         if kind in (XL_CHART_TYPE.LINE_MARKERS,):
             s.format.line.color.rgb, s.format.line.width = col, Pt(3)
@@ -293,7 +306,7 @@ def build():
     box(s, 0, 4.9, 13.333, 2.6, fill=NAVY, alpha=0.75)
     text(s, 0.6, 5.2, 12.1, 1.0, "Plazma se musí udržet dál od stěny", size=40, bold=True)
     text(s, 0.6, 6.05, 12.1, 0.5, "Celý výboj trvá podle organizátorů jen 150 až 200 milisekund.", size=20, color=MUTED)
-    caption(s, 9.2, 6.6, 3.5, "Ilustrace, ne fotografie.")
+    text(s, 9.2, 6.55, 3.5, 0.4, "Ilustrace, ne fotografie.", size=14, color=TEXT)
     add_sources(s, ["results/ipp1-data.md (150 až 200 ms je údaj organizátorů)"])
 
     # 1 Problem, screen b (0:21 to 0:38): minutes against milliseconds, then the question
@@ -305,59 +318,62 @@ def build():
     text(s, 0.9, 5.15, 11.5, 1.2, [[("Otázka: ", 24, ORANGE, True),
                                     ("odhadne malá neuronová síť tvar plazmatu z magnetických měření dost přesně "
                                      "a dost rychle?", 24, TEXT, False)]])
+    caption(s, 11.6, 6.65, 1.2, "Ilustrace.")
     add_sources(s, ["zadání úlohy (minuty, jednotky ms)"])
 
     # 2 Data: tiles left, coil schematic right
     rows, dis = 42972, 149
     s = frame(prs, "Data", f"{cz(rows, 0)} okamžiků ze {dis} výbojů tokamaku COMPASS", notes_text(sc[2], "Snímek 2"))
-    tile(s, 0.6, 2.2, 5.2, 1.3, "24", "magnetických měření: 16 cívek a 8 smyček toku", accent=BLUE, size=36)
-    tile(s, 0.6, 3.65, 5.2, 1.3, "16", "hledaných veličin tvaru: osa, bod X, dotykové body, protažení", ORANGE, 36)
-    tile(s, 0.6, 5.1, 5.2, 1.3, str(dis), "výbojů; učení a test dělíme vždy po celých výbojích", accent=BLUE, size=36)
-    picture(s, "03-coils.png", 6.2, 2.2, 6.5)
-    caption(s, 6.2, 5.95, 6.5, "Schéma, ne skutečný řez. Smyčky toku na něm nejsou.")
-    text(s, 6.2, 6.3, 6.5, 0.5, [[("Data jsou důvěrná: ", 14, ORANGE, True),
-                                  ("ukazujeme jen souhrnná čísla.", 14, TEXT, False)]])
+    tile(s, 0.6, 2.1, 5.2, 1.4, "24", "magnetických měření: 16 cívek, 8 smyček toku", accent=BLUE, size=36)
+    tile(s, 0.6, 3.65, 5.2, 1.4, "16", "hledaných veličin tvaru", ORANGE, 36)
+    tile(s, 0.6, 5.2, 5.2, 1.4, str(dis), "výbojů; dělíme vždy po celých výbojích", accent=BLUE, size=36)
+    picture(s, "03-coils.png", 6.2, 2.1, 6.5)
+    caption(s, 6.2, 5.85, 6.5, "Schéma, ne skutečný řez. Smyčky toku na něm nejsou.")
+    text(s, 6.2, 6.3, 6.5, 0.5, [[("Data jsou důvěrná: ", 18, ORANGE, True),
+                                  ("jen souhrnná čísla.", 18, TEXT, False)]])
+    notes_extra(s, ["16 veličin: osa, bod X, dotykové body, protažení, trojúhelníkovost, proud, bod u limiteru"])
     add_sources(s, ["results/ipp1-data.md"])
 
     # 3 Method (items 3.1 to 3.3)
     s = frame(prs, "Metoda", "Malá neuronová síť proti lineárnímu modelu", notes_text(sc[3], "Snímek 3"))
-    steps = [("24", "magnetických měření", BLUE), (cz(lat["parameters"], 0), "parametrů sítě 256 · 256 · 128", ORANGE),
+    steps = [("24", "magnetických měření", BLUE), (cz(lat["parameters"], 0), "parametrů, vrstvy 256, 256 a 128", ORANGE),
              ("16", "veličin tvaru najednou", BLUE)]
     for i, (num, lab, col) in enumerate(steps):
         y = 2.1 + i * 1.35
-        tile(s, 0.6, y, 5.2, 1.08, num, lab, accent=col, size=30)
+        tile(s, 0.6, y, 5.2, 1.08, num, lab, accent=col, size=30, label_size=14)
         if i < 2:
             text(s, 0.6, y + 1.04, 5.2, 0.32, "↓", size=16, color=MUTED, align=PP_ALIGN.CENTER)
-    caption(s, 0.6, 6.15, 5.4, "Vybraný model = základní síť + rozdíly sousedních cívek + lineární model pro proud "
-                               "+ zvláštní síť pro bod u limiteru.")
+    text(s, 0.6, 6.15, 5.4, 0.6, "Vybraný model: základní síť plus tři úpravy.", size=16, color=TEXT)
     picture(s, "06-neural-bridge.png", 6.2, 2.1, 6.5)
     caption(s, 6.2, 5.85, 6.5, "Ilustrace principu; skutečných vstupů je 24, ne 16.")
-    text(s, 6.2, 6.25, 6.5, 0.7, [
-        [("Ověření: ", 14, ORANGE, True), (f"základní síť: {b['folds']} různých rozdělení po výbojích. Vybraný model: "
-                                           "navíc 30 výbojů odložených před finálním výběrem.", 14, TEXT, False)],
-        [("Křížová validace: 5krát jiné rozdělení výbojů na učení a test.", 11, MUTED, False)]])
+    text(s, 6.2, 6.3, 6.5, 0.5, [[("Ověření: ", 16, ORANGE, True),
+                                  ("5 dělení po výbojích a 30 odložených výbojů.", 16, TEXT, False)]])
+    notes_extra(s, ["Vybraný model = základní síť + rozdíly sousedních cívek + lineární model pro proud + zvláštní síť "
+                    "pro bod u limiteru.",
+                    f"Základní síť: {b['folds']} různých rozdělení po výbojích (křížová validace: 5krát jiné rozdělení "
+                    "na učení a test). Vybraný model: navíc 30 výbojů odložených před posledním výběrem."])
     add_sources(s, ["results/ipp1-baseline.md (107 152 parametrů, 5 dělení)", "results/ipp1-final.md (30 odložených)"])
 
     # 3b Camera, hidden backup (items 0.4, 5.1 to 5.5); spoken text from the script's "Záloha: kamera" section
     s = frame(prs, "Bonus: kamera",
-              f"Malá kamerová síť (snímky 48×64) je {cz(cm['ratio'][0], 1)} až {cz(cm['ratio'][1], 0)}krát horší než cívky",
+              f"Kamerová síť je {cz(cm['ratio'][0], 1)} až {cz(cm['ratio'][1], 0)}krát horší než cívky",
               backup_notes("Záloha: kamera", "Skrytý snímek 5, kamera (bez vteřin v časovém plánu)"))
     s._element.set("show", "0")
     keys = [("R_mag_axis", "osa R"), ("Z_mag_axis", "osa Z"), ("R_x_point", "bod X R"), ("R_strike_point_1", "dotyk 1 R")]
     cv_, mv_ = [cm[k][0] for k, _ in keys], [cm[k][1] for k, _ in keys]
-    text(s, 0.6, 2.05, 8.0, 0.4, "Průměrná chyba v mm, 5 dělení po výbojích", size=14, color=MUTED)
-    c = chart(s, 0.5, 2.35, 8.3, 4.3, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
-              [("kamera, šedá", cv_), ("magnetická síť", mv_)], [BLUE, ORANGE])
-    style_chart(c)
+    chart_title(s, 0.6, 2.0, 8.0, "Průměrná chyba (mm), 5 dělení po výbojích")
+    c = chart(s, 0.5, 2.45, 8.3, 4.2, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
+              [("kamera, šedá", cv_), ("magnetická síť", mv_)], [LIGHT, ORANGE])
+    style_chart(c, size=14)
     c.plots[0].gap_width, c.plots[0].overlap = 60, -10
-    label_points(c.plots[0].series[0], cv_, 2, BLUE, 11)
-    label_points(c.plots[0].series[1], mv_, 2, ORANGE, 11)
+    label_points(c.plots[0].series[0], cv_, 2, LIGHT, 14)
+    label_points(c.plots[0].series[1], mv_, 2, ORANGE, 14)
     c.value_axis.visible = False
-    tile(s, 9.1, 2.35, 3.6, 1.35, f"{cz(cm['current'], 0)} kA", "chyba proudu plazmatem: tato síť ho neurčí", MUTED, 32)
-    tile(s, 9.1, 3.85, 3.6, 1.35, f"{cz(cm['colour_grey'][0], 2)} mm",
-         f"osa R barevně, šedá {cz(cm['colour_grey'][1], 2)} mm: barva nepomáhá", BLUE, 32)
-    caption(s, 9.1, 5.4, 3.6, "Srovnání je jen orientační: snímky jen ze 78 výbojů, 12 epoch, každý osmý snímek. "
-                              "Platí pro tuto malou síť, ne pro kameru jako takovou.")
+    tile(s, 9.1, 2.45, 3.6, 1.5, f"{cz(cm['current'], 0)} kA", "proud: tato síť ho neurčí", MUTED, 32)
+    tile(s, 9.1, 4.1, 3.6, 1.5, f"{cz(cm['colour_grey'][0], 2)} mm", f"osa R barevně, šedá {cz(cm['colour_grey'][1], 2)}",
+         LIGHT, 32)
+    notes_extra(s, ["Barva nepomáhá. Srovnání je jen orientační: snímky jen ze 78 výbojů, 12 epoch, každý osmý snímek. "
+                    "Platí pro tuto malou síť, ne pro kameru jako takovou."])
     add_sources(s, ["results/cloud-camera-findings.md (5 dělení, šedá kamera)"])
 
     # 4 Results, screen a (1:26 to 1:33): what we estimate
@@ -366,70 +382,81 @@ def build():
     for (x, y, words) in [(0.6, 3.5, "osa plazmatu\nuprostřed"), (0.6, 5.5, "bod X\ndole"),
                           (10.9, 5.5, "dva dotykové body,\nkam dopadá okraj")]:
         text(s, x, y, 2.0, 0.9, words, size=16, color=TEXT, bold=True)
-    caption(s, 2.3, 6.75, 8.7, "Schéma tvaru, ne skutečný výboj.")
+    caption(s, 2.3, 6.75, 8.7, "Schéma tvaru, ne skutečný výboj. R vodorovně, Z svisle.")
 
-    # 4 Results, screen b (1:33 to 2:17): the selected model on the 30 held-out discharges (items 7.1 to 7.6)
+    # 4 Results, screen b (1:33 to 2:17): the selected model on the 30 held-out discharges (deck-fixes 7, visual QA 1, 3, 4)
     s = frame(prs, "Výsledky", f"Na 30 odložených výbojích: osa {cz(fn['R_mag_axis'][1], 2)} mm",
               notes_text(sc[4], "Snímek 4b", start="1:33", end="2:17"))
     text(s, 0.6, 1.72, 12.1, 0.4, f"v křížové validaci na 119 výbojích {cz(fn['cv_axis'], 2)} mm, na novějších číslech "
-                                  f"výbojů {cz(fn['blocked_axis'], 2)} mm", size=16, color=MUTED)
-    tile(s, 0.6, 2.25, 3.6, 1.4, f"{cz(fn['R_mag_axis'][1], 2)} mm", "průměrná chyba polohy osy, 30 odložených výbojů",
-         BLUE, 32)
-    tile(s, 0.6, 3.8, 3.6, 1.4, f"{cz(fn['R_limiter'][1], 2)} mm",
-         f"bod u limiteru radiálně, dříve {cz(fn['R_limiter'][0], 1)} mm (30 odložených výbojů)", ORANGE, 32)
-    tile(s, 0.6, 5.35, 3.6, 1.4, f"{cz(fn['plasma_current'][1], 3)} kA",
-         f"proud plazmatem: lineární model; síť to neuměla ({cz(fn['plasma_current'][0], 1)} kA)", BLUE, 32)
+                                  f"výbojů {cz(fn['blocked_axis'], 2)} mm", size=18, color=MUTED)
+    tile(s, 0.6, 2.35, 3.6, 1.45, f"{cz(fn['R_mag_axis'][1], 2)} mm", "průměrná chyba osy", BLUE, 32)
+    tile(s, 0.6, 3.95, 3.6, 1.45, f"{cz(fn['R_limiter'][1], 2)} mm",
+         f"bod u limiteru, dříve {cz(fn['R_limiter'][0], 1)} mm", ORANGE, 32)
+    tile(s, 0.6, 5.55, 3.6, 1.45, f"{cz(fn['plasma_current'][1], 3)} kA",
+         f"proud, lineární model (síť {cz(fn['plasma_current'][0], 1)} kA)", BLUE, 32)
     keys = [("R_mag_axis", "osa R"), ("Z_mag_axis", "osa Z"), ("R_x_point", "bod X R"), ("R_strike_point_1", "dotyk 1 R")]
     bv, nv = [fn[k][0] for k, _ in keys], [fn[k][1] for k, _ in keys]
-    text(s, 4.6, 2.2, 8.1, 0.5, "Průměrná chyba v mm na 30 výbojích odložených před finálním výběrem. Náměty na úpravy "
-                                "modelu vznikly na všech 149 výbojích.", size=12, color=MUTED)
-    c = chart(s, 4.5, 2.65, 8.3, 3.0, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
-              [("základní síť", bv), ("vybraný model", nv)], [MUTED, ORANGE])
-    style_chart(c)
+    chart_title(s, 4.6, 2.35, 8.1, "Průměrná chyba (mm), 30 odložených výbojů")
+    c = chart(s, 4.5, 2.8, 8.3, 4.2, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
+              [("základní síť", bv), ("vybraný model", nv)], [LIGHT, ORANGE])
+    style_chart(c, size=14)
     c.plots[0].gap_width, c.plots[0].overlap = 60, -10
-    label_points(c.plots[0].series[0], bv, 3, MUTED, 11)
-    label_points(c.plots[0].series[1], nv, 3, ORANGE, 11)
+    label_points(c.plots[0].series[0], bv, 3, LIGHT, 14)
+    label_points(c.plots[0].series[1], nv, 3, ORANGE, 14)
     c.value_axis.visible = False
-    text(s, 4.6, 5.7, 8.1, 1.25, [
-        [(f"Osa R, vybraný model: 30 odložených výbojů {cz(fn['R_mag_axis'][1], 2)} mm | křížová validace na 119 výbojích "
-          f"{cz(fn['cv_axis'], 2)} mm | novější čísla výbojů {cz(fn['blocked_axis'], 2)} mm (učení na 60 nejnižších "
-          "číslech).", 11, MUTED, False)],
-        [(f"Několik jednotlivých řádků je horších: nejhorší řádek bodu X {cz(fn['x_worst'][1], 1)} mm proti "
-          f"{cz(fn['x_worst'][0], 2)} mm.", 11, MUTED, False)],
-        [(f"Čisté vstupy: osa {cz(fn['R_mag_axis'][1], 2)} mm, proud {cz(fn['plasma_current'][1], 3)} kA. Zašuměné "
-          f"vstupy (soubor organizátorů): jiný model, učený se šumem: osa {cz(nf['axis'], 2)} mm, proud "
-          f"{cz(nf['current'], 2)} kA, bod u limiteru {cz(nf['limiter'][0], 1)} a {cz(nf['limiter'][1], 1)} mm "
-          "(30 odložených výbojů).", 11, MUTED, False)]])
+    notes_extra(s, [
+        "Výboje byly odloženy před posledním výběrem modelu; náměty na úpravy modelu vznikly na všech 149 výbojích.",
+        f"Osa R, vybraný model: 30 odložených výbojů {cz(fn['R_mag_axis'][1], 2)} mm | křížová validace na 119 výbojích "
+        f"{cz(fn['cv_axis'], 2)} mm | novější čísla výbojů {cz(fn['blocked_axis'], 2)} mm (učení na 60 nejnižších číslech).",
+        f"Několik jednotlivých řádků je horších: nejhorší řádek bodu X {cz(fn['x_worst'][1], 1)} mm proti "
+        f"{cz(fn['x_worst'][0], 2)} mm.",
+        f"Zašuměné vstupy (soubor organizátorů): jiný model, učený se šumem: osa {cz(nf['axis'], 2)} mm, proud "
+        f"{cz(nf['current'], 2)} kA, bod u limiteru {cz(nf['limiter'][0], 1)} a {cz(nf['limiter'][1], 1)} mm."])
     add_sources(s, ["results/ipp1-final.md (30 odložených výbojů, křížová validace, bloky, zašuměné vstupy)"])
 
-    # 4 Results, screen c (2:17 to 2:29): how many inputs are needed (items 8.1 to 8.3)
+    # 4 Results, screen c (2:17 to 2:29): how many inputs are needed (deck-fixes 8, visual QA 3 and 5a)
     runs = inp["runs"]
     topk = sorted((int(k.split()[1]), v) for k, v in runs.items() if k.startswith("top"))
     topk.append((24, runs["all 24"]))
     ipr, fl, top8 = (runs[k]["summary_nrmse_mean"] for k in ("IPR only (16)", "FL only (8)", "top 8"))
     s = frame(prs, "Výsledky", "Kolik vstupů stačí", notes_text(sc[4], "Snímek 4c", start="2:17"))
-    text(s, 0.6, 1.72, 12.1, 0.4, f"Samotné cívky stačí na skoro stejnou souhrnnou chybu ({cz(ipr, 3)} proti "
+    text(s, 0.6, 1.72, 12.1, 0.4, f"Samotné cívky stačí skoro na stejnou chybu ({cz(ipr, 3)} proti "
                                   f"{cz(runs['all 24']['summary_nrmse_mean'], 3)}); osm nejlepších už ne ({cz(top8, 3)}).",
-         size=16, color=MUTED)
-    text(s, 0.6, 2.2, 8.0, 0.4, "Souhrnná relativní chyba podle počtu vstupů (menší je lepší), základní síť, 5 dělení po "
-                                "výbojích", size=12, color=MUTED)
+         size=18, color=MUTED)
+    chart_title(s, 0.6, 2.35, 8.2, "Souhrnná chyba podle počtu vstupů (menší je lepší)")
+    # Real spacing of 2 to 24 inputs (XY scatter), not nine equally spaced categories (visual QA fix 3)
+    cd = XyChartData()
+    ser = cd.add_series("chyba")
+    for k, v in topk:
+        ser.add_data_point(k, v["summary_nrmse_mean"])
+    gf = s.shapes.add_chart(XL_CHART_TYPE.XY_SCATTER_LINES, Emu(int(0.5 * IN)), Emu(int(2.8 * IN)), Emu(int(8.3 * IN)),
+                            Emu(int(3.8 * IN)), cd)
+    c = gf.chart
+    c.has_title = False
+    c.value_axis.minimum_scale = 0
+    style_chart(c, legend=False, size=14)
+    c.category_axis.minimum_scale, c.category_axis.maximum_scale = 0, 25
+    se = c.plots[0].series[0]
+    se.format.line.color.rgb, se.format.line.width, se.smooth = ORANGE, Pt(3), False
+    se.marker.format.fill.solid()
+    se.marker.format.fill.fore_color.rgb = ORANGE
+    se.marker.format.line.color.rgb = ORANGE
     vals = [v["summary_nrmse_mean"] for _, v in topk]
-    c = chart(s, 0.5, 2.5, 8.3, 4.0, XL_CHART_TYPE.LINE_MARKERS, [str(k) for k, _ in topk], [("chyba", vals)], [ORANGE])
-    style_chart(c, legend=False)
-    label_points(c.plots[0].series[0], vals, 3, TEXT, 11)
+    label_points(se, vals, 3, TEXT, 13)
     for i, (k, _) in enumerate(topk):
-        # 0,265 and 0,204 sit on the steep part of the line, so they go to the right of their points (item 8.3)
-        c.plots[0].series[0].points[i].data_label.position = \
-            XL_LABEL_POSITION.RIGHT if k in (3, 4) else XL_LABEL_POSITION.ABOVE
+        # the steep part (3, 4 inputs) gets its labels beside the points so they do not sit on the line
+        se.points[i].data_label.position = (XL_LABEL_POSITION.RIGHT if k in (3, 4) else
+                                            XL_LABEL_POSITION.BELOW if k == 5 else XL_LABEL_POSITION.ABOVE)
     c.value_axis.visible = False
-    caption(s, 0.6, 6.5, 8.0, "Osa svisle: souhrnná relativní chyba (bez jednotky). Vodorovně: počet vstupů; nejlepší "
-                              "sada vybraná zvlášť v každém rozdělení.")
-    tile(s, 9.1, 2.5, 3.6, 1.35, cz(ipr, 3), "jen 16 cívek", BLUE, 32)
-    tile(s, 9.1, 4.0, 3.6, 1.35, cz(fl, 3), f"jen 8 smyček toku, {cz(fl / ipr, 1)}krát horší", MUTED, 32)
-    text(s, 9.1, 5.5, 3.6, 1.4, [
-        [("Pořadí důležitosti platí pro naučenou síť, neříká, kolik informace vstup nese.", 12, MUTED, False)],
-        [("Souhrnná relativní chyba: průměr přes 13 veličin bez bodu u limiteru, chyba vztažená k rozptylu veličiny; "
-          "menší je lepší.", 10, MUTED, False)]])
+    caption(s, 0.6, 6.6, 8.2, "Vodorovně počet vstupů; body = nejlepší sada vybraná v každém dělení.")
+    tile(s, 9.1, 2.45, 3.6, 1.5, cz(ipr, 3), "jen 16 cívek (pevná sada)", BLUE, 32)
+    tile(s, 9.1, 4.1, 3.6, 1.5, cz(fl, 3), f"jen 8 smyček, {cz(fl / ipr, 1)}krát horší", MUTED, 32)
+    text(s, 9.1, 5.8, 3.6, 1.0, "Chyba v násobcích rozptylu veličiny.", size=16, color=MUTED)
+    notes_extra(s, [
+        "Souhrnná relativní chyba: průměr přes 13 veličin bez bodu u limiteru, chyba vztažená k rozptylu veličiny.",
+        f"Dlaždice {cz(ipr, 3)} je pevná sada 16 cívek; bod grafu u 16 ({cz(runs['top 16']['summary_nrmse_mean'], 3)}) "
+        "je 16 nejlepších vstupů vybraných zvlášť v každém dělení. Dva různé běhy, proto se liší.",
+        "Pořadí důležitosti platí pro naučenou síť, neříká, kolik informace vstup nese."])
     add_sources(s, ["results/ipp1-inputs.json", "results/ipp1-inputs.md"])
 
     # Live demo divider (2:29 to 3:49); the presenter switches to the browser (items 9.1, 9.2)
@@ -455,132 +482,137 @@ def build():
         x = 0.6 + i * 4.1
         picture(s, name, x, 2.4, 3.9)
         text(s, x, 4.75, 3.9, 0.4, words, size=16, color=TEXT, bold=True, align=PP_ALIGN.CENTER)
-    caption(s, 0.6, 5.4, 12.1, "Výboj 85, odložený, vybraný model; obrys se nepředpovídá, ukazuje body. Obrázky z "
-                               "prohlížeče.")
+    caption(s, 0.6, 5.4, 12.1, "Začátek a střed: výboj 85, typický. Konec: výboj 147, špatný konec výboje (osa 33,7 mm). "
+                               "Vybraný model, obrys se nepředpovídá, ukazuje body.", size=16)
 
-    # 5 Real time verdict (items 11.1 to 11.4)
+    # 5 Real time verdict (deck-fixes 11, visual QA 1 and screen 11)
     s = frame(prs, "Verdikt pro řízení v reálném čase", "Výpočet sítě rychlosti nebrání", notes_text(sc[5], "Snímek 5"),
               "02-minutes-vs-ms.png", 0.8)
     # p99, not the maximum: 5000 calls on an ordinary OS bound nothing (docs/review-findings.md, latency finding)
-    tile(s, 0.6, 2.3, 3.85, 2.2, f"{cz(one['median_ms'], 4)} ms", "medián jednoho odhadu základní sítě, procesor "
-         f"{lat['cpu']}", ORANGE, 44)
-    tile(s, 4.72, 2.3, 3.85, 2.2, f"{cz(one['p99_ms'], 4)} ms", "99 % odhadů základní sítě je rychlejších", BLUE, 44)
-    tile(s, 8.84, 2.3, 3.85, 2.2, shipped_txt[0], shipped_txt[1], MUTED, 44)
-    text(s, 0.6, 4.8, 12.1, 2.0, [
-        [("Zadání chce jednotky až desítky milisekund; náš rozpočet je 1 až 10 ms. ", 18, ORANGE, True),
-         (f"Celý odhad základní sítě od čísel na vstupu po čísla na výstupu: medián {cz(e2e['median_ms'], 4)} ms.",
-          18, TEXT, False)],
-        [("Neověřeno: ", 18, ORANGE, True),
-         ("sběr signálů z cívek, nejhorší doba na systému reálného času a přesnost na skutečně zašuměných "
-          "signálech.", 18, TEXT, False)],
-        [("p99: 99 % odhadů je rychlejších. Na systému bez reálného času se ojediněle objeví špičky. Vybraný model: "
-          f"numpy, náhodné váhy stejného tvaru, jen čas; divertorové plazma {cz(sl['diverted'], 3)} ms, p99 pod "
-          "0,1 ms.", 13, MUTED, False)]])
+    tile(s, 0.6, 2.3, 3.85, 2.2, f"{cz(one['median_ms'], 4)} ms", f"základní síť, medián, {lat['cpu']}", ORANGE, 44)
+    tile(s, 4.72, 2.3, 3.85, 2.2, f"{cz(one['p99_ms'], 4)} ms", "základní síť, 99 % odhadů rychlejších", BLUE, 44)
+    tile(s, 8.84, 2.3, 3.85, 2.2, shipped_txt[0], "vybraný model, limitované plazma", LIGHT, 44)
+    text(s, 0.6, 4.9, 12.1, 1.6, [
+        [("Zadání: jednotky až desítky ms; náš rozpočet 1 až 10 ms.", 20, ORANGE, True)],
+        [("Neověřeno: ", 20, ORANGE, True), ("sběr signálů, nejhorší doba, zašuměné signály.", 20, TEXT, False)]])
+    caption(s, 11.6, 6.65, 1.2, "Ilustrace.")
+    notes_extra(s, [
+        f"Celý odhad základní sítě od čísel na vstupu po čísla na výstupu: medián {cz(e2e['median_ms'], 4)} ms.",
+        "p99: 99 % odhadů je rychlejších. Na systému bez reálného času se ojediněle objeví špičky.",
+        f"Vybraný model: {shipped_txt[1]}; výpočet v Pythonu (numpy), náhodné váhy stejného tvaru, měří se jen čas; "
+        f"divertorové plazma {cz(sl['diverted'], 3)} ms, p99 pod 0,1 ms."])
     add_sources(s, ["results/ipp1-latency.json (procesor, medián, p99, celý odhad)",
                     "results/ipp1-latency-shipped.md (vybraný model, numpy, 0,027 ms limitované, 0,015 ms divertorové)"])
 
-    # 6 Limits (items 12.1 to 12.3)
-    s = frame(prs, "Meze", "Nejslabší je bod u limiteru a konec výboje", notes_text(sc[6], "Snímek 6"))
-    tile(s, 0.6, 2.2, 3.6, 2.0, f"{cz(fn['R_limiter'][1], 2)} mm", "bod u limiteru radiálně (vybraný model, 30 "
-         f"odložených výbojů), 99 % řádků pod {cz(fn['p99_limiter'][0], 1)} mm", ORANGE, 40)
-    tile(s, 0.6, 4.4, 3.6, 2.0, f"{cz(fn['Z_limiter'][1], 2)} mm", "bod u limiteru svisle (vybraný model, 30 "
-         f"odložených výbojů), 99 % řádků pod {cz(fn['p99_limiter'][1], 1)} mm", ORANGE, 40)
+    # 6 Limits (deck-fixes 12, visual QA 1, 4 and screen 12)
+    s = frame(prs, "Meze", "Nejslabší je bod u limiteru, začátek a konec výboje", notes_text(sc[6], "Snímek 6"))
+    tile(s, 0.6, 2.2, 3.6, 2.0, f"{cz(fn['R_limiter'][1], 2)} mm", f"bod u limiteru radiálně, p99 "
+         f"{cz(fn['p99_limiter'][0], 1)} mm", ORANGE, 40)
+    tile(s, 0.6, 4.4, 3.6, 2.0, f"{cz(fn['Z_limiter'][1], 2)} mm", f"svisle, p99 {cz(fn['p99_limiter'][1], 1)} mm", ORANGE, 40)
+    caption(s, 0.6, 6.5, 3.6, "Vybraný model, 30 odložených výbojů.")
     dec = tm["mae_by_time_decile"]["R_mag_axis"]
     cats = [f"{i * 10 + 5} %" for i in range(10)]  # middle of each tenth of the discharge
-    text(s, 4.6, 2.1, 8.1, 0.5, "Chyba polohy osy (mm) podle času výboje. Graf: základní síť, 5 dělení po výbojích. "
-                                "Dlaždice vlevo: vybraný model.", size=12, color=MUTED)
-    c = chart(s, 4.5, 2.6, 8.3, 3.4, XL_CHART_TYPE.COLUMN_CLUSTERED, cats, [("osa R", dec)], [BLUE])
-    style_chart(c, legend=False)
+    chart_title(s, 4.6, 2.2, 8.1, "Základní síť: chyba osy R (mm) podle času výboje")
+    c = chart(s, 4.5, 2.65, 8.3, 3.8, XL_CHART_TYPE.COLUMN_CLUSTERED, cats, [("osa R", dec)], [BLUE])
+    style_chart(c, legend=False, size=14)
     c.plots[0].gap_width = 40
     highlight(c, (0, 8, 9))
-    label_points(c.plots[0].series[0], dec, 2, TEXT, 11)
+    label_points(c.plots[0].series[0], dec, 2, TEXT, 13)
     c.value_axis.visible = False
+    caption(s, 4.6, 6.5, 8.1, "Vodorovně čas výboje v procentech jeho délky; 5 dělení po výbojích.")
     # Range over every target except the limiter outputs, not the most favourable one (claims-corrections.md item 2);
     # the limiter point sits near 0,5 because its truth jumps between wall contacts.
     jr = [v for k, v in tm["jitter_ratio"].items() if "limit" not in k]
     nz_c, nz_h = (tm["noisy"][v]["jitter_ratio"] for v in ("clean_on_noisy", "hardened_on_noisy"))
     lo, hi = j["blocked"]
-    text(s, 4.6, 6.0, 8.1, 0.95, [
-        [(f"Kolísání výstupu proti skutečnosti, základní síť: na čistých vstupech {cz(min(jr), 2)} až {cz(max(jr), 2)} "
-          f"({len(jr)} veličin), na zašuměných {cz(nz_c['R_mag_axis'], 1)}krát (osa R) a {cz(nz_c['Z_mag_axis'], 1)}krát "
-          f"(osa Z), po učení se šumem {cz(nz_h['R_mag_axis'], 1)} a {cz(nz_h['Z_mag_axis'], 2)}krát.", 12, MUTED, False)],
-        [(f"Na souvislých blocích čísel výbojů je chyba základní sítě {cz(lo, 1)} až {cz(hi, 1)}krát větší než na "
-          "náhodně vybraných.", 12, MUTED, False)]])
+    notes_extra(s, [
+        f"Kolísání výstupu proti skutečnosti, základní síť: na čistých vstupech {cz(min(jr), 2)} až {cz(max(jr), 2)} "
+        f"({len(jr)} veličin), na zašuměných {cz(nz_c['R_mag_axis'], 1)}krát (osa R) a {cz(nz_c['Z_mag_axis'], 1)}krát "
+        f"(osa Z), po učení se šumem {cz(nz_h['R_mag_axis'], 1)} a {cz(nz_h['Z_mag_axis'], 2)}krát.",
+        f"Na souvislých blocích čísel výbojů je chyba základní sítě {cz(lo, 1)} až {cz(hi, 1)}krát větší než na náhodně "
+        "vybraných."])
     add_sources(s, ["results/ipp1-final.md (bod u limiteru, bloky čísel výbojů)",
                     "results/ipp1-time.json (chyba v čase, kolísání)"])
 
-    # 7 What the model cannot do (items 13.1 to 13.5)
+    # 7 What the model cannot do (deck-fixes 13, visual QA 1, 2, 3 and screen 13)
     s = frame(prs, "Co model neumí", "Šum mu vadí nejvíc; tvary mimo rozsah dat jsme neověřili", notes_text(sc[7], "Snímek 7"))
     nz = j["noise"]
-    text(s, 0.6, 2.05, 6.3, 0.5, "Chyba polohy osy (mm) při šumu v měření; základní síť, 5 dělení po výbojích",
-         size=12, color=MUTED)
-    c = chart(s, 0.5, 2.5, 6.4, 2.9, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for n, _ in nz], [("osa", [v for _, v in nz])],
+    chart_title(s, 0.6, 1.95, 6.3, "Základní síť: chyba osy (mm) při šumu")
+    c = chart(s, 0.5, 2.4, 6.4, 2.8, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for n, _ in nz], [("osa", [v for _, v in nz])],
               [BLUE])
-    style_chart(c, legend=False, size=10)
+    style_chart(c, legend=False, size=14)
     c.plots[0].gap_width = 50
-    highlight(c, (1,))
-    label_points(c.plots[0].series[0], [v for _, v in nz], 2, TEXT, 11)
+    highlight(c, (1,), BAD)
+    label_points(c.plots[0].series[0], [v for _, v in nz], 2, TEXT, 14)
     c.value_axis.visible = False
-    caption(s, 0.6, 5.45, 6.3, f"Učeno se šumem, test bez šumu: {cz(j['noisy_on_clean'], 2)} mm.")
-    text(s, 0.6, 5.8, 6.3, 0.5, f"Na 30 odložených výbojích: síť učená se šumem, zašuměné vstupy: osa {cz(nf['axis'], 2)} "
-         f"mm, proud {cz(nf['current'], 2)} kA. Vybraný model na zašuměných vstupech selže (osa "
-         f"{cz(nf['selected_axis'], 0)} mm).", size=11, color=MUTED)
+    # fix 2: the failure of the selected model on noisy inputs is the talk's biggest caveat, so it gets a tile, not 11 pt
+    tile(s, 0.6, 5.35, 6.3, 1.5, f"{cz(nf['selected_axis'], 0)} mm", f"osa, vybraný model, zašuměné vstupy; síť učená se "
+         f"šumem {cz(nf['axis'], 2)} mm", BAD, 36)
     cv = j["curve"]
-    text(s, 7.2, 2.05, 5.6, 0.5, "Chyba osy (mm) podle počtu učících výbojů; základní síť, 5 dělení, vždy 60 epoch",
-         size=12, color=MUTED)
-    # Real spacing of 6 to 119 discharges on a log axis, not five equally spaced categories (item 13.4)
+    chart_title(s, 7.2, 1.95, 5.6, "Chyba osy (mm) podle počtu učících výbojů")
+    # Real spacing of 6 to 119 discharges on a log axis (deck-fixes 13.4); each label carries the count, because a log axis
+    # labels only 5 and 50 (visual QA fix 3)
     cd = XyChartData()
     ser = cd.add_series("osa")
     for n, v in cv:
         ser.add_data_point(n, v)
-    gf = s.shapes.add_chart(XL_CHART_TYPE.XY_SCATTER_LINES, Emu(int(7.1 * IN)), Emu(int(2.5 * IN)), Emu(int(5.8 * IN)),
-                            Emu(int(3.25 * IN)), cd)
+    gf = s.shapes.add_chart(XL_CHART_TYPE.XY_SCATTER_LINES, Emu(int(7.1 * IN)), Emu(int(2.4 * IN)), Emu(int(5.8 * IN)),
+                            Emu(int(3.6 * IN)), cd)
     c = gf.chart
     c.has_title = False
-    style_chart(c, legend=False, size=11)
+    c.value_axis.minimum_scale = 0
+    style_chart(c, legend=False, size=14)
     log_axis(c.category_axis, 5, 150)
     c.category_axis.has_major_gridlines = False
+    c.category_axis.tick_labels.font.size = Pt(1)  # replaced by the counts in the labels
     se = c.plots[0].series[0]
     se.format.line.color.rgb, se.format.line.width, se.smooth = ORANGE, Pt(3), False
     se.marker.format.fill.solid()
     se.marker.format.fill.fore_color.rgb = ORANGE
     se.marker.format.line.color.rgb = ORANGE
-    label_points(se, [v for _, v in cv], lambda v: 1 if v >= 5 else 2, TEXT, 11)  # source precision
-    for i in range(len(cv)):
-        se.points[i].data_label.position = XL_LABEL_POSITION.ABOVE
+    label_points(se, [v for _, v in cv], lambda v: 1 if v >= 5 else 2, TEXT, 13)  # source precision
+    for i, (n, _) in enumerate(cv):
+        tf = se.points[i].data_label.text_frame
+        tf.paragraphs[0].runs[0].text += f" ({n})"
+        se.points[i].data_label.position = XL_LABEL_POSITION.BELOW if n == 30 else XL_LABEL_POSITION.ABOVE
     c.value_axis.visible = False
-    caption(s, 7.2, 5.75, 5.6, "Vodorovně: počet učících výbojů, logaritmická osa (6, 12, 30, 60, 119).")
-    text(s, 0.6, 6.3, 12.1, 0.65, [
-        [(f"Vynechání celé rodiny tvarů: chyba {cz(us['factor'][0], 1)} až {cz(us['factor'][1], 1)}krát větší. Skutečně "
-          "neobvyklých výbojů je jen 18 ze 149 a samostatně nikdy vynechány nebyly; tvary mimo rozsah dat jsme neověřili. "
-          "Jen jeden tokamak, řízení model sám nenahradí.", 13, MUTED, False)]])
+    caption(s, 7.2, 6.05, 5.6, "V závorce počet učících výbojů; logaritmická osa, 60 epoch.")
+    notes_extra(s, [
+        f"Učeno se šumem, test bez šumu: {cz(j['noisy_on_clean'], 2)} mm.",
+        f"Na 30 odložených výbojích: síť učená se šumem, zašuměné vstupy: osa {cz(nf['axis'], 2)} mm, proud "
+        f"{cz(nf['current'], 2)} kA.",
+        f"Vynechání celé rodiny tvarů: chyba {cz(us['factor'][0], 1)} až {cz(us['factor'][1], 1)}krát větší. Skutečně "
+        "neobvyklých výbojů je jen 18 ze 149 a samostatně nikdy vynechány nebyly; tvary mimo rozsah dat jsme neověřili. "
+        "Jen jeden tokamak, řízení model sám nenahradí."])
     add_sources(s, ["results/ipp1-robustness-findings.md (šum, počet výbojů)", "results/ipp1-final.md (30 odložených)",
                     "results/ipp1-unusual-shapes.md (neviděné tvary)"])
 
-    # 8 Close: one number (items 14.1 to 14.6)
+    # 8 Close: one number (deck-fixes 14, visual QA screen 14)
     s = frame(prs, "Závěr", None, notes_text(sc[8], "Snímek 8") + f"\nK číslu (KQ-7): celý odhad od vstupu po výstup "
               f"medián {cz(e2e['median_ms'], 3)} ms, 99 % pod {cz(e2e['p99_ms'], 2)} ms, procesor {lat['cpu']}.",
               "07-closing.png", 0.45)
-    text(s, 0.6, 1.6, 6.8, 0.5, f"Jeden odhad základní sítě, procesor {lat['cpu']}", size=20, color=MUTED)
-    text(s, 0.6, 2.1, 6.8, 1.6, f"{cz(one['median_ms'], 4)} ms", size=88, color=ORANGE, bold=True)
-    text(s, 0.6, 3.7, 6.8, 0.6, [[(shipped_txt[0], 26, TEXT, True),
-                                  ("  vybraný model, limitované plazma", 18, MUTED, False)]])
-    text(s, 0.6, 4.45, 6.8, 1.0, "Klasický výpočet trvá minuty. Zadání chce jednotky až desítky milisekund. Obojí je "
-                                 "pod naším rozpočtem 1 až 10 ms.", size=18, color=TEXT)
+    # both speeds in one row: the selected model is the one the talk ships, so it is not the smaller number
+    for x, num, words, col in [(0.6, f"{cz(one['median_ms'], 4)} ms", "základní síť", ORANGE),
+                               (4.25, shipped_txt[0], "vybraný model, limitované plazma", ORANGE)]:
+        text(s, x, 1.55, 3.6, 0.9, num, size=44, color=col, bold=True)
+        text(s, x, 2.45, 3.6, 0.7, words, size=18, color=MUTED)
+    text(s, 0.6, 3.25, 6.9, 1.2, f"Jeden odhad, procesor {lat['cpu']}. Klasický výpočet trvá minuty; obojí je pod naším "
+                                 "rozpočtem 1 až 10 ms.", size=20, color=TEXT)
     for i, (head, body, col) in enumerate([
-            ("Přesnost", f"čisté vstupy: osa, bod X a dotykové body desetiny milimetru (osa {cz(fn['R_mag_axis'][1], 2)} "
-                         f"mm), bod u limiteru {cz(fn['R_limiter'][1], 2)} a {cz(fn['Z_limiter'][1], 2)} mm. Zašuměné "
-                         f"vstupy: osa {cz(nf['axis'], 2)} mm, bod u limiteru {cz(nf['limiter'][0], 1)} a "
-                         f"{cz(nf['limiter'][1], 1)} mm, proud {cz(nf['current'], 2)} kA (30 odložených výbojů).", BLUE),
-            ("Zbývá", "bod u limiteru, neobvyklé tvary (samostatně neověřeny), odolnost proti šumu, napojení na řízení",
-             MUTED)]):
-        y = 1.7 + i * 2.05
-        box(s, 7.9, y, 4.8, 1.85, fill=PANEL)
-        box(s, 7.9, y + 0.2, 0.07, 1.45, fill=col)
-        text(s, 8.2, y + 0.2, 4.4, 1.55, [[(head, 22, col, True)], [(body, 14, TEXT, False)]])
-    text(s, 0.6, 6.0, 12.1, 0.6, "Desetiny milimetru za setiny milisekundy.", size=22, bold=True,
+            ("Přesnost", f"osa {cz(fn['R_mag_axis'][1], 2)} mm; bod u limiteru {cz(fn['R_limiter'][1], 2)} a "
+                         f"{cz(fn['Z_limiter'][1], 2)} mm; se šumem osa {cz(nf['axis'], 2)} mm", BLUE),
+            ("Zbývá", "bod u limiteru, neobvyklé tvary, šum, napojení na řízení", MUTED)]):
+        y = 1.6 + i * 2.15
+        box(s, 7.9, y, 4.8, 1.95, fill=PANEL)
+        box(s, 7.9, y + 0.2, 0.07, 1.55, fill=col)
+        text(s, 8.2, y + 0.2, 4.4, 1.65, [[(head, 22, col, True)], [(body, 18, TEXT, False)]])
+    text(s, 0.6, 6.0, 12.1, 0.6, "Na čistých vstupech: desetiny milimetru za setiny milisekundy.", size=24, bold=True,
          align=PP_ALIGN.CENTER)
-    caption(s, 11.6, 6.65, 1.2, "Ilustrace.")
+    text(s, 11.6, 6.6, 1.2, 0.4, "Ilustrace.", size=14, color=TEXT)
+    notes_extra(s, [
+        f"Přesnost podrobně: čisté vstupy, osa, bod X a dotykové body desetiny milimetru; zašuměné vstupy: bod u limiteru "
+        f"{cz(nf['limiter'][0], 1)} a {cz(nf['limiter'][1], 1)} mm, proud {cz(nf['current'], 2)} kA (30 odložených výbojů).",
+        "Neobvyklé tvary jsme samostatně neověřili."])
     add_sources(s, ["results/ipp1-latency.json (0,0145 ms, Apple M5)", "results/ipp1-latency-shipped.md (0,027 ms)",
                     "results/ipp1-final.md (přesnost)"])
 
