@@ -7,3 +7,22 @@ __pycache__/
 .env.*
 viewer/dist/
 presentation/assets/*.mp4
+
+# CON-001: raw data and bulk binaries never go into git (the video is the one allowed large file, kept outside the repository)
+*.csv
+*.tsv
+*.npy
+*.npz
+*.zip
+*.jpg
+*.jpeg
+*.parquet
+*.pt
+*.pth
+*.pkl
+*.h5
+*.mp4
+*.mov
+video/
+.venv/
+.ipynb_checkpoints/

@@ -240,3 +240,72 @@ All relative links in `README.md`, `docs/`, `viewer/`, `presentation/`, `cloud/`
 
 Owner: H-1 (decision with ÚFP, RP-6), OQ-S1, OQ-S2 (private repository versus "logged out"). Lead: T-1 to T-5, T-8, REQUIREMENTS cells; deck slides 7 and 14 (the colleague's
 `build_deck.py`). Analysis lane: R-1 to R-3, H-4, T-6, T-7. Nobody yet: deck PDF and video (`SUBMISSION.md` section 2).
+
+## Fixed
+
+Auditor session 2, branch `cloud/auditor-2` (base `origin/main` `1e19dec`, Fri 23 Oct 2026). One line per fix; the commit subject says the same.
+
+- **T-1, T-2, T-4 (README):** `README.md` now names the shipped model with its protocol (0.133 mm radial axis on the 30 set-aside discharges, 0.23 mm in 5-fold cross validation on the 119 development discharges, 0.397 mm on the 59 highest ids; baseline network 0.307, 0.38 and 1.23 mm), takes every latency number from `results/ipp1-latency.md` and `results/ipp1-latency-shipped.md` (no "0.053 ms", no "idle"; the machine was shared, load average 5.7 and 7.0), says "1.5 to 2.9 times" for contiguous blocks and "99 % under 3.74 mm".
+- **R-4, clean checkout (README):** data section checks the file the scripts need and handles the two possible unzip layouts; the recorded sha256 has 62 of 64 digits and is flagged (size and first 8 digits are the check); a CPU-torch warning sits inside the install block; the stale "notebook 04 stops with KeyError" note is replaced (fixed by `b7f5011`, full run after the fix not recorded); the structure table lists every top-level folder and file; the commands that need no data, need extra packages or rewrite a tracked file (`check_claims.py`) are named. Not run here: no data and no torch on this machine.
+- **REQUIREMENTS cells:** `docs/REQUIREMENTS.md` REQ-003, REQ-004, REQ-B01 to B04, B06, B07 are `DONE`, REQ-B05 `DONE` for the sensitivity, each with its evidence file and caveat; REQ-001, 002, 005, 006, 007 and REQ-B08 stay `IN PROGRESS` with the open item written in the row (REQ-001 becomes `DONE` when the T-3 sentences below are applied); the latency wording rule and the T-8 wording are corrected.
+- **H-4:** `.gitignore` now ignores the 17 patterns of H-4 (checked with `git check-ignore`; `git ls-files` shows no tracked file that matches).
+- **H-5 and the deck:** `analysis/make_submission.py` reads the deck as a zip (no `python-pptx` needed, so the "skipped" case is gone) and fails on a placeholder (`DOPLNIT`, `TODO`, `XXX`, `lorem`, `[[`) in slide or notes text, a secret or `/Users/` path in any part, a chart series or embedded workbook over 200 points or rows (the deck has 6 workbooks of 5 to 11 rows and charts of at most 10 points), a forbidden file type or an unknown embedded file; it also scans `viewer/index.html` in place, scans `.html .js .css .svg .xml` in the package, warns on `/Users/` paths (H-3: three `results/` files) and lists the deck images (it recognises the three viewer stills by hash) and the figures it cannot judge. Negative tests with a changed copy of the deck (placeholder, key in the notes, 300-point chart, `.jpg` in the media) each gave a failed check. Dry run on this branch: `python3 -I analysis/make_submission.py --out <new folder>`: exit 0, 91 files, 14.99 MB, "FAILED CHECKS: none", only the video missing, 4 warnings (viewer stills in the deck, three `/Users/` paths). Pictures are still not inspected by any script: the owner's confirmation of the figures below stays a manual step (the script prints it).
+- **Not changed (by instruction):** deck, pitch, notebooks, `results/`, other scripts. Their fixes are listed below for the Lead.
+
+## H-1 figure list: keep or regenerate (proposal, nothing deleted)
+
+Every committed image was opened or, where marked, judged from the code that draws it. "Aggregate" = counts, means, error summaries or model comparisons with no individual discharge. The audit named 3 places; two more were found (rows 5 and 6).
+
+| # | Figure | What it shows | Proposal |
+|---|---|---|---|
+| 1 | `presentation/assets/viewer-start-limited.png`, `viewer-middle-divertor.png`, `viewer-rough-end.png` (deck file `ppt/slides/slide10.xml` as `image6` to `image8`) | Discharge 123 (and discharge 4 in the noise still): true boundary, true parameter table to four digits, error trace of the whole discharge | **Regenerate** unless ÚFP allows one discharge (RP-6): crop to the plasma cross section and the three tiles of errors, hide the table of true values and the full error trace (or draw a synthetic shape). Then rebuild the deck. Until then the deck must not leave the participants |
+| 2 | `presentation/assets/viewer-noise.png` | Discharge 4, true Ip, elongation, R and Z of the axis to four digits, full error trace; not in the deck | **Keep in the private repository only**; not packaged (the package copies only `results/*.png` and the deck). Delete before the repository is ever public |
+| 3 | `results/ipp1-time.png`, middle and right panels | Error trace of one discharge, clean and noisy input (derived from true values row by row; the audit and RP-6 wrote "true values", the file shows errors) | **Regenerate** both panels as the median and the 10 to 90 % band of the absolute error per time decile over all discharges (`analysis/ipp1_time.py:164`, lane owner). Keep the left panel (aggregate) |
+| 4 | `results/ipp1-unusual-shapes.png`, left panel | One dot per discharge: median elongation and triangularity of each of 149 discharges | **Regenerate** as a 2-D density of the same two numbers (as `notebooks/01` cell 12 does) with the 18 unusual shapes marked by their count. Keep the right panel (bar chart of errors) |
+| 5 | `notebooks/01_data_exploration.ipynb` cell 14 ("One discharge in time") | Six true signals of the median discharge row by row, including raw input `IPR05` | **Regenerate**: median and 10 to 90 % band over all discharges against relative time. The notebook text says it "never" shows raw rows |
+| 6 | `notebooks/04_stability_over_time.ipynb` cell 11, first figure | True and predicted plasma current, R axis, elongation, triangularity of two discharges (the median-error and the worst one) | **Regenerate** as error bands over relative time for all discharges, or keep the worst-discharge panel only if ÚFP allows one discharge. Second output of the cell (error against discharge length, one dot per discharge, error is an aggregate) and the histogram: keep |
+| 7 | `notebooks/02` cell 12 and `notebooks/01` cell 12 (hexbin of true against predicted, density of shapes) | 2-D histograms of all rows; the sparse bins are single rows | **Keep** (aggregate density); note the isolated hexes in `R_limiter` and `Z_limiter` |
+| 8 | `results/ipp1-uncertainty.png`, `ipp1-robustness.png`, `ipp1-temporal.png`, `ipp1-learning_curve.png` (thin lines are folds), `ipp1-inputs.png`, `ipp1-camera-local.png`, `cloud-camera-main-sensitivity.png`, `cloud-camera-multimodal.png`, `cloud-search-search.png`, left panel of `ipp1-time.png` | Error summaries, model comparisons, search progress | **Keep** (aggregate; opened) |
+| 9 | Notebooks 01 c8, c10, c16, c18; 02 c11, c14, c16; 03 c7, c12; 04 c5, c9; 05 c11 | Histograms of pooled values, PCA and correlations, error curves, timing; c8 and the second output of 04 c11 opened, the rest judged from the code and titles | **Keep** |
+| 10 | `presentation/assets/01-hero.png` to `07-closing.png` | Generated illustrations (`prompts.md`: no text, no numbers) | **Keep** |
+
+Order of work if the answer is "no" (the owner decides with ÚFP; RP-6 has no answer yet): rows 1, 3, 4, 5, 6 before the freeze at 10:00; rebuild the deck; run `make_submission.py`; the script cannot tell the pictures apart, so re-open the five figures once.
+
+## Replacement sentences for the Lead (T-1 to T-3)
+
+Czech text is plain, without English words and without dashes. Every number is from `results/` as committed on `main` at `1e19dec`. Files marked "mine" are already fixed on this branch; the others belong to the Lead or the deck owner and were not touched.
+
+### T-1 "0,053 ms end to end" (no source; the committed run says 0,0140 median, 0,0503 p99, 0,105 max)
+
+| Where | Replacement |
+|---|---|
+| `docs/claims-corrections.md:26` (feeds the outline, pitch and deck; the pitch and outline already say 0,0140 and 0,0503) | Celý odhad základní sítě od surových čísel na vstupu po čísla na výstupu trvá medián 0,0140 milisekundy a 99 procent odhadů je rychlejších než 0,0503 milisekundy. Na systému bez reálného času se ojediněle objeví špičky až do milisekund; nejvyšší hodnota z 5 000 měření byla 0,105 milisekundy, to není horní mez. |
+| `docs/claims-corrections.md:38` (evidence, English) | `results/ipp1-latency.md`, row `cpu_end_to_end_numpy`: median 0.0140, p99 0.0503, max 0.105 ms. The 0.053 ms of reviewer 2 appears in no committed file. |
+| shipped model, wherever the end to end figure of the selected model is wanted (`outline.md:75`, `pitch-script.md:120`) | Vybraný model trvá od 24 surových čísel po 16 výstupů medián 0,0154 milisekundy u divertorového plazmatu a 0,0274 milisekundy u limitovaného; 99 procent odhadů je pod 0,057 a pod 0,093 milisekundy (`results/ipp1-latency-shipped.md`). |
+| `README.md:6`, `README.md` verdict bullet, `docs/REQUIREMENTS.md` wording rule | mine, fixed |
+
+### T-2 "idle Apple M5" (the committed run: load average 5,67 at the start on 10 cores, "the machine was shared and busy"; the shipped run 7,01)
+
+| Where | Replacement |
+|---|---|
+| `docs/claims-corrections.md:20` | Výpočet sítě rychlosti nebrání: základní síť trvá medián 0,0145 milisekundy a vybraný model 0,015 až 0,027 milisekundy na jednom jádru procesoru Apple M5 na sdíleném počítači, rozpočet je 1 až 10 milisekund. |
+| `docs/claims-corrections.md:29` | 0,0145 milisekundy. Tolik trvá výpočet základní sítě na jednom jádru procesoru Apple M5 na sdíleném počítači; k tomu patří věta, že sběr signálů a napojení na řídicí systém jsme nezkoušeli. |
+| `docs/claims-corrections.md:37` (evidence) | `results/ipp1-latency.md` (median 0.0145 ms, max 0.148 ms, one thread, shared machine, load average 5.7 on 10 cores). |
+| `results/ipp1-baseline.md:25`, last sentence (English) | The latency line was measured on one core of an Apple M5 on a shared machine (load average 5.7 on 10 cores); see `ipp1-latency.md` for the conditions. |
+| `results/ipp1-baseline.md:25`, third sentence (T-4) | On contiguous blocks of discharge numbers the clean-input error is 1.5 to 2.9 times larger (radial axis 1.23 against 0.448 mm, `ipp1-final.md`). |
+| `presentation/outline.md:75` and `:126`, `presentation/pitch-script.md:280` and `:394`, `docs/deck-fixes.md:104` (all say "klidný stroj" or "klidný počítač", and `outline.md:75` and `pitch-script.md:280` say "dvanáctkrát víc") | The measurement exists and the machine was not quiet. Spoken line: Vybraný model trvá 0,027 milisekundy u limitovaného plazmatu a 0,015 u divertorového, tedy asi dvakrát víc než základní síť; počítač byl sdílený. Dřívější odhad 0,1775 milisekundy z jiného postupu se nepotvrdil. Tile label: "vybraný model, procesor Apple M5, jedno jádro, sdílený počítač". |
+| the `[[latency shipped]]` placeholders (`outline.md:11,71,75,107,126`, `pitch-script.md:113,120,158,241,280,375,394`, `docs/deck-fixes.md:104,138,153`) and `presentation/deck/build_deck.py:427-430` | Fill with 0,027 ms (limitované plazma, the bound to quote) and 0,015 ms (divertorové); drop "asi 0,18 ms". `build_deck.py:427-428`: "Vybraný model se třemi částmi trvá 0,027 ms u limitovaného a 0,015 ms u divertorového plazmatu; procesor Apple M5, jedno jádro, sdílený počítač." and the source line `results/ipp1-latency-shipped.md` instead of `results/ipp1-improve.md (0,18 ms nasazeného receptu)` at `:430`. This also settles T-5 for slide 14. |
+
+### T-3 "30 výbojů, které při vývoji nikdo neviděl"
+
+The recipe (`combo_long`) was chosen by the 5-fold `group_folds(X, Y, G, folds)` of `analysis/ipp1_improve.py:338` over all 149 discharges, and `results/ipp1-improve.md` reports it; `ipp1_final.py` takes it from there. The 30 were not used to train the evaluated models and were scored once, but they were among the 149. (The audit named commits for the order; `git log` shows the same commit time, 18:20:30, for many commits, so the order cannot be proven from history and is not needed: the 30 were inside the 149 either way.)
+
+| Where | Replacement |
+|---|---|
+| `presentation/deck/build_deck.py:354` (slide 7 caption; `docs/deck-fixes.md:63` proposes a wording that keeps "před finálním výběrem") | Průměrná chyba v mm na 30 výbojích odložených před učením konečných modelů a vyhodnocených jednou. Postup jsme vybrali dříve křížovou validací na všech 149 výbojích. |
+| `presentation/deck/build_deck.py:345` (title), `:368` (source) | "Na 30 odložených výbojích: osa 0,13 mm"; source "results/ipp1-final.md (odložená sada, 30 výbojů)". |
+| `presentation/deck/build_deck.py:357` | series name "vybraný model" instead of "nasazený model". |
+| `results/ipp1-final.md:3`, sentence "Recipe choices use 5-fold GroupKFold inside the development set only; the locked set was scored once, ..." | The 30 discharges were set aside before the final models were trained and were scored once. The recipe `candidate` was chosen earlier by 5-fold cross validation over all 149 discharges (`analysis/ipp1_improve.py`, `results/ipp1-improve.md`), so these 30 took part in that choice; the choice among the four recipes below used the 119 development discharges only. |
+| `results/ipp1-final.md:46` | No recipe was changed after the locked numbers were seen, but the candidate recipe itself was selected on all 149 discharges, including these 30, before they were set aside. |
+| `presentation/outline.md:12`, `pitch-script.md:166`, `docs/deck-fixes.md:11` | already forbid the words "zamčená" and "nikdo neviděl"; add: "Postup byl vybrán dříve na všech 149 výbojích" to the spoken answer N2 (it says so already at `pitch-script.md:226`). |
+| `README.md`, `docs/REQUIREMENTS.md` | mine, fixed |
