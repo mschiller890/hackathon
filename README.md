@@ -112,7 +112,7 @@ Chrome, ffmpeg and `websocket-client` (none of these were tested on a clean chec
 
 Commands that run without data: `python -I analysis/make_submission.py --out <path that does not exist yet>` builds the
 submission package and checks it, deck and viewer page included (`docs/SUBMISSION.md`). Every other script and the five notebooks need the data and stop
-with "Data folder not found" without it. Not for a first run: `analysis/check_claims.py` rewrites the tracked file
+with an error without it (even `ipp1_latency.py`, which does not use the data, audit R-1). Not for a first run: `analysis/check_claims.py` rewrites the tracked file
 `docs/claims-audit.md` (restore it with `git restore docs/claims-audit.md`), `analysis/profile_data.py` needs a data path
 argument, and `viewer/build.py` needs `viewer/data.js`, which is made from the data and is not in git.
 
