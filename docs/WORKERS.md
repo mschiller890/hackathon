@@ -82,9 +82,8 @@ In this order, after the reproducibility check and the outline:
    hostile jury with the ten questions of the pitch script. Write the findings into `presentation/rehearsal-notes.md`.
 3. **Glossary for the audience:** `presentation/slovnicek.md`, twelve terms (tokamak, plasma, X-point, strike point, limiter, elongation,
    triangularity, discharge, flux loop, coil, latency, overfitting) each in one plain Czech sentence that matches the slides.
-4. **The submission video:** after the viewer is final (lane U), a 60 to 90 second screen recording of the viewer with a spoken
-   commentary and captions. The file is large, so keep it outside git and note where it is.
-5. **Reel material later** (not before Sat 08:00).
+4. **Reel material later** (not before Sat 08:00).
+The submission video is not part of lane K; the owner decides who makes it.
 Report each item by its row in `docs/PLAN.md` (IMPL-11) and push small commits.
 
 ### R also takes the camera model now (decided Fri 17:00, GPT has only 25 % of its limit used)
