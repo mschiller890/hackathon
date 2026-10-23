@@ -1,7 +1,7 @@
 # Osnova prezentace: tvar plazmatu z magnetických měření
 
 Celkem 7 minut (420 sekund), 8 snímků a živá ukázka. U každého snímku je čas a jedna věta, kterou musí říct. Časy a mluvený text jsou v souboru pitch script, tady jsou věty a podklady. Úpravy obrazovky jsou v `docs/deck-fixes.md`.
-Čísla pocházejí jen ze složky results. Kde číslo ještě neexistuje, stojí v dvojitých hranatých závorkách, například `[[chyba osy výboje 0]]`.
+Čísla pocházejí jen ze složky results. Kde číslo ještě neexistuje, stojí v dvojitých hranatých závorkách.
 Zdroje čísel: soubory ipp1 final, ipp1 baseline, ipp1 inputs, ipp1 time a ipp1 latency ve složce results.
 
 Pravidla pro všechna čísla:
@@ -41,7 +41,7 @@ Věta: Základní síť má 107 152 parametrů; vybraný model je její vylepše
 
 ## Snímek 4: Výsledky (54 s)
 
-Věta: Na 30 odložených výbojích určí vybraný model osu s chybou 0,13 mm (základní síť 0,31), v křížové validaci na 119 výbojích 0,23 mm a na novějších číslech výbojů 0,40 mm.
+Věta: Na 30 odložených výbojích se vybraný model od rekonstrukce ústavu liší v poloze osy o 0,13 mm (základní síť o 0,31), v křížové validaci na 119 výbojích 0,23 mm a na novějších číslech výbojů 0,40 mm.
 
 * Protokol 1, 30 odložených výbojů, vybraný model proti základní síti, průměrná chyba: radiální osa 0,133 mm proti 0,307 mm (bootstrapový interval 0,099 až 0,177 mm), svislá osa 0,172 mm proti 0,321 mm, bod u limiteru 4,55 mm proti 10,6 mm (radiálně) a 8,35 mm proti 22,5 mm (svisle).
 * Proud plazmatem: lineární model 0,035 kA, základní síť 1,20 kA. Je to lineární model, který žádné semeno nemá; síť to neuměla. Nepočítáme to do tvrzení, že je vybraný model lepší.
@@ -61,8 +61,8 @@ Věta: Na 30 odložených výbojích určí vybraný model osu s chybou 0,13 mm 
 Věta: V prohlížeči vidíte na výbojích odložených před výběrem skutečné a odhadnuté body plazmatu (osa, bod X, dotykové body) a jejich chybu v čase; v ukázce je vybraný model.
 
 * Posuvník času, stěna komory, skutečné a odhadnuté body, tabulka chyb. Vybraný model nepředpovídá celý obrys plazmatu, jen body; legenda v prohlížeči to říká. Podrobný scénář je v souboru pitch script.
-* Prohlížeč přehrává předpovědi vybraného modelu na 30 odložených výbojích; seznam výbojů je v nabídce na prvním místě. Které výboje ukázka použije a jaká je jejich chyba osy, určí vedoucí v pitch scriptu (KQ 18); do té doby `[[chyba osy výboje 0]]`.
-* Čísla z prohlížeče se zapíšou den předem po přehrání a ověří proti složce results.
+* Prohlížeč přehrává předpovědi vybraného modelu na 30 odložených výbojích. Obrys v ukázce je z rekonstrukce ústavu, síť odhaduje jen označené body. Číslo, jak dobře síť sedí, je shoda s rekonstrukcí ústavu, ne s opravdovým plazmatem.
+* Výboj 85 je typický (chyba osy 0,18 mm, medián z 30 odložených). Výboj 147 je záměrně špatný konec: v posledním snímku chyba osy 33,7 mm a bodu u limiteru 105,5 mm, průměr výboje 0,85 mm. Všech 30 odložených výbojů má průměrnou chybu osy pod 1 mm, žádný přes 5 mm. Čísla jsou z `docs/demo-facts.md`, počítaná z prohlížeče, a ve složce results nejsou.
 * Podíl výbojů: 128 ze 149 (85,9 %) má průměrnou chybu osy pod 1 mm, 3 přes 5 mm (základní síť, pět dělení).
 
 ## Snímek 5: Verdikt pro řízení v reálném čase (37 s)
@@ -100,13 +100,13 @@ Věta: Model je křehký vůči šumu, potřebuje dost výbojů, neobvyklé tvar
 
 ## Snímek 8: Závěr (44 s)
 
-Věta: Přesnost na čistých vstupech je desetiny milimetru, rychlost výpočtu setiny milisekundy, ale model ještě není připraven pro řízení.
+Věta: Shoda s rekonstrukcí ústavu na čistých vstupech je desetiny milimetru, rychlost výpočtu setiny milisekundy, ale model ještě není připraven pro řízení.
 
 * Přesnost: osa 0,13 mm na 30 odložených výbojích, asi 0,2 mm v křížové validaci (0,40 mm na novějších číslech); na zašuměných vstupech jednotky milimetrů (2,38 mm).
 * Rychlost: základní síť 0,0145 ms (procesor Apple M5), vybraný model asi 0,03 ms; obojí hluboko pod rozpočtem 1 až 10 ms. Výpočet sítě, ne celý řídicí systém.
 * Upřímně: slabý bod u limiteru, neobvyklé tvary jsme samostatně neověřili a šum mu vadí, pokud se na něj neučí.
 * Sběr signálů a napojení na řídicí systém jsme nezkoušeli. Zbývá napojení na řídicí systém, víc výbojů a odolnost proti šumu.
-* Slogan: desetiny milimetru za setiny milisekundy (vybraný model asi 0,03 ms, změřeno).
+* Slogan: desetiny milimetru shody s rekonstrukcí, setiny milisekundy výpočtu (vybraný model asi 0,03 ms, změřeno).
 
 ## Součet času
 
@@ -122,7 +122,6 @@ Věta: Malá kamerová síť (snímky 48 na 64 bodů) je 1,3 až 13krát horší
 
 ## Chybějící čísla (DOPLNIT)
 
-* `[[chyba osy výboje 0]]`: číslo z přehrání v prohlížeči.
 * Kamera: srovnání na stejných řádcích a zbylé běhy z cloudu (čísla z cloudu zatím neprošla kontrolou vedoucího).
 
 ## Do zálohy: dotazy poroty (neříká se nahlas)

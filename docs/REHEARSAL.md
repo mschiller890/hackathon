@@ -48,7 +48,7 @@ Unknown? "Tohle jsme neměřili." and continue with what was measured. Never gue
 | N6 | Jak jste na zánicích a startu? | "Nejhůř na koncích: v posledních dvou procentech je osa 0,58 milimetru proti 0,11 uprostřed. Náhlé zániky v datech ani v našich zkouškách nejsou." | `ipp1-final.md` |
 | N8 | Proč nezprůměrovat řádky? | "Zkusili jsme tři: na šumu klesla chyba osy z 2,64 na 2,33, na čistých vstupech se zhoršila z 0,38 na 0,57 milimetru. Delší okna jsme nezkoušeli." | `ipp1-robustness-findings.md` |
 | N9 | Přežije se výpadek cívky? | "Netestovali jsme. Samotných 16 cívek dává souhrnnou chybu 0,066 proti 0,063 se všemi 24 vstupy. Žádné čidlo nejmenujeme, pořadí není stabilní." | `ipp1-inputs.md`, `ipp1-inputs-controls.md` |
-| N11 | Zadání má 17 parametrů, vy 16. | "Předpovídáme 16 hlavních sloupců z 31 v souboru. Ostatní jsou doplňkové a nepředpovídali jsme je." | `ipp1-data.md` |
+| N11 | Zadání má 17 parametrů, vy 16. | "Vybraný model předpovídá 16 hlavních sloupců z 31 v souboru. Ostatních patnáct jsou doplňkové veličiny pro obrys; ty předpovídá jen základní síť a čísla pro ně zatím nepublikujeme." (oprava podle docs/bonus-gaps.md) | `ipp1-data.md` |
 
 **ML person**
 
