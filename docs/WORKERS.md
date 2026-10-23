@@ -100,7 +100,7 @@ Order of work, each a small commit, check every result with a browser screenshot
    `viewer-demo.mp4` of one discharge (true against predicted) made from headless Chrome frames and ffmpeg. The MP4 stays outside git.
 4. Report in the IMPL-10 row of `docs/PLAN.md`.
 
-### V, a third Claude: submission video and the safety net (Fri 17:30)
+### V, a third Claude: submission video and the safety net (Fri 17:30; owner's order Fri 18:30: the video is made only after the program is finished, until then V only prepares the plan)
 IMPL-9. The video of the submission, 60 to 90 seconds, built from the final viewer and the figures in `results/`: screen recording of the
 viewer with a spoken commentary in Czech and captions; it is also the fallback if the live demo fails on stage. Until the viewer is final,
 prepare the script and the shot list in `presentation/video-plan.md` using only numbers from `results/`. Also prepare the backup: the whole
