@@ -27,7 +27,7 @@ criteria are met **and verified** (`AGENTS.md` §15).
 | IMPL-8 | Notebooks that run top to bottom, README and results table | TODO | REQ-005 | Clean run on a second machine |
 | IMPL-9 | Presentation, video, motion reel | TODO | REQ-006 | Delivered files |
 | IMPL-10 | Plasma shape viewer (offline page, true against predicted). Lane U | IN PROGRESS | Opens by double click, shows wall, boundary, key points, slider, errors | Browser screenshot checked; v0 checked in headless Chrome at 1920x1080 and 1280x720 (slider, 149 discharges, table, error chart). Open: wall outline (needs the owner's OK to download `COMPASS_stena.csv`), predicted boundary (needs `R_top`, `Z_top`, `R_bottom`, `Z_bottom`, `R_outer`, `Z_outer`, `R_inner`, `Z_inner`, `squareness_*` among the predicted targets) |
-| IMPL-11 | Reproducibility check on a second machine; presentation outline in Czech. Lane K | TODO | README commands work; `presentation/outline.md` exists with numbers only from `results/` | Run log; the file |
+| IMPL-11 | Reproducibility check on a second machine; presentation outline in Czech. Lane K | TODO | README commands work; `presentation/outline.md` exists with numbers only from `results/` | Run log; the file. Split of the extra items: deck (`presentation/deck/slides.pptx`) K-Repro-Opus; rehearsal notes and glossary (`presentation/slovnicek.md`) K-Sonnet |
 
 Lanes, owners, paths and briefs: [`WORKERS.md`](WORKERS.md).
 
