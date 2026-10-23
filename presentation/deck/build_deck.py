@@ -54,6 +54,10 @@ def load():
     j["noise"] = [("učeno bez šumu,\ntest bez šumu", 0.38), ("učeno bez šumu,\ntest se šumem", 10.15),
                   ("učeno se šumem,\ntest se šumem", 2.64), ("se šumem a\ntřemi časy", 2.33)]
     j["curve"] = [(6, 7.3), (12, 6.9), (30, 1.47), (60, 0.83), (119, 0.38)]
+    # results/ipp1-distribution.md (REQ-007), R_mag_axis in mm: median, p99, MAE on limited and on diverted rows.
+    j["tails"] = {"median": 0.153, "p99": 3.74, "limited": 0.553, "diverted": 0.237}
+    # results/ipp1-final.md: blocked by discharge id against random group folds, plain baseline, clean inputs.
+    j["blocked"] = (1.5, 2.9)
     return j
 
 
@@ -300,13 +304,16 @@ def build():
     rv, mv = [ridge[k]["mae"] for k, _ in keys], [mlp[k]["mae"] for k, _ in keys]
     text(s, 4.6, 2.15, 8.1, 0.4, "Průměrná chyba v mm na náhodně vybraných výbojích, které model neviděl", size=14,
          color=MUTED)
-    c = chart(s, 4.5, 2.45, 8.3, 4.4, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
+    c = chart(s, 4.5, 2.45, 8.3, 4.25, XL_CHART_TYPE.COLUMN_CLUSTERED, [n for _, n in keys],
               [("lineární model", rv), ("neuronová síť", mv)], [MUTED, ORANGE])
     style_chart(c)
     c.plots[0].gap_width, c.plots[0].overlap = 60, -10
     label_points(c.plots[0].series[0], rv, 1, MUTED, 11)
     label_points(c.plots[0].series[1], mv, 2, ORANGE, 11)
     c.value_axis.visible = False
+    tl = j["tails"]
+    caption(s, 4.6, 6.75, 8.1, f"Osa R: medián {cz(tl['median'], 2)} mm, 99 % řádků pod {cz(tl['p99'], 1)} mm; limitované "
+            f"plazma {cz(tl['limited'] / tl['diverted'], 1)}krát horší ({cz(tl['limited'], 2)} proti {cz(tl['diverted'], 2)} mm).")
 
     # 4 Results, screen c (2:14 to 2:30): how many inputs are needed (pitch script, Lead note 1b)
     runs = inp["runs"]
@@ -324,7 +331,8 @@ def build():
     c.value_axis.visible = False
     caption(s, 0.6, 6.7, 8.0, "počet vstupů; nejlepší sada vybraná zvlášť v každém rozdělení")
     tile(s, 9.1, 2.35, 3.6, 1.35, cz(runs["IPR only (16)"]["summary_nrmse_mean"], 3), "jen 16 cívek", BLUE, 32)
-    tile(s, 9.1, 3.85, 3.6, 1.35, cz(runs["FL only (8)"]["summary_nrmse_mean"], 3), "jen 8 smyček toku", MUTED, 32)
+    fl, ipr = runs["FL only (8)"]["summary_nrmse_mean"], runs["IPR only (16)"]["summary_nrmse_mean"]
+    tile(s, 9.1, 3.85, 3.6, 1.35, cz(fl, 3), f"jen 8 smyček toku, {cz(fl / ipr, 1)}krát horší", MUTED, 32)
     text(s, 9.1, 5.4, 3.6, 1.3, "Pořadí důležitosti platí pro naučenou síť, neříká, kolik informace vstup nese.",
          size=13, color=MUTED)
 
@@ -348,18 +356,21 @@ def build():
         text(s, x, 4.75, 3.9, 0.4, words, size=16, color=TEXT, bold=True, align=PP_ALIGN.CENTER)
 
     # 5 Real time verdict, over the minutes against milliseconds image
-    s = frame(prs, 5, "Verdikt pro řízení v reálném čase", "Jeden odhad trvá setiny milisekundy",
+    s = frame(prs, 5, "Verdikt pro řízení v reálném čase", "Výpočet sítě rychlosti nebrání",
               notes_text(sc[5], "Snímek 5"), "02-minutes-vs-ms.png", 0.8)
     tile(s, 0.6, 2.3, 5.9, 2.3, f"{cz(one['median_ms'], 4)} ms", "medián jednoho odhadu na procesoru", ORANGE, 60)
     # p99, not the maximum: 5000 calls on an ordinary OS bound nothing (docs/review-findings.md, latency finding)
     tile(s, 6.85, 2.3, 5.9, 2.3, f"{cz(one['p99_ms'], 4)} ms", "99 % odhadů je rychlejších", BLUE, 60)
-    text(s, 0.6, 5.0, 12.1, 1.8, [
-        [("Výpočet sítě není překážkou: ", 20, ORANGE, True),
-         ("zadání dává jednotky až desítky milisekund. Neověřeno: sběr signálů z čidel a běh na systému "
-          "reálného času.", 20, TEXT, False)],
-        [("Grafická karta nepomůže: ", 20, ORANGE, True),
-         (f"pro tak malou síť je pomalejší ({cz(lat['mps_single_sample']['median_ms'], 2)} ms).", 20, TEXT, False)],
-        [("Měřeno na nezatíženém počítači Mac vedoucího týmu; jiný procesor dává jiná čísla.", 14, MUTED, False)]])
+    e2e, gpu, gpu_t = lat["cpu_end_to_end_numpy"], lat["mps_single_sample"], lat["mps_single_sample_with_transfers"]
+    text(s, 0.6, 4.85, 12.1, 2.0, [
+        [("Rozpočet je 1 až 10 ms. ", 18, ORANGE, True),
+         (f"Celý odhad od čísel na vstupu po čísla na výstupu: medián {cz(e2e['median_ms'], 4)} ms. Grafická karta je "
+          f"pro jeden odhad pomalejší ({cz(gpu['median_ms'], 2)} ms, s přenosem dat {cz(gpu_t['median_ms'], 2)} ms).",
+          18, TEXT, False)],
+        [("Neověřeno: ", 18, ORANGE, True),
+         ("sběr signálů z cívek, nejhorší doba na systému reálného času a přesnost na skutečně zašuměných "
+          "signálech.", 18, TEXT, False)],
+        [(f"Procesor {lat['cpu']}; na systému bez reálného času se ojediněle objeví špičky.", 14, MUTED, False)]])
 
     # 6 Limits
     s = frame(prs, 6, "Meze", "Nejslabší je bod u limiteru a konec výboje", notes_text(sc[6], "Snímek 6"))
@@ -368,15 +379,23 @@ def build():
     dec = tm["mae_by_time_decile"]["R_mag_axis"]
     cats = [f"{i * 10 + 5} %" for i in range(10)]  # middle of each tenth of the discharge
     text(s, 4.6, 2.15, 8.1, 0.4, "Chyba polohy osy (mm) podle času výboje", size=14, color=MUTED)
-    c = chart(s, 4.5, 2.45, 8.3, 4.0, XL_CHART_TYPE.COLUMN_CLUSTERED, cats, [("osa R", dec)], [BLUE])
+    c = chart(s, 4.5, 2.45, 8.3, 3.55, XL_CHART_TYPE.COLUMN_CLUSTERED, cats, [("osa R", dec)], [BLUE])
     style_chart(c, legend=False)
     c.plots[0].gap_width = 40
     highlight(c, (0, 8, 9))
     label_points(c.plots[0].series[0], dec, 2, TEXT, 11)
     c.value_axis.visible = False
-    jr = tm["jitter_ratio"].values()  # all targets in the file, not the most favourable one (review finding)
-    text(s, 4.6, 6.45, 8.1, 0.4, f"Na čistých vstupech kolísá výstup podobně jako skutečnost: poměr {cz(min(jr), 2)} "
-         f"až {cz(max(jr), 2)} u {len(jr)} veličin.", size=13, color=MUTED)
+    # Range over every target except the limiter outputs, not the most favourable one (claims-corrections.md item 2);
+    # the limiter point sits near 0,5 because its truth jumps between wall contacts.
+    jr = [v for k, v in tm["jitter_ratio"].items() if "limit" not in k]
+    nz_c, nz_h = (tm["noisy"][v]["jitter_ratio"] for v in ("clean_on_noisy", "hardened_on_noisy"))
+    lo, hi = j["blocked"]
+    text(s, 4.6, 6.0, 8.1, 0.95, [
+        [(f"Kolísání výstupu proti skutečnosti: na čistých vstupech {cz(min(jr), 2)} až {cz(max(jr), 2)} "
+          f"({len(jr)} veličin), na zašuměných {cz(nz_c['R_mag_axis'], 1)}krát (osa R) a {cz(nz_c['Z_mag_axis'], 1)}krát "
+          f"(osa Z), po učení se šumem {cz(nz_h['R_mag_axis'], 1)} a {cz(nz_h['Z_mag_axis'], 1)}krát.", 12, MUTED, False)],
+        [(f"Na souvislých blocích čísel výbojů je chyba {cz(lo, 1)} až {cz(hi, 1)}krát větší než na náhodně "
+          "vybraných.", 12, MUTED, False)]])
 
     # 7 What the model cannot do
     s = frame(prs, 7, "Co model neumí", "Zná jen tvary z dat a šum v měření mu vadí nejvíc", notes_text(sc[7], "Snímek 7"))
