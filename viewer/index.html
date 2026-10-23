@@ -6,85 +6,113 @@
 <title>COMPASS: rekonstrukce tvaru plazmatu</title>
 <style>
 :root {
-  --bg: #eef1f5; --panel: #ffffff; --head: #f8fafc; --border: #d7dde5; --border2: #bfc9d5; --text: #0f172a; --muted: #64748b;
-  --true: #0f172a; --pred: #e5502f; --sel: #2563eb; --grid: #edf0f4; --band: #f1f4f8;
+  --ink: #101d42; --ink2: #1b2b5e; --signal: #e5502f; --bg: #eef1f6; --panel: #ffffff; --head: #f8fafc; --border: #d7dde6; --border2: #c2cbd8;
+  --text: #0f172a; --muted: #64748b; --true: #0f172a; --pred: #e5502f; --sel: #101d42; --ring: #6b8cff; --grid: #edf0f4; --band: #f1f4f8;
   --ui: -apple-system, "SF Pro Text", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --chev: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%2364748b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
-body { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 44px 48px minmax(0, 1fr) 26px; background: var(--bg); color: var(--text);
+body { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 58px 54px minmax(0, 1fr) 26px; background: var(--bg); color: var(--text);
   font: 13px/1.4 var(--ui); user-select: none; -webkit-font-smoothing: antialiased; }
-.titlebar { background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
-.brand { display: flex; align-items: center; gap: 10px; } .brand svg { width: 22px; height: 22px; color: var(--text); }
-.brand b { font-size: 15px; font-weight: 650; letter-spacing: 0.01em; } .brand .crumb { color: var(--muted); font-size: 13px; padding-left: 10px; border-left: 1px solid var(--border); }
-.titlebar > span { color: var(--muted); font-size: 12.5px; }
-.toolbar { overflow: hidden; display: flex; align-items: center; gap: 14px; padding: 0 12px; background: var(--panel); border-bottom: 1px solid var(--border); }
-.group { display: flex; align-items: center; gap: 8px; padding-right: 14px; border-right: 1px solid var(--border); height: 28px; }
+/* brand */
+.titlebar { background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 18px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.mark { width: 34px; height: 34px; border-radius: 9px; background: var(--ink); display: grid; place-items: center; box-shadow: 0 1px 2px rgba(16, 29, 66, 0.3); }
+.mark svg { width: 22px; height: 22px; }
+.word { display: grid; line-height: 1.15; } .word b { font-size: 16px; font-weight: 750; letter-spacing: 0.1em; color: var(--ink); } .word small { font-size: 11.5px; color: var(--muted); letter-spacing: 0.02em; }
+.pill { font-size: 12px; color: var(--ink); background: #eaeefb; border-radius: 999px; padding: 5px 13px; font-weight: 550; }
+/* controls */
+.toolbar { overflow: hidden; display: flex; align-items: center; gap: 14px; padding: 0 14px; background: var(--panel); border-bottom: 1px solid var(--border); }
+.group { display: flex; align-items: center; gap: 10px; padding-right: 14px; border-right: 1px solid var(--border); height: 34px; }
 .group:last-child { border-right: 0; margin-left: auto; padding-right: 0; }
-label.k { color: var(--muted); }
-select, button, input[type=text] { height: 28px; border: 1px solid var(--border2); background: #fff; color: var(--text); font: inherit; border-radius: 6px; padding: 0 9px; }
-select:focus-visible, button:focus-visible { outline: 2px solid var(--sel); outline-offset: 1px; }
-button { cursor: pointer; min-width: 30px; display: inline-flex; align-items: center; justify-content: center; font-weight: 500; }
-button:hover, select:hover { background: var(--head); border-color: #94a3b8; }
-button:active, button.on { background: #e6edf7; border-color: var(--sel); }
-button svg { width: 14px; height: 14px; fill: #1e293b; }
-.seg { display: inline-flex; } .seg button { border-radius: 0; margin-left: -1px; } .seg button:first-child { border-radius: 6px 0 0 6px; margin-left: 0; } .seg button:last-child { border-radius: 0 6px 6px 0; }
-#play { background: var(--sel); border-color: var(--sel); } #play svg { fill: #fff; } #play:hover { background: #1d4fd8; } #play.on { background: #1e40af; border-color: #1e40af; }
-input[type=range] { width: 200px; accent-color: var(--sel); height: 18px; }
-.tbox { font-family: var(--mono); width: 92px; text-align: right; background: var(--head); cursor: default; font-size: 12.5px; }
-label.chk { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; } label.chk i { width: 16px; height: 0; border-top: 2px solid; }
-input[type=checkbox] { margin: 0; accent-color: var(--sel); width: 14px; height: 14px; }
+label.k { color: var(--muted); font-weight: 500; }
+select, button, .tbox { height: 32px; border: 1px solid var(--border2); background: #fff; color: var(--text); font: inherit; border-radius: 8px; padding: 0 12px; transition: background 0.12s, border-color 0.12s; }
+select { appearance: none; -webkit-appearance: none; padding-right: 32px; background: #fff var(--chev) no-repeat right 11px center / 12px; cursor: pointer; font-weight: 500; }
+select:focus-visible, button:focus-visible, .chip:has(input:focus-visible) { outline: 2px solid var(--ring); outline-offset: 2px; }
+button { cursor: pointer; min-width: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 550; }
+button:hover, select:hover { background: var(--head); border-color: #8f9db0; }
+button:active, button.on { background: #e9edf8; border-color: var(--ink); }
+button svg { width: 15px; height: 15px; fill: var(--ink); }
+.seg { display: inline-flex; } .seg button { border-radius: 0; margin-left: -1px; } .seg button:first-child { border-radius: 8px 0 0 8px; margin-left: 0; } .seg button:last-child { border-radius: 0 8px 8px 0; }
+#play { background: var(--ink); border-color: var(--ink); min-width: 42px; } #play svg { fill: #fff; } #play:hover { background: var(--ink2); } #play.on { background: var(--signal); border-color: var(--signal); }
+#export { border-color: var(--ink); color: var(--ink); } #export:hover { background: var(--ink); color: #fff; } #export:hover svg { fill: #fff; }
+.tbox { font-family: var(--mono); width: 96px; text-align: right; background: var(--head); cursor: default; font-size: 12.5px; padding: 0 10px; }
+input[type=range] { --p: 0%; -webkit-appearance: none; appearance: none; width: 200px; height: 22px; background: transparent; margin: 0; cursor: pointer; }
+input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--ink) var(--p), #d5dce7 var(--p)); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6px; border-radius: 50%; background: #fff; border: 2px solid var(--ink); box-shadow: 0 1px 3px rgba(16, 29, 66, 0.3); }
+input[type=range]:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; border-radius: 4px; }
+.chip { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 13px 0 11px; border: 1px solid var(--border2); border-radius: 999px; background: #fff; color: var(--muted); cursor: pointer; font-weight: 550; transition: all 0.12s; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip:hover { border-color: #8f9db0; }
+.chip:has(input:checked) { color: var(--text); border-color: var(--c); background: color-mix(in srgb, var(--c) 8%, #fff); }
+.chip .g { width: 16px; height: 0; border-top: 2px solid var(--c); opacity: 0.45; } .chip:has(input:checked) .g { opacity: 1; }
+.chip .g.dash { border-top-style: dashed; } .chip .g.dot { width: 8px; height: 8px; border: 0; border-radius: 50%; background: var(--c); }
+.chip .g.grid { width: 12px; height: 12px; border: 0; background: linear-gradient(var(--c) 1px, transparent 1px) 0 0 / 6px 6px, linear-gradient(90deg, var(--c) 1px, transparent 1px) 0 0 / 6px 6px; }
+/* layout */
 main { display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 10px; padding: 10px 12px; min-height: 0; }
 .left { display: grid; grid-template-rows: minmax(0, 1fr) 224px; gap: 10px; min-height: 0; min-width: 0; }
-.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05); overflow: hidden;
-  display: grid; grid-template-rows: 34px minmax(0, 1fr); min-height: 0; min-width: 0; }
-.ph { border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; padding: 0 14px; font-weight: 600; font-size: 13px; white-space: nowrap; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 1px 2px rgba(16, 29, 66, 0.05); overflow: hidden;
+  display: grid; grid-template-rows: 36px minmax(0, 1fr); min-height: 0; min-width: 0; }
+.ph { border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; padding: 0 14px; font-weight: 650; font-size: 13px; white-space: nowrap; color: var(--ink); }
+.ph::before { content: ""; width: 4px; height: 14px; border-radius: 2px; background: var(--signal); margin-right: -2px; }
 .ph .sp { overflow: hidden; text-overflow: ellipsis; min-width: 0; margin-left: auto; font-weight: 400; color: var(--muted); font-family: var(--mono); font-size: 12px; }
-.ph select { height: 24px; font-weight: 400; max-width: 260px; border-radius: 5px; }
+.ph select { height: 26px; font-weight: 450; max-width: 270px; border-radius: 6px; padding-left: 9px; }
 .pb { position: relative; min-height: 0; min-width: 0; }
 .pb canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.tablepanel { grid-template-rows: 34px minmax(0, 1fr) auto; }
+.tablepanel { grid-template-rows: 36px minmax(0, 1fr) auto; }
 .scroll { overflow: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-thead th { position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--border); text-align: right; font-weight: 600; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; padding: 8px 12px 6px; color: var(--muted); }
+thead th { position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--border); text-align: right; font-weight: 650; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 12px 6px; color: var(--muted); }
 th:first-child, td:first-child { text-align: left; }
-td { padding: 4px 12px; border-bottom: 1px solid #f0f3f6; text-align: right; white-space: nowrap; }
 th:nth-child(2), td:nth-child(2) { width: 48px; }
-tbody tr:not(.grp):hover td { background: #f6f8fb; }
-td.n { font-family: var(--mono); font-size: 12.5px; } td.t { color: var(--true); } td.p { color: var(--pred); font-weight: 500; } td.d { color: var(--muted); } td.u { color: var(--muted); text-align: left; }
-tr.grp td { background: var(--head); color: var(--muted); font-weight: 600; font-size: 12px; padding: 5px 12px; border-top: 1px solid var(--border); border-bottom: 1px solid #f0f3f6; text-align: left; }
+td { padding: 4px 12px; border-bottom: 1px solid #f0f3f7; text-align: right; white-space: nowrap; }
+tbody tr:not(.grp):hover td { background: #f6f8fc; }
+td.n { font-family: var(--mono); font-size: 12.5px; } td.t { color: var(--true); } td.p { color: var(--pred); font-weight: 550; } td.d { color: var(--muted); } td.u { color: var(--muted); text-align: left; }
+tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-size: 12px; padding: 5px 12px; border-top: 1px solid var(--border); text-align: left; }
 .sum { border-top: 1px solid var(--border); background: var(--head); padding: 9px 14px; font-size: 12.5px; display: grid; gap: 3px; }
-.sum span { color: var(--muted); } .sum b { font-family: var(--mono); font-weight: 600; }
-.status { display: flex; align-items: center; background: var(--panel); border-top: 1px solid var(--border); font: 11.5px var(--mono); color: #334155; }
-.status div { padding: 0 14px; height: 100%; display: flex; align-items: center; border-right: 1px solid var(--border); white-space: nowrap; }
-.status div:last-child { margin-left: auto; border-right: 0; border-left: 1px solid var(--border); }
+.sum span { color: var(--muted); } .sum b { font-family: var(--mono); font-weight: 600; color: var(--ink); }
+.status { display: flex; align-items: center; background: var(--ink); color: #cfd8f0; font: 11.5px var(--mono); }
+.status div { padding: 0 14px; height: 100%; display: flex; align-items: center; border-right: 1px solid rgba(255, 255, 255, 0.12); white-space: nowrap; }
+.status div:last-child { margin-left: auto; border-right: 0; border-left: 1px solid rgba(255, 255, 255, 0.12); }
 .fatal { padding: 40px; font-size: 18px; }
-@media (max-width: 1300px) { thead th, td, tr.grp td { padding-left: 8px; padding-right: 8px; } td.n { font-size: 12px; } main { grid-template-columns: minmax(0, 1fr) 436px; padding: 8px; gap: 8px; } input[type=range] { width: 80px; } .tbox { width: 78px; } .group { padding-right: 9px; } .toolbar { gap: 9px; padding: 0 8px; } #discharge { width: 210px !important; } label.k[for=speed] { display: none; } .brand .crumb { display: none; } }
-@media (max-height: 800px) { .left { grid-template-rows: minmax(0, 1fr) 172px; } td { padding: 2px 12px; } }
+@media (max-width: 1300px) {
+  thead th, td, tr.grp td { padding-left: 8px; padding-right: 8px; } td.n { font-size: 12px; }
+  main { grid-template-columns: minmax(0, 1fr) 436px; padding: 8px; gap: 8px; } input[type=range] { width: 84px; } .tbox { width: 92px; }
+  .group { padding-right: 9px; gap: 7px; } .toolbar { gap: 9px; padding: 0 8px; } #discharge { width: 200px !important; }
+  label.k[for=speed] { display: none; } .word small { display: none; } #export span { display: none; } .chip { padding: 0 10px 0 9px; gap: 6px; }
+}
+@media (max-height: 800px) { .left { grid-template-rows: minmax(0, 1fr) 172px; } td { padding: 2px 12px; } body { grid-template-rows: 50px 50px minmax(0, 1fr) 26px; } }
 </style>
 </head>
 <body>
-<div class="titlebar"><div class="brand"><svg viewBox="0 0 22 22" fill="none"><path d="M7 2.5C15 2.5 19 8.5 17 13c-1.6 3.7-5.6 6.5-9 6.5C5.5 14 5.5 8.5 7 2.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="11.5" cy="11" r="2" fill="#e5502f"/></svg><b>COMPASS</b><span class="crumb">Rekonstrukce tvaru a polohy plazmatu z magnetických měření</span></div><span>IPP úloha 1 · ČVUT ML Hackathon 2026</span></div>
+<div class="titlebar">
+  <div class="brand"><span class="mark"><svg viewBox="0 0 22 22" fill="none"><path d="M7 2.5C15 2.5 19 8.5 17 13c-1.6 3.7-5.6 6.5-9 6.5C5.5 14 5.5 8.5 7 2.5Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="11.5" cy="11" r="2.2" fill="#e5502f"/></svg></span>
+  <span class="word"><b>COMPASS</b><small>Rekonstrukce tvaru a polohy plazmatu</small></span></div>
+  <span class="pill">IPP úloha 1 · ČVUT ML Hackathon 2026</span>
+</div>
 <div class="toolbar">
-  <div class="group"><label class="k" for="discharge">Výboj</label><select id="discharge" style="width:330px"></select></div>
+  <div class="group"><label class="k" for="discharge">Výboj</label><select id="discharge" style="width:300px" title="Chyba osy = průměrná chyba polohy magnetické osy ve výboji; lim. = podíl času v limiterové konfiguraci"></select></div>
   <div class="group">
-    <span class="seg"><button id="first" title="Na začátek (Home)"><svg viewBox="0 0 14 14"><rect x="1" y="2" width="2" height="10"/><polygon points="12,2 4,7 12,12"/></svg></button>
-    <button id="prev" title="Snímek zpět (←)"><svg viewBox="0 0 14 14"><polygon points="11,2 3,7 11,12"/></svg></button>
-    <button id="play" title="Přehrát nebo pozastavit (mezerník)"><svg viewBox="0 0 14 14"><polygon points="3,1.5 12,7 3,12.5"/></svg></button>
-    <button id="next" title="Snímek vpřed (→)"><svg viewBox="0 0 14 14"><polygon points="3,2 11,7 3,12"/></svg></button>
-    <button id="last" title="Na konec (End)"><svg viewBox="0 0 14 14"><polygon points="2,2 10,7 2,12"/><rect x="11" y="2" width="2" height="10"/></svg></button></span>
+    <span class="seg">
+      <button id="first" title="Na začátek (Home)"><svg viewBox="0 0 14 14"><rect x="1" y="2" width="2" height="10"/><polygon points="12,2 4,7 12,12"/></svg></button>
+      <button id="prev" title="Snímek zpět (←)"><svg viewBox="0 0 14 14"><polygon points="11,2 3,7 11,12"/></svg></button>
+      <button id="play" title="Přehrát nebo pozastavit (mezerník)"><svg viewBox="0 0 14 14"><polygon points="3,1.5 12,7 3,12.5"/></svg></button>
+      <button id="next" title="Snímek vpřed (→)"><svg viewBox="0 0 14 14"><polygon points="3,2 11,7 3,12"/></svg></button>
+      <button id="last" title="Na konec (End)"><svg viewBox="0 0 14 14"><polygon points="2,2 10,7 2,12"/><rect x="11" y="2" width="2" height="10"/></svg></button>
+    </span>
     <input id="slider" type="range" min="0" max="0" value="0" aria-label="Čas ve výboji">
     <input id="tbox" class="tbox" type="text" readonly aria-label="Čas">
   </div>
   <div class="group"><label class="k" for="speed">Rychlost</label><select id="speed"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option><option value="8">8×</option></select></div>
   <div class="group">
-    <label class="chk"><input type="checkbox" id="showTrue" checked><i style="border-color:var(--true)"></i>Skutečnost</label>
-    <label class="chk"><input type="checkbox" id="showPred" checked><i style="border-color:var(--pred);border-top-style:dashed"></i>Předpověď</label>
-    <label class="chk"><input type="checkbox" id="showPts" checked>Body</label>
-    <label class="chk"><input type="checkbox" id="showGrid" checked>Mřížka</label>
+    <label class="chip" style="--c:#0f172a"><input type="checkbox" id="showTrue" checked><span class="g"></span>Skutečnost</label>
+    <label class="chip" style="--c:#e5502f"><input type="checkbox" id="showPred" checked><span class="g dash"></span>Předpověď</label>
+    <label class="chip" style="--c:#101d42"><input type="checkbox" id="showPts" checked><span class="g dot"></span>Body</label>
+    <label class="chip" style="--c:#101d42"><input type="checkbox" id="showGrid" checked><span class="g grid"></span>Mřížka</label>
   </div>
-  <div class="group"><button id="export" style="padding:0 10px">Uložit PNG</button></div>
+  <div class="group"><button id="export" title="Uložit aktuální průřez jako obrázek"><svg viewBox="0 0 14 14"><path d="M6 1h2v6l2.2-2.2 1.4 1.4L7 10.8 2.4 6.2l1.4-1.4L6 7V1Z"/><rect x="1.5" y="11" width="11" height="2" rx="1"/></svg><span>Uložit PNG</span></button></div>
 </div>
 <main>
   <div class="left">
@@ -275,7 +303,7 @@ function drawStage() {
   if (show.true) draw(false);
   if (show.pred) draw(true);
   if (state.hover) {
-    ctx.strokeStyle = "rgba(37,99,235,0.5)"; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.beginPath();
+    ctx.strokeStyle = "rgba(16,29,66,0.45)"; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.beginPath();
     ctx.moveTo(state.hover.x, v.y0); ctx.lineTo(state.hover.x, v.y0 + v.ph); ctx.moveTo(v.x0, state.hover.y); ctx.lineTo(v.x0 + v.pw, state.hover.y); ctx.stroke(); ctx.setLineDash([]);
   }
   ctx.restore();
@@ -343,7 +371,7 @@ function drawChart() {
   ctx.beginPath(); for (const v of ty.major) { const y = Math.round(py(v)) + 0.5; ctx.moveTo(L, y); ctx.lineTo(L + 5, y); ctx.fillText(fmt(v, ty.step < 1 ? 2 : ty.step < 10 ? 1 : 0), L - 7, y + 4); } ctx.stroke();
   ctx.textAlign = "center"; ctx.beginPath(); for (const v of tx.major) { const x = Math.round(L + v * W) + 0.5; ctx.moveTo(x, T + H); ctx.lineTo(x, T + H - 5); ctx.fillText(fmt(v, 1), x, T + H + 15); } ctx.stroke();
   ctx.fillText("relativní čas ve výboji", L + W / 2, f.h - 3);
-  const x = Math.round(px(state.i)) + 0.5; ctx.strokeStyle = "#2563eb"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + H); ctx.stroke();
+  const x = Math.round(px(state.i)) + 0.5; ctx.strokeStyle = "#101d42"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + H); ctx.stroke();
   const a = valid.map(Math.abs), mean = a.reduce((p, q) => p + q, 0) / a.length;
   $("#chartStats").textContent = `${signed ? "Δ = předpověď − skutečnost · " : ""}průměr |Δ| ${fmt(mean, 2)} · největší |Δ| ${fmt(Math.max(...a), 1)}`;
 }
@@ -365,10 +393,10 @@ function status() {
   $("#cfgTag").textContent = `${isLimited(c, i, false) ? "limiterová" : "divertorová"} konfigurace · t = ${fmt(c.time[i], 3)}`;
   $("#tbox").value = `t = ${fmt(c.time[i], 3)}`;
 }
-function render() { drawStage(); drawTable(); drawChart(); status(); $("#slider").value = state.i; }
+function render() { drawStage(); drawTable(); drawChart(); status(); $("#slider").value = state.i; $("#slider").style.setProperty("--p", (cur().n > 1 ? (100 * state.i) / (cur().n - 1) : 0) + "%"); }
 function selectDischarge(idx) { state.di = idx; state.i = 0; $("#slider").max = cur().n - 1; $("#discharge").value = idx; render(); }
 function init() {
-  $("#discharge").innerHTML = D.discharges.map((d, k) => `<option value="${k}">Výboj ${d.id}   ·   chyba osy ${fmt(d.axisErrMm, 1)} mm   ·   ${Math.round(d.limitedShare * 100)} % limiterová</option>`).join("");
+  $("#discharge").innerHTML = D.discharges.map((d, k) => `<option value="${k}">Výboj ${d.id} · osa ${fmt(d.axisErrMm, 1)} mm · ${Math.round(d.limitedShare * 100)} % lim.</option>`).join("");
   $("#param").innerHTML = PARAMS.map(([v, l]) => `<option value="${v}">${l}</option>`).join("");
   const q = new URLSearchParams(location.hash.slice(1));
   const byId = q.has("d") ? D.discharges.findIndex((d) => d.id === +q.get("d")) : -1;
