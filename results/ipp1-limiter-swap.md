@@ -40,6 +40,18 @@ Results freeze at 01:00.
 
 Not run yet when this text was committed.
 
+## POST HOC AMENDMENT of criterion 4 (Lead decision, 23 Oct about 20:25; written before the new measurements)
+
+**This is a change of the rule made after the result of the first run was known.** In the first run arm 1 passed criteria 1 to 3 and failed criterion 4 only (median latency of the limited path 0.117 and
+0.108 ms in the two `nice 10` runs of the report, against the limit of 0.1 ms; arm 0 measured 0.042 and 0.040 ms). The Lead decided that the limit of 0.1 ms was a conservative guard (the real budget is 1 to 10 ms)
+and that the measurement under `nice` and load was unfair to the arm with the bigger network. The original rule text above and the two failed runs stay in this file; the formal verdict of the original rule
+(nobody wins) stays as it was.
+
+**Amended criterion 4:** the latency is judged on the median of at least 5 repeated runs of the same measurement at NORMAL priority (no `nice`), for arm 1 and for `cand` in the same state of the machine (each run
+measures all three arms one after the other); arm 1 passes if the median over the runs of its median latency in the limited path is below 0.1 ms. Everything else of the rule is unchanged (gain, noise,
+nothing else changes, winner choice, the locked set once and only for the winner). If arm 1 passes under the amended criterion it is scored once on the locked 30 discharges, and the script logs that this
+happened on the post hoc pass. If its locked result is worse than `cand` on either limiter target, it is not shipped. Shipping, if any, is a separate decision (a new recipe, not a change of `ipp1_final.py` here).
+
 <!-- RESULTS BELOW -->
 
 ## Results (119 development discharges, 5 folds x 3 seeds, pooled out-of-fold MAE in mm, mean (SD over seeds))
