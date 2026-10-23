@@ -71,6 +71,22 @@ verdict, the limits, what the model cannot do. Use plain Czech without English w
 that do not exist yet stay marked `DOPLNIT`. (3) Later: material for the motion reel; the owner starts it after the
 results exist (not before Sat 08:00).
 
+### K takes more work (Fri 17:00)
+In this order, after the reproducibility check and the outline:
+1. **The real slide deck** from `presentation/outline.md` and, when it exists, `presentation/pitch-script.md`, with the images in
+   `presentation/assets/` and the figures in `results/` (png). Tool of your choice (PowerPoint, Keynote, Google Slides); if your
+   Claude builds it, use python-pptx and save `presentation/deck/slides.pptx`. 16:9, one message per slide, big numbers, a dark navy
+   background with orange and blue accents like the images, speaker notes with the seconds. Only aggregate numbers from `results/`;
+   never raw rows of the IPP data.
+2. **Rehearsal:** read the talk aloud with a stopwatch (7:00 maximum), mark where it is too long or hard to follow, and play the
+   hostile jury with the ten questions of the pitch script. Write the findings into `presentation/rehearsal-notes.md`.
+3. **Glossary for the audience:** `presentation/slovnicek.md`, twelve terms (tokamak, plasma, X-point, strike point, limiter, elongation,
+   triangularity, discharge, flux loop, coil, latency, overfitting) each in one plain Czech sentence that matches the slides.
+4. **The submission video:** after the viewer is final (lane U), a 60 to 90 second screen recording of the viewer with a spoken
+   commentary and captions. The file is large, so keep it outside git and note where it is.
+5. **Reel material later** (not before Sat 08:00).
+Report each item by its row in `docs/PLAN.md` (IMPL-11) and push small commits.
+
 ### R also takes the camera model now (decided Fri 17:00, GPT has only 25 % of its limit used)
 IMPL-6, IMPL-7, REQ-B01, REQ-B03, REQ-B05. Do this right after the three experiments above, or in parallel if you can.
 1. Extract `$HACKATHON_HOME/data/raw/ipp1-photron-zip/uloha_1-photron.zip` (876 MB, already downloaded and complete) into
