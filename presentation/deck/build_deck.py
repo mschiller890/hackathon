@@ -472,7 +472,7 @@ def build():
     text(s, 0.6, 2.6, 12.1, 1.2, "Živá ukázka", size=60, bold=True, align=PP_ALIGN.CENTER)
     # Since e50b1ee the viewer shows the selected model on the 30 held-out discharges, which predicts the points but
     # not the outline (its legend: "obrys model nepředpovídá"); docs/PLAN.md KQ-18
-    text(s, 0.6, 3.9, 12.1, 0.9, [[("Skutečný tvar plazmatu a odhadnuté body, chyba v čase", 24, MUTED, False)],
+    text(s, 0.6, 3.9, 12.1, 0.9, [[("Rekonstrukce ústavu a odhadnuté body, chyba v čase", 24, MUTED, False)],
                                   [("Výboj 85, odložený, vybraný model; obrys se nepředpovídá, ukazuje body (osa, bod X, "
                                     "dotykové body).", 18, MUTED, False)]], align=PP_ALIGN.CENTER)
     text(s, 0.6, 5.4, 12.1, 0.6, "Prohlížeč tvaru běží bez připojení k internetu", size=16, color=BLUE,
@@ -537,7 +537,7 @@ def build():
     nz_c, nz_h = (tm["noisy"][v]["jitter_ratio"] for v in ("clean_on_noisy", "hardened_on_noisy"))
     lo, hi = j["blocked"]
     notes_extra(s, [
-        f"Kolísání výstupu proti skutečnosti, základní síť: na čistých vstupech {cz(min(jr), 2)} až {cz(max(jr), 2)} "
+        f"Kolísání výstupu proti rekonstrukci, základní síť: na čistých vstupech {cz(min(jr), 2)} až {cz(max(jr), 2)} "
         f"({len(jr)} veličin), na zašuměných {cz(nz_c['R_mag_axis'], 1)}krát (osa R) a {cz(nz_c['Z_mag_axis'], 1)}krát "
         f"(osa Z), po učení se šumem {cz(nz_h['R_mag_axis'], 1)} a {cz(nz_h['Z_mag_axis'], 2)}krát.",
         f"Na souvislých blocích čísel výbojů je chyba základní sítě {cz(lo, 1)} až {cz(hi, 1)}krát větší než na náhodně "
@@ -612,7 +612,7 @@ def build():
     text(s, 0.6, 3.25, 6.9, 1.2, f"Jeden odhad, procesor {lat['cpu']}. Klasický výpočet trvá minuty; obojí je pod naším "
                                  "rozpočtem 1 až 10 ms.", size=20, color=TEXT)
     for i, (head, body, col) in enumerate([
-            ("Přesnost osy", f"čisté vstupy {cz(fn['R_mag_axis'][1], 2)} mm, zašuměné vstupy {cz(nf['axis'], 2)} mm "
+            ("Shoda osy s rekonstrukcí", f"čisté vstupy {cz(fn['R_mag_axis'][1], 2)} mm, zašuměné vstupy {cz(nf['axis'], 2)} mm "
                              "(síť učená se šumem)", BLUE),
             ("Zbývá", "bod u limiteru, neobvyklé tvary, šum, napojení na řízení", MUTED)]):
         y = 1.6 + i * 2.15
@@ -623,11 +623,11 @@ def build():
          align=PP_ALIGN.CENTER)
     text(s, 11.6, 6.6, 1.2, 0.4, "Ilustrace.", size=14, color=TEXT)
     notes_extra(s, [
-        f"Přesnost podrobně: čisté vstupy, osa, bod X a dotykové body desetiny milimetru; zašuměné vstupy: bod u limiteru "
+        f"Shoda podrobně: čisté vstupy, osa, bod X a dotykové body desetiny milimetru; zašuměné vstupy: bod u limiteru "
         f"{cz(nf['limiter'][0], 1)} a {cz(nf['limiter'][1], 1)} mm, proud {cz(nf['current'], 2)} kA (30 odložených výbojů).",
         "Neobvyklé tvary jsme samostatně neověřili."])
     add_sources(s, ["results/ipp1-latency.json (0,0145 ms, Apple M5)", "results/ipp1-latency-shipped.md (0,027 ms)",
-                    "results/ipp1-final.md (přesnost)"])
+                    "results/ipp1-final.md (shoda)"])
 
     prs.save(OUT)
     return OUT
