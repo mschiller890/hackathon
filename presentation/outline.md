@@ -8,9 +8,9 @@ Pravidla pro všechna čísla:
 
 * Dva modely se nezaměňují. Základní síť: 24 vstupů, 107 152 parametrů. Vybraný model: základní síť plus rozdíly sousedních cívek, lineární model pro proud a zvláštní síť pro bod u limiteru. Pro zašuměné vstupy se používá síť učená se šumem.
 * Slovo odložené nahlas doplnit: nejsou zcela nezávislé, náměty na úpravy vznikly na všech 149 výbojích; v malém písmu stojí odložené před výběrem.
-* Pod každým číslem přesnosti stojí protokol: 30 odložených výbojů (osa 0,133 mm), křížová validace na 119 výbojích (0,230 mm), novější čísla výbojů (0,397 mm), u základní sítě pět dělení po výbojích (0,377 mm).
+* Pod každým číslem shody s rekonstrukcí stojí protokol: 30 odložených výbojů (radiální osa 0,133 mm), křížová validace na 119 výbojích (0,230 mm), novější čísla výbojů (0,397 mm), u základní sítě pět dělení po výbojích (0,377 mm).
 * Každá rychlost má model a procesor: základní síť 0,0145 ms, Apple M5; vybraný model medián asi 0,03 ms, 99 % pod 0,1 ms (Apple M5, vytížený počítač, `results/ipp1-latency-shipped.md`).
-* Slova zamčená a nikdo neviděl se nepoužívají. Říká se odložené výboje (odložené před finálním výběrem).
+* Slova zamčená a nikdo neviděl se nepoužívají. Říká se odložené výboje (odložené odložené před posledním výběrem modelu).
 
 ## Snímek 1: Problém (38 s)
 
@@ -30,17 +30,17 @@ Věta: Máme 42 972 řádků ze 149 výbojů, na každém řádku 24 magnetický
 * Data jsou důvěrná, proto na snímku nejsou žádné surové hodnoty, jen souhrny.
 * Dělíme po celých výbojích, nikdy po řádcích, jinak by se model učil na tom, co testuje.
 
-## Snímek 3: Metoda (24 s)
+## Snímek 3: Metoda (20 s)
 
 Věta: Základní síť má 107 152 parametrů; vybraný model je její vylepšení; u každého čísla říkáme, na jakých výbojích bylo změřeno.
 
 * Srovnání: lineární model (hřebenová regrese) proti malé neuronové síti (základní síť).
 * Vybraný model pro čisté vstupy: síť s rozdíly sousedních cívek, lineární model pro proud a zvláštní síť pro bod u limiteru.
-* Ověření: základní síť pětkrát jinak po výbojích; vybraný model navíc na 30 výbojích odložených před finálním výběrem (8 761 řádků). Náměty na úpravy modelu vznikly na křížové validaci přes všech 149 výbojů, odložených 30 bylo při návrhu v testovacích částech; po odložení se nic neladilo, jen se vybírala jedna ze čtyř variant uvnitř 119 výbojů.
+* Ověření: základní síť pětkrát jinak po výbojích; vybraný model navíc na 30 výbojích odložených odložené před posledním výběrem modelu (8 761 řádků). Náměty na úpravy modelu vznikly na křížové validaci přes všech 149 výbojů, odložených 30 bylo při návrhu v testovacích částech; po odložení se nic neladilo, jen se vybírala jedna ze čtyř variant uvnitř 119 výbojů.
 * Dále: kolik vstupů opravdu potřebujeme, jak stabilní je výstup v čase, jak rychlá je odpověď, jak síť snáší šum.
 * Kamera je skrytá záloha bez času, viz konec osnovy.
 
-## Snímek 4: Výsledky (54 s)
+## Snímek 4: Výsledky (63 s)
 
 Věta: Na 30 odložených výbojích se vybraný model od rekonstrukce ústavu liší v poloze osy o 0,13 mm (základní síť o 0,31), v křížové validaci na 119 výbojích 0,23 mm a na novějších číslech výbojů 0,40 mm.
 
@@ -57,16 +57,16 @@ Věta: Na 30 odložených výbojích se vybraný model od rekonstrukce ústavu l
 * Samotných 16 cívek IPR dává souhrnnou chybu 0,066, samotných 8 smyček toku 0,285, tedy 4,3krát horší. Mluví se takto: samotné cívky stačí na skoro stejnou souhrnnou chybu, osm nejlepších už ne. Žádné jedno čidlo není samo nezbytné: pořadí podle tří způsobů se téměř neshodují. Neříkáme, která čidla jsou důležitá, říkáme jen výsledek po rodinách.
 * Obrázek: graf chyby podle počtu vstupů (soubor ipp1 inputs ve složce results).
 
-## Živá ukázka mezi snímkem 4 a 5 (88 s)
+## Živá ukázka mezi snímkem 4 a 5 (80 s)
 
-Věta: V prohlížeči vidíte na výbojích odložených před výběrem skutečné a odhadnuté body plazmatu (osa, bod X, dotykové body) a jejich chybu v čase; v ukázce je vybraný model.
+Věta: V prohlížeči vidíte na výbojích odložených před výběrem body z rekonstrukce ústavu a odhadnuté body (osa, bod X, dotykové body) a jejich odchylku v čase; v ukázce je vybraný model.
 
-* Posuvník času, stěna komory, skutečné a odhadnuté body, tabulka chyb. Vybraný model nepředpovídá celý obrys plazmatu, jen body; legenda v prohlížeči to říká. Podrobný scénář je v souboru pitch script.
-* Prohlížeč přehrává předpovědi vybraného modelu na 30 odložených výbojích. Obrys v ukázce je z rekonstrukce ústavu, síť odhaduje jen označené body. Číslo, jak dobře síť sedí, je shoda s rekonstrukcí ústavu, ne s opravdovým plazmatem.
+* Posuvník času, stěna komory, body z rekonstrukce ústavu a odhadnuté body, tabulka chyb. Vybraný model neodhaduje celý obrys plazmatu, jen body; legenda v prohlížeči to říká. Podrobný scénář je v souboru pitch script.
+* Prohlížeč přehrává odhady vybraného modelu na 30 odložených výbojích. Obrys v ukázce je z rekonstrukce ústavu, síť odhaduje jen označené body. Číslo, jak dobře síť sedí, je shoda s rekonstrukcí ústavu, ne s opravdovým plazmatem.
 * Výboj 85 je typický (průměrná chyba osy 0,18 mm; medián z 30 odložených výbojů je 0,19 mm). Výboj 147 je záměrně špatný konec: v posledním snímku chyba osy 33,7 mm a bodu u limiteru asi 105 mm, průměr výboje 0,85 mm. Všech 30 odložených výbojů má průměrnou chybu osy pod 1 mm, žádný přes 5 mm. Čísla jsou ve složce results, soubor ipp1 demo facts; počítána jsou z každého třetího řádku, takže se od průměru ze všech řádků mohou lišit o desetinu mm, a není to totéž co 0,133 mm radiální osy.
 * Podíl výbojů: 128 ze 149 (85,9 %) má průměrnou chybu osy pod 1 mm, 3 přes 5 mm (základní síť, pět dělení).
 
-## Snímek 5: Verdikt pro řízení v reálném čase (37 s)
+## Snímek 5: Rychlost výpočtu sítě (ne celý řetězec řízení) (40 s)
 
 Věta: Výpočet sítě rychlosti nebrání: základní síť 0,0145 ms na procesoru Apple M5, vybraný model asi 0,03 ms, rozpočet je 1 až 10 ms; ověřili jsme ale jen výpočet samotné sítě.
 
@@ -77,7 +77,7 @@ Věta: Výpočet sítě rychlosti nebrání: základní síť 0,0145 ms na proce
 * Neověřili jsme: sběr a integraci signálů z cívek, nejhorší dobu na systému reálného času a přesnost na skutečně zašuměných signálech. Přepínání mezi modelem pro čisté a pro zašuměné vstupy jsme netestovali.
 * U každého času říkáme, na jakém modelu a procesoru byl měřen.
 
-## Snímek 6: Meze (31 s)
+## Snímek 6: Meze (34 s)
 
 Věta: Nejhůř se odhaduje bod u limiteru (vybraný model 4,55 a 8,35 mm na 30 odložených výbojích) a chyby rostou hlavně na konci výboje.
 
@@ -86,26 +86,26 @@ Věta: Nejhůř se odhaduje bod u limiteru (vybraný model 4,55 a 8,35 mm na 30 
 * Chyby rostou hlavně na konci výboje, 1,6 až 3,7krát oproti středu: u základní sítě má osa na konci 0,9 mm, uprostřed 0,24 mm (graf pod dlaždicemi je základní síť, dlaždice jsou vybraný model). U vybraného modelu na odložených výbojích: poslední 2 % výboje 0,578 mm, střed 0,114 mm. Na začátku roste jen chyba polohy osy (radiální 2,5krát, svislá 1,5krát).
 * Kolísání (jen poznámka pod čarou, nahlas se neříká): na čistých vstupech 0,96 až 1,07 u 13 veličin (u sedmi veličin tabulky 0,97 až 1,07). Na zašuměných vstupech kolísá výstup sítě naučené na čistých datech 8,4krát (osa R) a 3,3krát (osa Z) víc než skutečnost, po učení se šumem a posunem 1,7krát a 1,65krát. Nikdy neříkáme jen 0,97.
 * Čísla výbojů jsou zřejmě seřazena podle času, což jsme s organizátory neověřili. Na souvislých blocích čísel je chyba základní sítě 1,5 až 2,9krát větší (osa R 1,23 mm místo 0,448 mm), z části i proto, že je méně učících výbojů.
-* S menším počtem vstupů přesnost klesá: se 4 vstupy je souhrnná chyba 0,204.
-* Obrácená polarita: 7 procent řádků a 78 procent kvadratické chyby osy R. Kanonizaci znaménka jsme zkoušeli a nenasadili, na běžné polaritě stojí asi 20 procent.
+* S menším počtem vstupů chyba roste: se 4 vstupy je souhrnná chyba 0,204.
+* Obrácená polarita: 7 procent řádků a 78 procent kvadratické chyby osy R. Sjednocení znaménka jsme zkoušeli a nepoužili, na běžné polaritě zhorší chybu o 20 procent.
 * Pro čisté a zašuměné vstupy máme dva modely; přepínání mezi nimi jsme netestovali.
 
-## Snímek 7: Co model neumí (76 s)
+## Snímek 7: Co model neumí (74 s)
 
 Věta: Model je křehký vůči šumu, potřebuje dost výbojů, neobvyklé tvary jsme samostatně neověřili a platí jen pro jeden tokamak.
 
 * Šum, základní síť, pět dělení po výbojích: osa má chybu 0,38 mm na čistých datech, ale 10,15 mm na datech s šumem; učení na zašuměných datech to srazí na 2,64 mm, na čistých datech pak 2,22 mm. Pozor na tři různé protokoly: 2,64 a 2,22 jsou pět dělení, 2,38 mm (osa) a 4,65 kA (proud) je síť učená se šumem na 30 odložených výbojích, 2,99 mm je vývojová křížová validace.
 * Vybraný model pro čisté vstupy na šumu selže úplně (osa 190 mm), proto pro zašuměné vstupy použijeme síť učenou se šumem: osa 2,38 mm (osmnáctkrát víc než 0,133 mm na čistých vstupech), bod u limiteru 25,8 a 38,9 mm, proud 4,65 kA (lineární část druhého modelu učeného se šumem má 4,03 kA, jako jeden recept to spuštěno nebylo).
 * Množství dat, základní síť: s 30 učícími výboji je chyba osy 1,47 mm (radiální) a 0,95 mm (svislá), se všemi 119 je 0,38 mm. Od 30 do 119 výbojů klesá zhruba na polovinu při zdvojnásobení, ale s pevným počtem 60 epoch, takže část zlepšení tvoří víc kroků učení.
-* Neobvyklý tvar: když při učení vynecháme celou rodinu tvarů, chyba je 1,0 až 3,0krát větší, obvykle 1,2 až 2,4krát. Opravdu neobvyklých je ale jen 18 výbojů ze 149 a nikdy nebyly vynechány samostatně, takže o tvarech mimo rozsah dat výsledek nic neříká; rozdíly 1,1 až 1,3krát jsou v šumu měření.
+* Osmnáct nejodlišnějších výbojů vynecháno z učení (jedna základní síť, tři semena): chyba radiální osy 2,26 mm místo 0,907 mm, tedy 2,5krát, svislé osy 2,1krát, protažení 1,8krát, bodu u limiteru (radiálně) 2,3krát; u pěti nejodlišnějších je chyba osy 1,9krát a bodu u limiteru 5,8krát větší. Tohle neověřuje nové tvary: o tvarech mimo rozsah dat výsledek nic neříká.
 * Kamera (skrytá záloha): model naučený na nepohnutých snímcích je křehký, posun o 4 pixely ztrojnásobí chybu osy (z 1,54 na 4,95 mm); kamera a magnetická měření dohromady magnetickou síť nepřekonaly (1,21 mm proti 0,24 mm). Měřeno jen na dvou z pěti dělení.
 * Ověřeno jen na jednom tokamaku a jen vůči rekonstrukci, kterou dodal ústav. Model odhaduje jen tvar a řízení plazmatu samo nenahrazuje.
 
-## Snímek 8: Závěr (44 s)
+## Snímek 8: Závěr (43 s)
 
 Věta: Shoda s rekonstrukcí ústavu na čistých vstupech je desetiny milimetru, rychlost výpočtu setiny milisekundy, ale model ještě není připraven pro řízení.
 
-* Přesnost: osa 0,13 mm na 30 odložených výbojích, asi 0,2 mm v křížové validaci (0,40 mm na novějších číslech); na zašuměných vstupech jednotky milimetrů (2,38 mm).
+* Shoda s rekonstrukcí: radiální osa 0,13 mm na 30 odložených výbojích, 0,23 mm v křížové validaci (0,40 mm na novějších číslech); na zašuměných vstupech jednotky milimetrů (2,38 mm).
 * Rychlost: základní síť 0,0145 ms (procesor Apple M5), vybraný model asi 0,03 ms; obojí hluboko pod rozpočtem 1 až 10 ms. Výpočet sítě, ne celý řídicí systém.
 * Upřímně: slabý bod u limiteru, neobvyklé tvary jsme samostatně neověřili a šum mu vadí, pokud se na něj neučí.
 * Sběr signálů a napojení na řídicí systém jsme nezkoušeli. Zbývá napojení na řídicí systém, víc výbojů a odolnost proti šumu.
@@ -113,7 +113,7 @@ Věta: Shoda s rekonstrukcí ústavu na čistých vstupech je desetiny milimetru
 
 ## Součet času
 
-Podle rozhodnutí vedoucího (RP 11) platí časy ze souboru pitch script, přepočtené po kontrole Kritika 2: 38 + 28 + 24 + 54 + 88 (ukázka) + 37 + 31 + 76 + 44 = 420 sekund, tedy 7 minut. Kamerový snímek je skrytá záloha bez času. Při zpoždění se škrtá: věta o rychlosti ukázky, věta Zbývá napojení, kamera, poslední věta snímku 7.
+Podle rozhodnutí vedoucího (RP 11) platí časy ze souboru pitch script, podle opraveného pitch scriptu: 38 + 28 + 20 + 63 + 80 (ukázka) + 40 + 34 + 74 + 43 = 420 sekund, tedy 7 minut. Kamerový snímek je skrytá záloha bez času. Při zpoždění se škrtá: věta o rychlosti ukázky, věta Zbývá napojení, kamera, poslední věta snímku 7.
 
 ## Záloha: kamera (skrytý snímek, 20 s jen když je mezera)
 

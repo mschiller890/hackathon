@@ -11,6 +11,6 @@ Dvanáct pojmů, každý jednou prostou větou. Slova odpovídají snímkům v o
 * **Trojúhelníkovost:** míra, nakolik se průřez plazmatu podobá písmenu D a nakolik kruhu.
 * **Výboj:** jeden celý pokus, od zapálení plazmatu do jeho zániku; data dělíme vždy po celých výbojích.
 * **Smyčka toku:** drát kolem komory, který měří magnetický tok, a je tedy jedním z 24 vstupů modelu.
-* **Cívka:** drát, který měří magnetické pole; samotných 16 cívek IPR dává skoro stejnou přesnost jako všech 24 vstupů.
+* **Cívka:** drát, který měří magnetické pole; samotných 16 cívek IPR dává skoro stejnou chybu jako všech 24 vstupů.
 * **Odezva:** čas od chvíle, kdy model dostane měření, do chvíle, kdy vydá odhad; náš výpočet trvá setiny milisekundy a podle zatížení procesoru o něco víc.
 * **Přeučení:** model si zapamatuje učící data místo obecné souvislosti, a proto selže na nových výbojích; proti tomu testujeme na výbojích, které neviděl.
