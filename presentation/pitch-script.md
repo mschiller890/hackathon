@@ -138,8 +138,8 @@ Obrázek: žádný obrázek, na snímku je graf chyby osy podle času
 |---|---|---|---|---|
 | 4:40 | 10 | A | Teď poctivě slabá místa. Nejhůř určujeme bod u limiteru: chyba je 10,7 milimetru radiálně a 22,2 milimetru svisle. | Snímek 6. Dlaždice 10,7 mm a 22,2 mm. |
 | 4:50 | 5 | A | To je řádově horší než u ostatních veličin. | Stejné dlaždice. |
-| 4:55 | 9 | A | Chyby rostou i na začátku a na konci výboje: osa má na konci 0,9 milimetru, uprostřed 0,24. | Graf chyby osy podle desetin výboje, oranžové sloupce jsou začátek a konec. |
-| 5:04 | 6 | A | Výstup přitom mezi sousedními časy kolísá stejně jako skutečnost. | Spodní řádek snímku (poměr kolísání 0,97). |
+| 4:55 | 9 | A | Chyba osy roste hlavně na konci výboje: na konci je 0,9 milimetru, uprostřed 0,24. | Graf chyby osy podle desetin výboje, oranžové sloupce jsou začátek a konec. |
+| 5:04 | 6 | A | Na čistých vstupech výstup mezi sousedními časy kolísá podobně jako skutečnost. | Spodní řádek snímku (poměr kolísání 0,97 až 1,07 u sedmi veličin). |
 
 ### Snímek 7: Co model neumí (5:10 až 6:10, 60 s)
 
