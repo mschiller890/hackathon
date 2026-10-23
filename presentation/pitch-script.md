@@ -141,7 +141,7 @@ Obrázek: žádný obrázek, na snímku jsou dva grafy (šum, počet výbojů)
 | 5:03 | 20 | B | Slabina je odolnost vůči chybám čidel. Zkoušeli jsme šum od organizátorů a umělý posun. Základní síť má chybu osy 0,38 milimetru na čistých datech a 10,15 na zašuměných. | Snímek 7, levý graf, první dva sloupce (třetí sloupec 2,64 se nemluví, je v otázce 3). Protokol: základní síť, pět dělení po výbojích. |
 | 5:23 | 14 | B | Vybraný model na šumu selže, proto bychom použili síť učenou se šumem: osa 2,38 milimetru na třiceti odložených výbojích. | Řádek pod grafem (30 odložených výbojů; proud 4,65 kA je tam také). |
 | 5:37 | 17 | A | Druhá slabina: počet výbojů. Se 30 učícími výboji je chyba osy 1,47, se všemi učícími výboji, 119 v každém dělení, je 0,38, ale s pevným počtem epoch. | Pravý graf, křivka podle počtu učících výbojů (základní síť, pět dělení). |
-| 5:54 | 17 | A | Třetí slabina: neobvyklé tvary. Vynechání rodiny tvarů zvedlo chybu nejvýš třikrát, ale opravdu neobvyklých výbojů je jen 18 ze 149 a samostatně jsme je neověřili. | Spodní text snímku. |
+| 5:54 | 17 | A | Třetí slabina: neobvyklé tvary. Osmnáct nejodlišnějších výbojů jsme vynechali z učení a chyba osy je u základní sítě asi dvaapůlkrát větší, od 0,9 do 2,3 milimetru. Čtrnáct z nich je z časné části kampaně, takže se tu míchá tvar s dobou. | Spodní text snímku. |
 | 6:11 | 6 | B | Platí jen pro jeden tokamak. | Spodní text snímku; věta, že řízení plazmatu model sám nenahradí, je jen tam. |
 
 ### Snímek 8: Závěr (6:17 až 7:00, 43 s)
@@ -207,7 +207,7 @@ Odpovídá A: Porovnáváme se s rekonstrukcí rovnováhy, kterou nám dal ústa
 ### 2. Fyzik
 Otázka: Co když plazma bude mít nový tvar, který v datech nebyl? A co když řízení uzavře smyčku? (F9)
 
-Odpovídá A: Nevíme. Když jsme při učení vynechali celou rodinu tvarů, byla chyba osy 1,0 až 3,0krát větší, obvykle 1,2 až 2,4krát, u základní sítě v pětinásobném dělení. Opravdu neobvyklých výbojů je ale jen 18 ze 149 a samostatně jsme je nevynechali, takže o tvarech mimo rozsah dat ten výsledek nic neříká. Na nejnovějších číslech výbojů, při učení na šedesáti nejnižších, je osa vybraného modelu 0,40 milimetru místo 0,22. V datech leží protažení a trojúhelníkovost na úzké křivce, tedy na jedné rodině tvarů, které stroj ve svých scénářích vytváří. Síť se naučila tuto rodinu a pro tvar mimo ni jí věřit nelze. V uzavřené smyčce řízení samo změní proudy v cívkách, a tím vstupy sítě; to jsme netestovali.
+Odpovídá A: Nevíme. Když jsme při učení vynechali celou rodinu tvarů, byla chyba osy 1,0 až 3,0krát větší, obvykle 1,2 až 2,4krát, u základní sítě v pětinásobném dělení. Osmnáct nejodlišnějších výbojů jsme pak vynechali z učení samostatně: u základní sítě je chyba osy 0,9 až 2,3 milimetru, asi dvaapůlkrát víc než v náhodném dělení, a pěti nejnižším protažením dokonce 2,6 až 4,9 milimetru. Čtrnáct z těch osmnácti je ale z nejstarších čísel výbojů, takže se tu míchá tvar s časnou částí kampaně. O tvarech mimo rozsah dat to nic neříká. (`results/ipp1-unusual-heldout.md`) Na nejnovějších číslech výbojů, při učení na šedesáti nejnižších, je osa vybraného modelu 0,40 milimetru místo 0,22. V datech leží protažení a trojúhelníkovost na úzké křivce, tedy na jedné rodině tvarů, které stroj ve svých scénářích vytváří. Síť se naučila tuto rodinu a pro tvar mimo ni jí věřit nelze. V uzavřené smyčce řízení samo změní proudy v cívkách, a tím vstupy sítě; to jsme netestovali.
 
 ### 3. Fyzik
 Otázka: Síť se na šumu zhroutí. Dá se to vůbec použít se skutečnými čidly? Je váš šum a posun realistický? (F7)

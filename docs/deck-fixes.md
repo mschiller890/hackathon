@@ -128,7 +128,7 @@ Line 2: "Na souvislých blocích čísel výbojů je chyba základní sítě 1,5
 13.4 Right chart title: "Chyba osy (mm) podle počtu učících výbojů; základní síť, 5 dělení, vždy 60 epoch". The x axis is categorical (6, 12, 30, 60, 119 equally spaced): switch to a log axis or scatter with the real values so that the spacing is true. (L3)
 
 13.5 Footnote at the bottom is **replaced** by:
-"Vynechání celé rodiny tvarů: chyba 1,0 až 3,0krát větší. Skutečně neobvyklých výbojů je jen 18 ze 149 a samostatně nikdy vynechány nebyly; tvary mimo rozsah dat jsme neověřili. Jen jeden tokamak, řízení model sám nenahradí."
+"Vynechání rodiny tvarů: chyba osy 1,0 až 3,0krát větší. 18 nejodlišnějších výbojů vynecháno z učení: chyba osy asi 2,5krát větší (0,9 až 2,3 mm, základní síť); 14 z nich je z časné části kampaně. Tvary mimo rozsah dat jsme neověřili. Jen jeden tokamak, řízení model sám nenahradí."
 Delete "bez zhroucení; osa u nejodlišnějších tvarů 1,6 mm místo 0,7 mm". (H4)
 
 13.6 Slide title: unchanged, KQ-19 answered by the Lead (keep "Šum mu vadí nejvíc; tvary mimo rozsah dat jsme neověřili"); the footnote of 16.8 carries the physicist's point that noise is a synthetic stress test.
