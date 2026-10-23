@@ -330,6 +330,10 @@ Odpovídá B: Nejslabší je bod, kde plazma dosedá na limiter: chyba 4,55 a 8,
 
 Odpovídá B: Porovnali jsme SiLU s ReLU a GELU ve stejné síti na vývojových výbojích, tři semínka, spárovaně. ReLU bylo jasně horší: chyba osy 0,35 proti 0,27 milimetru a ve všech třech semínkách. GELU bylo v rozptylu mezi semínky, tak jsme nechali SiLU. Omezení: sítě jsme zkoušeli samotné, bez lineárního modelu pro proud a bez sítě pro limiter, a nastavení bylo laděné pro SiLU. (`results/ipp1-activation.md`)
 
+### N17. Fyzik: Kamera je horší než cívky, zkoušeli jste to dotáhnout?
+
+Odpovídá B: Zkusili jsme větší síť na obrázcích (96 krát 128 bodů) a samotná velikost nepomohla, byla horší než malá síť. Pomohlo až učení s náhodným posunem do dvou bodů a otočením do dvou stupňů: osa 1,59 místo 1,7 milimetru, bod X 1,36 místo 1,5. Cívky jsou na stejných snímcích a dělení pořád čtyřikrát až osmkrát lepší (osa 0,41 milimetru). Posun snímku o bod nebo otočení o stupeň tuto síť nezhorší (poměr chyby 0,99 až 1,01), ale pohyby jsou uvnitř rozsahu, na který se učila. Mapa zakrytí ukazuje, že síť spoléhá hlavně na střed snímku. Jedno semínko na variantu. (`results/ipp1-camera-v2.md`)
+
 ## Příloha: deset nejtěžších fyzikálních otázek
 
 Zdroj: `docs/review-physics.md`, část 5 (otázky F1 až F10). Sedm z nich je totéž co otázky výše, proto jsou sloučené a odpověď je tam; tři nové (F2, F4, F5) jsou níže. Čísla jsou jen ze složky `results/`, kde odpověď neví, řekne Neměřili jsme.
