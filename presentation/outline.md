@@ -66,8 +66,8 @@ Věta: Nejhůř se odhaduje bod u limiteru, kde chyba dosahuje 10,7 mm a 22,2 mm
 
 * Bod u limiteru: radiální chyba 10,7 mm, svislá 22,2 mm, řádově hůř než ostatní veličiny.
 * Chyby rostou hlavně na konci výboje, 1,6 až 3,7krát oproti středu: osa má na konci 0,9 mm, uprostřed 0,24 mm. Na začátku roste jen chyba polohy osy (radiální 2,5krát, svislá 1,5krát), bod X a dotykové body se na začátku výboje nevyskytují.
-* Na čistých vstupech kolísá výstup stejně jako skutečnost, poměr je 0,97 až 1,07 u sedmi veličin. Na zašuměných vstupech kolísá výstup sítě naučené na čistých datech 8,4krát (osa R) a 3,3krát (osa Z) víc než skutečnost, po učení se šumem a posunem 1,7krát u obou os. Nikdy neříkáme jen 0,97.
-* Čísla výbojů jsou zřejmě seřazena podle času, což jsme s organizátory neověřili. Když zkoušíme na souvislých blocích čísel, je chyba osy asi 1,5krát větší.
+* Na čistých vstupech kolísá výstup stejně jako skutečnost, poměr je 0,97 až 1,07 u sedmi veličin. Na zašuměných vstupech kolísá výstup sítě naučené na čistých datech 8,4krát (osa R) a 3,3krát (osa Z) víc než skutečnost, po učení se šumem a posunem 1,7krát (osa R) a 1,65krát (osa Z). Nikdy neříkáme jen 0,97.
+* Čísla výbojů jsou zřejmě seřazena podle času, což jsme s organizátory neověřili. Když zkoušíme na souvislých blocích čísel, je chyba 1,5 až 2,9krát větší (osa R 1,23 mm místo 0,448 mm), z části i proto, že je méně učících výbojů.
 * S menším počtem vstupů přesnost klesá: se 4 vstupy je souhrnná chyba 0,204.
 
 ## Snímek 7: Co model neumí (60 s)
