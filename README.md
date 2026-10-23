@@ -33,16 +33,20 @@ claimed here until it is measured and recorded.
 ## Data (not in this repository)
 
 The data come from Ústav fyziky plazmatu AV ČR and may be used only for this hackathon; they must not be
-published or shared outside the participants. They live next to the repository, never inside it:
+published or shared outside the participants. They live in a folder outside the repository, and every script finds
+them through `HACKATHON_HOME`:
 
 ```
-hackathon/
+$HACKATHON_HOME/
 ├── data/raw/ipp1-magnetic/uloha_1-magneticka_data/   equil_data.csv, equil_data_noisy.csv
 ├── data/raw/ipp1-photron-zip/                        camera archive (optional)
-└── repo/                                             this repository
+└── out/                                              everything the scripts write (created on the first run)
 ```
 
-Set `HACKATHON_HOME` to the `hackathon/` folder if you run the scripts from elsewhere.
+Any folder works. On the owner's Mac it is the `hackathon/` folder that also holds this clone as `repo/`; on a plain
+`git clone` pick a sibling folder, for example `~/GitHub/hackathon-home`. Download `uloha_1-magneticka_data.zip` from the
+organizers' Drive (participants only; 37,368,783 bytes, sha256 `0b2b3dd1aaaeb51b4a6dacbdaf63222f14ea055a82b54e6cf9da2923781381`)
+and unzip it into `$HACKATHON_HOME/data/raw/ipp1-magnetic/`.
 
 ## Repository structure
 
@@ -56,18 +60,44 @@ Set `HACKATHON_HOME` to the `hackathon/` folder if you run the scripts from else
 
 ## Setup and run
 
-Python 3.12. From the folder that holds `data/` and `repo/`:
+Python 3.12 through [`uv`](https://docs.astral.sh/uv/) (`python3 -m pip install --user uv` if it is missing; `uv` downloads
+Python 3.12 itself). From the root of your clone:
 
 ```bash
 uv venv ~/.venvs/hackathon --python 3.12
-uv pip install --python ~/.venvs/hackathon/bin/python pandas pyarrow openpyxl matplotlib scikit-learn torch charset-normalizer
-~/.venvs/hackathon/bin/python -I repo/analysis/ipp1_eda.py
-~/.venvs/hackathon/bin/python -I repo/analysis/ipp1_baseline.py
+uv pip install --python ~/.venvs/hackathon/bin/python pandas pyarrow openpyxl matplotlib scikit-learn scipy torch \
+    charset-normalizer nbconvert ipykernel
+~/.venvs/hackathon/bin/python -m ipykernel install --user --name hackathon   # the notebooks ask for this kernel
+export HACKATHON_HOME=~/GitHub/hackathon-home                                # your data folder, see above
+~/.venvs/hackathon/bin/python -I analysis/make_all.py --quick --notebooks
 ```
 
 Install the packages into the venv, not with `pip install --user`: `python -I` ignores user site packages.
-Outputs are written to `out/` (outside the repository). Results and their interpretation are documented
-in the notebooks once they exist.
+
+`analysis/make_all.py` creates `out/`, runs the analysis scripts in the order their outputs depend on each other and then
+executes the five notebooks into `out/notebooks/` (the committed notebooks are not rewritten). It stops at the first failing
+step. Wall times on a Ryzen 5 7535HS laptop CPU:
+
+| Step | Writes (in `out/`) | Time |
+|---|---|---|
+| `ipp1_eda.py` | `ipp1-eda.json`, figures | 2 s |
+| `ipp1_baseline.py` | `ipp1-baseline.json` | 1 min |
+| `ipp1_oof.py` | `ipp1-predictions.csv` | 45 s |
+| `ipp1_oof_noise.py` | `ipp1-predictions-noise.csv` | 1.5 min |
+| `ipp1_time.py` | `ipp1-time.json` | 3 s |
+| `ipp1_inputs.py` | `ipp1-inputs.json` | about 1 h; `--quick` copies `results/ipp1-inputs.json` instead |
+| `ipp1_latency.py` | `ipp1-latency.json` | 10 s |
+| five notebooks | `notebooks/*.ipynb` | 2 min |
+
+Without `--quick` the whole run takes a little over an hour (`ipp1_inputs.py` alone about 13 minutes per fold), with it 6 to 7 minutes (383 s measured from a fresh clone). **Known problem:** since `e4d4fa7` notebook `04` stops with `KeyError: 'is_limited'` (`docs/PLAN.md`, IMPL-8); `make_all.py` stops there, so run notebook `05` by hand until it is fixed. `--missing` skips steps whose outputs
+already exist. Aggregate results and their interpretation are in `results/` and the notebooks.
+
+Notes from the second-machine check (`docs/PLAN.md`, RP-1 to RP-14):
+- On Linux `uv pip install torch` downloads the CUDA build, about 3 GB. The scripts use only the CPU; the CPU build
+  (`uv pip install --python ~/.venvs/hackathon/bin/python torch --index-url https://download.pytorch.org/whl/cpu`, about
+  200 MB) should do, but was not tested here.
+- Versions that reproduced `results/ipp1-baseline.md` on the second machine: Python 3.12.15, torch 2.14.1, numpy 2.5.4,
+  pandas 3.1.0, scikit-learn 1.9.1, scipy 1.18.1, nbconvert 7.17.2. Latency figures depend on the processor.
 
 ## Engineering approach
 
