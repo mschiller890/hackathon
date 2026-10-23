@@ -6,66 +6,74 @@
 <title>COMPASS: rekonstrukce tvaru plazmatu</title>
 <style>
 :root {
-  --chrome: #e4e8ed; --chrome2: #d3d9e0; --panel: #ffffff; --border: #a7b1bd; --text: #17202a; --muted: #5a6877;
-  --true: #12161c; --pred: #d9452a; --sel: #2a6fb5; --grid: #e4e8ed; --band: #eef1f5; --title: #1d2a38;
-  --ui: "Segoe UI", "Helvetica Neue", Arial, sans-serif; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --bg: #eef1f5; --panel: #ffffff; --head: #f8fafc; --border: #d7dde5; --border2: #bfc9d5; --text: #0f172a; --muted: #64748b;
+  --true: #0f172a; --pred: #e5502f; --sel: #2563eb; --grid: #edf0f4; --band: #f1f4f8;
+  --ui: -apple-system, "SF Pro Text", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
-body { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 28px 42px minmax(0, 1fr) 24px; background: var(--chrome); color: var(--text);
-  font: 12.5px/1.35 var(--ui); user-select: none; }
-.titlebar { background: var(--title); color: #e8edf3; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 12.5px; }
-.titlebar b { font-weight: 600; letter-spacing: 0.01em; } .titlebar span { color: #9fb0c2; }
-.toolbar { overflow: hidden; display: flex; align-items: center; gap: 12px; padding: 0 10px; border-bottom: 1px solid var(--border); background: var(--chrome2); }
-.group { display: flex; align-items: center; gap: 6px; padding-right: 12px; border-right: 1px solid var(--border); height: 26px; }
+body { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 44px 48px minmax(0, 1fr) 26px; background: var(--bg); color: var(--text);
+  font: 13px/1.4 var(--ui); user-select: none; -webkit-font-smoothing: antialiased; }
+.titlebar { background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+.brand { display: flex; align-items: center; gap: 10px; } .brand svg { width: 22px; height: 22px; color: var(--text); }
+.brand b { font-size: 15px; font-weight: 650; letter-spacing: 0.01em; } .brand .crumb { color: var(--muted); font-size: 13px; padding-left: 10px; border-left: 1px solid var(--border); }
+.titlebar > span { color: var(--muted); font-size: 12.5px; }
+.toolbar { overflow: hidden; display: flex; align-items: center; gap: 14px; padding: 0 12px; background: var(--panel); border-bottom: 1px solid var(--border); }
+.group { display: flex; align-items: center; gap: 8px; padding-right: 14px; border-right: 1px solid var(--border); height: 28px; }
 .group:last-child { border-right: 0; margin-left: auto; padding-right: 0; }
 label.k { color: var(--muted); }
-select, button, input[type=text] { height: 24px; border: 1px solid var(--border); background: #f7f9fb; color: var(--text); font: inherit;
-  border-radius: 2px; padding: 0 7px; }
-button { cursor: pointer; min-width: 26px; display: inline-flex; align-items: center; justify-content: center; }
-button:hover, select:hover { background: #fff; border-color: #7f8c9b; }
-button:active, button.on { background: #cfd8e3; }
-button svg { width: 14px; height: 14px; fill: #25303c; }
-input[type=range] { width: 210px; accent-color: var(--sel); height: 18px; }
-.tbox { font-family: var(--mono); width: 88px; text-align: right; background: #fff; cursor: default; }
-label.chk { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; } label.chk i { width: 16px; height: 0; border-top: 2px solid; }
-input[type=checkbox] { margin: 0; accent-color: var(--sel); }
-main { display: grid; grid-template-columns: minmax(0, 1fr) 452px; gap: 6px; padding: 6px; min-height: 0; }
-.left { display: grid; grid-template-rows: minmax(0, 1fr) 218px; gap: 6px; min-height: 0; min-width: 0; }
-.panel { background: var(--panel); border: 1px solid var(--border); display: grid; grid-template-rows: 24px minmax(0, 1fr); min-height: 0; min-width: 0; }
-.ph { background: var(--chrome2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; padding: 0 8px; font-weight: 600; }
-.ph { white-space: nowrap; } .ph .sp { overflow: hidden; text-overflow: ellipsis; min-width: 0; margin-left: auto; font-weight: 400; color: var(--muted); font-family: var(--mono); font-size: 11.5px; }
-.ph select { height: 20px; font-weight: 400; max-width: 250px; }
+select, button, input[type=text] { height: 28px; border: 1px solid var(--border2); background: #fff; color: var(--text); font: inherit; border-radius: 6px; padding: 0 9px; }
+select:focus-visible, button:focus-visible { outline: 2px solid var(--sel); outline-offset: 1px; }
+button { cursor: pointer; min-width: 30px; display: inline-flex; align-items: center; justify-content: center; font-weight: 500; }
+button:hover, select:hover { background: var(--head); border-color: #94a3b8; }
+button:active, button.on { background: #e6edf7; border-color: var(--sel); }
+button svg { width: 14px; height: 14px; fill: #1e293b; }
+.seg { display: inline-flex; } .seg button { border-radius: 0; margin-left: -1px; } .seg button:first-child { border-radius: 6px 0 0 6px; margin-left: 0; } .seg button:last-child { border-radius: 0 6px 6px 0; }
+#play { background: var(--sel); border-color: var(--sel); } #play svg { fill: #fff; } #play:hover { background: #1d4fd8; } #play.on { background: #1e40af; border-color: #1e40af; }
+input[type=range] { width: 200px; accent-color: var(--sel); height: 18px; }
+.tbox { font-family: var(--mono); width: 92px; text-align: right; background: var(--head); cursor: default; font-size: 12.5px; }
+label.chk { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; } label.chk i { width: 16px; height: 0; border-top: 2px solid; }
+input[type=checkbox] { margin: 0; accent-color: var(--sel); width: 14px; height: 14px; }
+main { display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 10px; padding: 10px 12px; min-height: 0; }
+.left { display: grid; grid-template-rows: minmax(0, 1fr) 224px; gap: 10px; min-height: 0; min-width: 0; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05); overflow: hidden;
+  display: grid; grid-template-rows: 34px minmax(0, 1fr); min-height: 0; min-width: 0; }
+.ph { border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; padding: 0 14px; font-weight: 600; font-size: 13px; white-space: nowrap; }
+.ph .sp { overflow: hidden; text-overflow: ellipsis; min-width: 0; margin-left: auto; font-weight: 400; color: var(--muted); font-family: var(--mono); font-size: 12px; }
+.ph select { height: 24px; font-weight: 400; max-width: 260px; border-radius: 5px; }
 .pb { position: relative; min-height: 0; min-width: 0; }
 .pb canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.tablepanel { grid-template-rows: 24px minmax(0, 1fr) auto; }
+.tablepanel { grid-template-rows: 34px minmax(0, 1fr) auto; }
 .scroll { overflow: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-thead th { position: sticky; top: 0; background: #f1f4f7; border-bottom: 1px solid var(--border); text-align: right; font-weight: 600; padding: 4px 8px; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--border); text-align: right; font-weight: 600; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; padding: 8px 12px 6px; color: var(--muted); }
 th:first-child, td:first-child { text-align: left; }
-td { padding: 2.5px 8px; border-bottom: 1px solid #eef1f4; text-align: right; }
-td.n { font-family: var(--mono); font-size: 12px; } td.t { color: var(--true); } td.p { color: var(--pred); } td.d { color: var(--muted); } td.u { color: var(--muted); text-align: left; }
-tr.grp td { background: #f1f4f7; color: var(--muted); font-weight: 600; text-transform: none; padding: 3px 8px; border-bottom: 1px solid #dde3e9; text-align: left; }
-.sum { border-top: 1px solid var(--border); background: #f7f9fb; padding: 6px 9px; font-size: 12px; color: var(--text); display: grid; gap: 2px; }
+td { padding: 4px 12px; border-bottom: 1px solid #f0f3f6; text-align: right; white-space: nowrap; }
+th:nth-child(2), td:nth-child(2) { width: 48px; }
+tbody tr:not(.grp):hover td { background: #f6f8fb; }
+td.n { font-family: var(--mono); font-size: 12.5px; } td.t { color: var(--true); } td.p { color: var(--pred); font-weight: 500; } td.d { color: var(--muted); } td.u { color: var(--muted); text-align: left; }
+tr.grp td { background: var(--head); color: var(--muted); font-weight: 600; font-size: 12px; padding: 5px 12px; border-top: 1px solid var(--border); border-bottom: 1px solid #f0f3f6; text-align: left; }
+.sum { border-top: 1px solid var(--border); background: var(--head); padding: 9px 14px; font-size: 12.5px; display: grid; gap: 3px; }
 .sum span { color: var(--muted); } .sum b { font-family: var(--mono); font-weight: 600; }
-.status { display: flex; align-items: center; gap: 0; background: var(--chrome2); border-top: 1px solid var(--border); font: 11.5px var(--mono); color: #2a3441; }
-.status div { padding: 0 12px; height: 100%; display: flex; align-items: center; border-right: 1px solid var(--border); white-space: nowrap; }
+.status { display: flex; align-items: center; background: var(--panel); border-top: 1px solid var(--border); font: 11.5px var(--mono); color: #334155; }
+.status div { padding: 0 14px; height: 100%; display: flex; align-items: center; border-right: 1px solid var(--border); white-space: nowrap; }
 .status div:last-child { margin-left: auto; border-right: 0; border-left: 1px solid var(--border); }
 .fatal { padding: 40px; font-size: 18px; }
-@media (max-width: 1300px) { main { grid-template-columns: minmax(0, 1fr) 410px; } input[type=range] { width: 84px; } .tbox { width: 76px; } .group { padding-right: 8px; } .toolbar { gap: 8px; } #discharge { width: 214px !important; } label.k[for=speed] { display: none; } }
-@media (max-height: 800px) { .left { grid-template-rows: minmax(0, 1fr) 170px; } td { padding: 1.5px 8px; } }
+@media (max-width: 1300px) { thead th, td, tr.grp td { padding-left: 8px; padding-right: 8px; } td.n { font-size: 12px; } main { grid-template-columns: minmax(0, 1fr) 436px; padding: 8px; gap: 8px; } input[type=range] { width: 80px; } .tbox { width: 78px; } .group { padding-right: 9px; } .toolbar { gap: 9px; padding: 0 8px; } #discharge { width: 210px !important; } label.k[for=speed] { display: none; } .brand .crumb { display: none; } }
+@media (max-height: 800px) { .left { grid-template-rows: minmax(0, 1fr) 172px; } td { padding: 2px 12px; } }
 </style>
 </head>
 <body>
-<div class="titlebar"><b>COMPASS: rekonstrukce tvaru a polohy plazmatu z magnetických měření</b><span>IPP úloha 1 · ČVUT ML Hackathon 2026</span></div>
+<div class="titlebar"><div class="brand"><svg viewBox="0 0 22 22" fill="none"><path d="M7 2.5C15 2.5 19 8.5 17 13c-1.6 3.7-5.6 6.5-9 6.5C5.5 14 5.5 8.5 7 2.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="11.5" cy="11" r="2" fill="#e5502f"/></svg><b>COMPASS</b><span class="crumb">Rekonstrukce tvaru a polohy plazmatu z magnetických měření</span></div><span>IPP úloha 1 · ČVUT ML Hackathon 2026</span></div>
 <div class="toolbar">
   <div class="group"><label class="k" for="discharge">Výboj</label><select id="discharge" style="width:330px"></select></div>
   <div class="group">
-    <button id="first" title="Na začátek (Home)"><svg viewBox="0 0 14 14"><rect x="1" y="2" width="2" height="10"/><polygon points="12,2 4,7 12,12"/></svg></button>
+    <span class="seg"><button id="first" title="Na začátek (Home)"><svg viewBox="0 0 14 14"><rect x="1" y="2" width="2" height="10"/><polygon points="12,2 4,7 12,12"/></svg></button>
     <button id="prev" title="Snímek zpět (←)"><svg viewBox="0 0 14 14"><polygon points="11,2 3,7 11,12"/></svg></button>
     <button id="play" title="Přehrát nebo pozastavit (mezerník)"><svg viewBox="0 0 14 14"><polygon points="3,1.5 12,7 3,12.5"/></svg></button>
     <button id="next" title="Snímek vpřed (→)"><svg viewBox="0 0 14 14"><polygon points="3,2 11,7 3,12"/></svg></button>
-    <button id="last" title="Na konec (End)"><svg viewBox="0 0 14 14"><polygon points="2,2 10,7 2,12"/><rect x="11" y="2" width="2" height="10"/></svg></button>
+    <button id="last" title="Na konec (End)"><svg viewBox="0 0 14 14"><polygon points="2,2 10,7 2,12"/><rect x="11" y="2" width="2" height="10"/></svg></button></span>
     <input id="slider" type="range" min="0" max="0" value="0" aria-label="Čas ve výboji">
     <input id="tbox" class="tbox" type="text" readonly aria-label="Čas">
   </div>
@@ -174,7 +182,7 @@ function fitCanvas(cv) {
   cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr));
   return { w: r.width, h: r.height, dpr };
 }
-const FONT = "11.5px 'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
+const FONT = "11.5px -apple-system, 'SF Pro Text', 'Inter', 'Segoe UI', Arial, sans-serif";
 
 // ---- stage -------------------------------------------------------------------------------------
 const stage = $("#stage"), sctx = stage.getContext("2d");
@@ -209,14 +217,14 @@ function drawFrame(ctx) {
 }
 function drawAxes(ctx, t) {
   const v = view;
-  ctx.strokeStyle = "#222b36"; ctx.lineWidth = 1; ctx.strokeRect(v.x0 + 0.5, v.y0 + 0.5, v.pw, v.ph);
+  ctx.strokeStyle = "#334155"; ctx.lineWidth = 1; ctx.strokeRect(v.x0 + 0.5, v.y0 + 0.5, v.pw, v.ph);
   ctx.beginPath();
   for (const [ticks, len] of [[t.tx.major, 6], [t.tx.minor, 3]]) for (const r of ticks) {
     const x = Math.round(X(r)) + 0.5; ctx.moveTo(x, v.y0 + v.ph); ctx.lineTo(x, v.y0 + v.ph - len); ctx.moveTo(x, v.y0); ctx.lineTo(x, v.y0 + len); }
   for (const [ticks, len] of [[t.tz.major, 6], [t.tz.minor, 3]]) for (const z of ticks) {
     const y = Math.round(Y(z)) + 0.5; ctx.moveTo(v.x0, y); ctx.lineTo(v.x0 + len, y); ctx.moveTo(v.x0 + v.pw, y); ctx.lineTo(v.x0 + v.pw - len, y); }
   ctx.stroke();
-  ctx.font = FONT; ctx.fillStyle = "#222b36";
+  ctx.font = FONT; ctx.fillStyle = "#334155";
   ctx.textAlign = "center"; for (const r of t.tx.major) ctx.fillText(fmt(r, t.tx.step < 0.1 ? 2 : 1), X(r), v.y0 + v.ph + 17);
   ctx.textAlign = "right"; for (const z of t.tz.major) ctx.fillText(fmt(z, t.tz.step < 0.1 ? 2 : 1), v.x0 - 8, Y(z) + 4);
   ctx.textAlign = "center"; ctx.fillText("R (m)", v.x0 + v.pw / 2, v.y0 + v.ph + 36);
@@ -227,12 +235,12 @@ function drawLegend(ctx) {
   const w = 168, h = rows.length * 17 + 10, outside = v.w - (v.x0 + v.pw) - 12 >= w + 8;
   const x = outside ? v.x0 + v.pw + 14 : v.x0 + v.pw - w - 10, y = v.y0 + (outside ? 0 : 10);
   ctx.fillStyle = "rgba(255,255,255,0.94)"; ctx.fillRect(x, y, w, h); ctx.strokeStyle = COL.border; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w, h);
-  ctx.font = FONT; ctx.textAlign = "left"; ctx.fillStyle = "#222b36";
+  ctx.font = FONT; ctx.textAlign = "left"; ctx.fillStyle = "#334155";
   rows.forEach(([k, label], n) => {
     const cy = y + 14 + n * 17;
     if (k === "line" || k === "dash") { ctx.strokeStyle = k === "line" ? COL.true : COL.pred; ctx.lineWidth = 2; ctx.setLineDash(k === "dash" ? [6, 4] : []); ctx.beginPath(); ctx.moveTo(x + 8, cy); ctx.lineTo(x + 32, cy); ctx.stroke(); ctx.setLineDash([]); }
-    else marker(ctx, k, x + 20, cy, "#59656f", false, 4.5);
-    ctx.fillStyle = "#222b36"; ctx.fillText(label, x + 40, cy + 4);
+    else marker(ctx, k, x + 20, cy, "#64748b", false, 4.5);
+    ctx.fillStyle = "#334155"; ctx.fillText(label, x + 40, cy + 4);
   });
 }
 function drawStage() {
@@ -243,8 +251,8 @@ function drawStage() {
   if (D.wall) {
     ctx.beginPath(); ctx.rect(v.x0 - 5, v.y0 - 5, v.pw + 10, v.ph + 10);
     D.wall.R.forEach((r, k) => (k ? ctx.lineTo(X(r), Y(D.wall.Z[k])) : ctx.moveTo(X(r), Y(D.wall.Z[k])))); ctx.closePath();
-    ctx.fillStyle = "#dfe4ea"; ctx.fill("evenodd");
-    path(ctx, D.wall.R, D.wall.Z, true); ctx.lineWidth = 2.2; ctx.strokeStyle = "#47525e"; ctx.stroke();
+    ctx.fillStyle = "#e2e8f0"; ctx.fill("evenodd");
+    path(ctx, D.wall.R, D.wall.Z, true); ctx.lineWidth = 2.2; ctx.strokeStyle = "#475569"; ctx.stroke();
   }
   const draw = (pred) => {
     const color = pred ? COL.pred : COL.true, sfx = pred ? "_pred" : "", g = (n) => c[n + sfx][i];
@@ -267,7 +275,7 @@ function drawStage() {
   if (show.true) draw(false);
   if (show.pred) draw(true);
   if (state.hover) {
-    ctx.strokeStyle = "rgba(42,111,181,0.55)"; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.beginPath();
+    ctx.strokeStyle = "rgba(37,99,235,0.5)"; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.beginPath();
     ctx.moveTo(state.hover.x, v.y0); ctx.lineTo(state.hover.x, v.y0 + v.ph); ctx.moveTo(v.x0, state.hover.y); ctx.lineTo(v.x0 + v.pw, state.hover.y); ctx.stroke(); ctx.setLineDash([]);
   }
   ctx.restore();
@@ -319,23 +327,23 @@ function drawChart() {
   for (let i = 1; i <= n; i++) if (i === n || (c.is_limited[i] > 0.5) !== (c.is_limited[s0] > 0.5)) { segs.push([s0, i - 1, c.is_limited[s0] > 0.5]); s0 = i; }
   for (const [a, b, lim] of segs) {
     if (lim) { ctx.fillStyle = COL.band; ctx.fillRect(px(a), T, px(b) - px(a) + 1, H); }
-    if (px(b) - px(a) > 80) { ctx.fillStyle = "#7a8794"; ctx.font = "11px 'Segoe UI', Arial, sans-serif"; ctx.textAlign = "left"; ctx.fillText(lim ? "limiterová" : "divertorová", px(a) + 6, T + 13); }
+    if (px(b) - px(a) > 80) { ctx.fillStyle = "#94a3b8"; ctx.font = "11px -apple-system, 'SF Pro Text', 'Segoe UI', Arial, sans-serif"; ctx.textAlign = "center"; ctx.fillText(lim ? "limiterová" : "divertorová", (px(a) + px(b)) / 2, T + 13); }
   }
   const ty = niceTicks(lo, hi, 4), tx = niceTicks(0, 1, 5);
   ctx.strokeStyle = COL.grid; ctx.lineWidth = 1; ctx.beginPath();
   for (const v of ty.major) { ctx.moveTo(L, Math.round(py(v)) + 0.5); ctx.lineTo(L + W, Math.round(py(v)) + 0.5); }
   for (const v of tx.major) { const x = Math.round(L + v * W) + 0.5; ctx.moveTo(x, T); ctx.lineTo(x, T + H); }
   ctx.stroke();
-  if (signed) { ctx.strokeStyle = "#8d99a6"; ctx.beginPath(); ctx.moveTo(L, py(0) + 0.5); ctx.lineTo(L + W, py(0) + 0.5); ctx.stroke(); }
+  if (signed) { ctx.strokeStyle = "#94a3b8"; ctx.beginPath(); ctx.moveTo(L, py(0) + 0.5); ctx.lineTo(L + W, py(0) + 0.5); ctx.stroke(); }
   ctx.beginPath(); let open = false;
   s.forEach((v, i) => { if (v == null) { open = false; return; } open ? ctx.lineTo(px(i), py(v)) : ctx.moveTo(px(i), py(v)); open = true; });
   ctx.lineWidth = 1.6; ctx.strokeStyle = COL.pred; ctx.stroke();
-  ctx.strokeStyle = "#222b36"; ctx.lineWidth = 1; ctx.strokeRect(L + 0.5, T + 0.5, W, H);
-  ctx.font = FONT; ctx.fillStyle = "#222b36"; ctx.textAlign = "right";
+  ctx.strokeStyle = "#334155"; ctx.lineWidth = 1; ctx.strokeRect(L + 0.5, T + 0.5, W, H);
+  ctx.font = FONT; ctx.fillStyle = "#334155"; ctx.textAlign = "right";
   ctx.beginPath(); for (const v of ty.major) { const y = Math.round(py(v)) + 0.5; ctx.moveTo(L, y); ctx.lineTo(L + 5, y); ctx.fillText(fmt(v, ty.step < 1 ? 2 : ty.step < 10 ? 1 : 0), L - 7, y + 4); } ctx.stroke();
   ctx.textAlign = "center"; ctx.beginPath(); for (const v of tx.major) { const x = Math.round(L + v * W) + 0.5; ctx.moveTo(x, T + H); ctx.lineTo(x, T + H - 5); ctx.fillText(fmt(v, 1), x, T + H + 15); } ctx.stroke();
   ctx.fillText("relativní čas ve výboji", L + W / 2, f.h - 3);
-  const x = Math.round(px(state.i)) + 0.5; ctx.strokeStyle = "#2a6fb5"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + H); ctx.stroke();
+  const x = Math.round(px(state.i)) + 0.5; ctx.strokeStyle = "#2563eb"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + H); ctx.stroke();
   const a = valid.map(Math.abs), mean = a.reduce((p, q) => p + q, 0) / a.length;
   $("#chartStats").textContent = `${signed ? "Δ = předpověď − skutečnost · " : ""}průměr |Δ| ${fmt(mean, 2)} · největší |Δ| ${fmt(Math.max(...a), 1)}`;
 }
