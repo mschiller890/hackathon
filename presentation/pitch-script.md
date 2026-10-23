@@ -46,9 +46,9 @@ Obrázek: 04-wall-damage.png, potom 02-minutes-vs-ms.png
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 0:00 | 9 | A | Čeho se bojí každý, kdo provozuje tokamak: žhavé plazma se dotkne stěny a poškodí ji. | Snímek 1. Obrázek 04-wall-damage.png přes celou plochu. Je to ilustrace, neříkej, že jde o fotografii. |
-| 0:09 | 12 | A | Celý výboj na tokamaku COMPASS trvá podle organizátorů jen 150 až 200 milisekund, řízení proto potřebuje tvar plazmatu v milisekundách. | Stále obrázek 04. |
-| 0:21 | 7 | A | Klasický výpočet tvaru z magnetických měření ale trvá minuty. To je propast. | Přepnout na obrázek 02-minutes-vs-ms.png (přesýpací hodiny proti záblesku) a dlaždice minuty a jednotky ms. |
+| 0:00 | 9 | A | Plazma v tokamaku se samo neudrží uprostřed komory. Protažené plazma je svisle nestabilní a bez rychlého řízení uhne ke stěně. | Snímek 1. Obrázek 04-wall-damage.png přes celou plochu. Je to ilustrace, neříkej, že jde o fotografii. |
+| 0:09 | 12 | A | Řízení proto musí znát polohu a tvar plazmatu v řádu milisekund, tak to říká zadání. Celý výboj na COMPASSu trvá podle organizátorů 150 až 200 milisekund. | Stále obrázek 04. |
+| 0:21 | 7 | A | Úplná rekonstrukce rovnováhy z magnetických měření se počítá po výboji a trvá minuty. Řízení potřebuje rychlý odhad. | Přepnout na obrázek 02-minutes-vs-ms.png (přesýpací hodiny proti záblesku) a dlaždice minuty a jednotky ms. |
 | 0:28 | 8 | A | Naše otázka: odhadne malá neuronová síť tvar plazmatu dost přesně a dost rychle? | Dole na snímku věta s otázkou. |
 | 0:36 | 2 | A | Data představí kolega. | Pohled na B, klik na snímek 2. |
 
@@ -61,7 +61,7 @@ Obrázek: 03-coils.png
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
 | 0:38 | 8 | B | Máme data z tokamaku COMPASS: 42 972 okamžiků ze 149 výbojů. | Snímek 2 (tři dlaždice 24, 16, 149). Obrázek 03-coils.png je schéma, ne skutečný řez. |
-| 0:46 | 12 | B | V každém okamžiku 24 měření z cívek a smyček toku a 16 veličin tvaru, které má model určit. | Ukázat na obrázek. Je na něm 16 cívek, smyčky toku na něm nejsou. |
+| 0:46 | 12 | B | V každém okamžiku 24 měření z cívek a smyček toku a 16 veličin, které popisují polohu a tvar plazmatu: poloha osy, bod X, dotykové body, bod u limiteru, protažení, trojúhelníkovost, proud a údaj o limiteru. | Ukázat na obrázek. Je na něm 16 cívek, smyčky toku na něm nejsou. |
 | 0:58 | 8 | B | Dělíme vždy po celých výbojích, aby se model netestoval na tom, co už viděl. | Spodní věta snímku. |
 
 ### Snímek 3: Metoda (1:06 až 1:26, 20 s)
@@ -83,8 +83,8 @@ Obrázek: 05-shape-schematic.png
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 1:26 | 7 | A | Odhadujeme osu, bod X a dva dotykové body, kam dopadá okraj plazmatu. | Snímek 4. Obrázek 05-shape-schematic.png asi 6 sekund, pak snímek s výsledky. |
-| 1:33 | 19 | A | Třicet výbojů jsme odložili před posledním výběrem modelu; náměty na úpravy ale vznikly na všech 149. Na odložených má vybraný model chybu osy 0,13 milimetru, základní síť 0,31. | Titulek a sloupce osy R. Protokol pod číslem: 30 odložených výbojů. Pod grafem je věta, že náměty na úpravy vznikly na všech 149 výbojích. |
+| 1:26 | 7 | A | Odhadujeme polohu osy, dolní bod X a dva dotykové body, kde hranice plazmatu dopadá na desky divertoru. Celý obrys neodhadujeme. | Snímek 4. Obrázek 05-shape-schematic.png asi 6 sekund, pak snímek s výsledky. |
+| 1:33 | 19 | A | Třicet výbojů jsme odložili před posledním výběrem modelu; náměty na úpravy ale vznikly na všech 149. Na odložených se vybraný model od rekonstrukce ústavu liší v poloze osy o 0,13 milimetru, základní síť o 0,31. | Titulek a sloupce osy R. Protokol pod číslem: 30 odložených výbojů. Pod grafem je věta, že náměty na úpravy vznikly na všech 149 výbojích. |
 | 1:52 | 11 | A | V křížové validaci na 119 výbojích je to 0,23, na novějších číslech výbojů 0,40. | Řádek protokolů pod grafem (119 výbojů, křížová validace; novější čísla). |
 | 2:03 | 14 | A | Bod u limiteru: 4,55 milimetru proti 10,6. Proud určí lineární model s chybou 0,035 kiloampéru; síť měla 1,2. | Dlaždice 4,55 mm a 0,035 kA (lineární model). Protokol: 30 odložených výbojů. |
 | 2:17 | 12 | B | Samotné cívky stačí na skoro stejnou souhrnnou chybu jako všech 24 vstupů, osm nejlepších už ne. | Graf Kolik vstupů stačí (základní síť, pět dělení po výbojích): 0,066 proti 0,063, osm nejlepších 0,094. Menší číslo je lepší. |
@@ -97,8 +97,8 @@ Obrázek: žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html)
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 2:29 | 13 | A | Teď naživo. Prohlížeč běží bez internetu. Vidíte vybraný model na třiceti výbojích, které jsme odložili; obrys nepředpovídá, ukazuje body. | Cmd+Tab do prohlížeče. Okno je předem otevřené na výboji 85, rychlost 1×, zastaveno. Dlaždice říká vybraný model. |
-| 2:42 | 12 | A | Tmavá čára je skutečný tvar, barevné značky jsou odhad modelu. Výboj číslo 85 patří mezi odložených třicet, je to typický výboj. | Ukázat na přepínače Skutečnost a Předpověď. Mezerník spustí přehrávání. |
+| 2:29 | 13 | A | Teď naživo. Prohlížeč běží bez internetu. Obrys v ukázce je z rekonstrukce ústavu, naše síť odhaduje jen označené body, na třiceti výbojích, které jsme odložili. | Cmd+Tab do prohlížeče. Okno je předem otevřené na výboji 85, rychlost 1×, zastaveno. Dlaždice říká vybraný model. |
+| 2:42 | 12 | A | Tmavá čára je tvar z rekonstrukce ústavu, barevné značky jsou odhad sítě. Výboj číslo 85 patří mezi odložených třicet, je to typický výboj. | Ukázat na přepínače Skutečnost a Předpověď. Mezerník spustí přehrávání. |
 | 2:54 | 6 | A | (ticho, výboj běží a porota se dívá) | Nech výboj proběhnout dvakrát. |
 | 3:00 | 12 | A | Kroužek je osa, křížek bod X. Chyba osy je tady čtvrtina milimetru, na začátku i uprostřed výboje. | Ukázat na značky a tabulku. Čísla z prohlížeče: začátek 0,22 mm, střed 0,25 mm (docs/demo-facts.md). |
 | 3:12 | 14 | A | Teď nejhorší konec: výboj číslo 147, poslední snímek. Osa je vedle o třicet tři milimetrů a bod u limiteru o sto pět, ale průměr celého výboje je pod milimetrem. | Výboj 147 z nabídky, poslední snímek (t 1,0). Čísla: osa 33,7 mm, bod u limiteru 105,5 mm, průměr výboje 0,85 mm (docs/demo-facts.md). |
@@ -152,10 +152,10 @@ Obrázek: 07-closing.png
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 6:17 | 10 | A | Přesnost na čistých vstupech: osa 0,13 milimetru na odložených výbojích, asi 0,2 v křížové validaci. | Snímek 8. Obrázek 07-closing.png. Dlaždice Přesnost. |
+| 6:17 | 10 | A | Shoda s rekonstrukcí ústavu na čistých vstupech: osa 0,13 milimetru na odložených výbojích, asi 0,2 v křížové validaci. | Snímek 8. Obrázek 07-closing.png. Dlaždice Přesnost. |
 | 6:27 | 11 | A | Rychlost: základní síť 0,0145 milisekundy, vybraný model asi 0,03, obojí hluboko pod rozpočtem. | Velké číslo 0,0145 ms vlevo a vedle něj vybraný model (0,027 ms). Pomalu. |
 | 6:38 | 17 | B | Na zašuměných vstupech je osa na jednotky milimetrů, bod u limiteru na desítky, proud 4,65 kiloampéru. Pro řízení model ještě není: nezná neobvyklé tvary a šum mu vadí. | Dlaždice Přesnost (druhý řádek) a Zbývá. Zašuměné vstupy: osa 2,38 mm, bod u limiteru 25,8 a 38,9 mm, proud 4,65 kA (30 odložených výbojů, síť učená se šumem). |
-| 6:55 | 5 | A+B | Desetiny milimetru za setiny milisekundy. Děkujeme. | Oba se dívají na porotu. Konec v 7:00. Věta Zbývá napojení na řídicí systém je na dlaždici Zbývá. |
+| 6:55 | 5 | A+B | Desetiny milimetru shody s rekonstrukcí, setiny milisekundy výpočtu. Děkujeme. | Oba se dívají na porotu. Konec v 7:00. Věta Zbývá napojení na řídicí systém je na dlaždici Zbývá. |
 
 ## Pravidla řeči
 
