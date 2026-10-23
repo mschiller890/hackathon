@@ -70,6 +70,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 12px; pa
 .legendbar .warn { color: #b4361c; font-weight: 600; }
 .legendbar b { color: var(--ink); font-weight: 650; } .legendbar .it { display: inline-flex; align-items: center; gap: 6px; } .legendbar svg { width: 22px; height: 12px; overflow: visible; }
 .ph .chips { display: flex; gap: 6px; align-items: center; margin-left: 12px; }
+.chip .sh { display: none; }
 .ph .chip { height: 26px; padding: 0 10px 0 9px; font-size: 12px; gap: 6px; }
 .ph #export { height: 26px; min-width: 28px; padding: 0 7px; border-radius: 6px; }
 .stagebody { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 0; }
@@ -85,13 +86,13 @@ main { display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 12px; pa
 .tablepanel { grid-template-rows: 36px minmax(0, 1fr) auto; }
 .scroll { overflow: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-thead th { position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--border); text-align: right; font-weight: 650; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 12px 6px; color: var(--muted); }
+thead th { position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--border); text-align: right; font-weight: 650; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 9px 6px; color: var(--muted); }
 th:first-child, td:first-child { text-align: left; }
 th:nth-child(2), td:nth-child(2) { width: 48px; }
-td { padding: 4px 12px; border-bottom: 1px solid #f0f3f7; text-align: right; white-space: nowrap; }
+td { padding: 4px 9px; border-bottom: 1px solid #f0f3f7; text-align: right; white-space: nowrap; }
 tbody tr:not(.grp):hover td { background: #f6f8fc; }
 td.n { font-family: var(--mono); font-size: 12.5px; } td.t { color: var(--true); } td.p { color: var(--pred); font-weight: 550; } td.d { color: var(--muted); } td.k { color: #0b8f7c; font-weight: 600; } td.u { color: var(--muted); text-align: left; }
-tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-size: 12px; padding: 5px 12px; border-top: 1px solid var(--border); text-align: left; }
+tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-size: 12px; padding: 5px 9px; border-top: 1px solid var(--border); text-align: left; }
 .sum { border-top: 1px solid var(--border); background: var(--head); padding: 9px 14px; font-size: 12.5px; display: grid; gap: 3px; }
 .sum span { color: var(--muted); } .sum b { font-family: var(--mono); font-weight: 600; color: var(--ink); }
 .status { display: flex; align-items: center; background: var(--ink); color: #cfd8f0; font: 11.5px var(--mono); }
@@ -101,7 +102,8 @@ tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-s
 @media (max-width: 1560px) { .stagepanel .ph .sp { display: none; } .ph .chips { margin-left: auto; } }
 @media (max-width: 1300px) {
   th:nth-child(2), td:nth-child(2) { display: none; }
-  .ph .chip { padding: 0 8px 0 7px; gap: 5px; font-size: 11.5px; } .ph .chips { gap: 4px; }
+  .ph .chip { padding: 0 8px 0 7px; gap: 5px; font-size: 11.5px; } .ph .chips { gap: 4px; margin-left: 6px; } .ph { gap: 6px; padding: 0 10px; }
+  .chip .lg { display: none; } .chip .sh { display: inline; }
   .stagebody { grid-template-columns: 190px minmax(0, 1fr); } .kpi b { font-size: 20px; } .rail { padding: 8px; gap: 7px; }
   thead th, td, tr.grp td { padding-left: 8px; padding-right: 8px; } td.n { font-size: 12px; }
   main { grid-template-columns: minmax(0, 1fr) 436px; padding: 8px; gap: 8px; } input[type=range] { width: 84px; } .tbox { width: 92px; }
@@ -119,7 +121,7 @@ tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-s
   <span class="pill">IPP úloha 1 · ČVUT ML Hackathon 2026</span>
 </div>
 <div class="toolbar">
-  <div class="group"><label class="k" for="discharge">Výboj</label><select id="discharge" style="width:300px" title="Chyba osy = průměrná vzdálenost skutečné a předpovězené magnetické osy ve výboji, z těch snímků, které viewer ukazuje (každý třetí řádek dat); lim. = podíl času v limiterové konfiguraci"></select></div>
+  <div class="group"><label class="k" for="discharge">Výboj</label><select id="discharge" style="width:300px" title="Chyba osy = průměrná vzdálenost rekonstrukce ústavu a předpovězené magnetické osy ve výboji, z těch snímků, které viewer ukazuje (každý třetí řádek dat); lim. = podíl času v limiterové konfiguraci"></select></div>
   <div class="group">
     <span class="seg">
       <button id="first" title="Na začátek (Home)"><svg viewBox="0 0 14 14"><rect x="1" y="2" width="2" height="10"/><polygon points="12,2 4,7 12,12"/></svg></button>
@@ -135,12 +137,12 @@ tr.grp td { background: var(--head); color: var(--ink); font-weight: 650; font-s
 </div>
 <main>
   <div class="left">
-    <section class="panel stagepanel"><div class="ph">Tvar plazmatu v řezu tokamakem<span class="sp" id="cfgTag"></span><div class="chips"><label class="chip" style="--c:#0f172a"><input type="checkbox" id="showTrue" checked><span class="g"></span>Skutečnost</label><label class="chip" style="--c:#e5502f"><input type="checkbox" id="showPred" checked><span class="g dash"></span><span id="predChip">Předpověď</span></label><label class="chip" id="chipNoise" style="--c:#0b8f7c"><input type="checkbox" id="showNoise"><span class="g dot"></span>Šum měření</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showPts" checked><span class="g dot"></span>Body</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showGrid" checked><span class="g grid"></span>Mřížka</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showLens" checked><span class="g dot"></span>Lupa</label><button id="export" title="Uložit aktuální průřez jako obrázek (PNG)" aria-label="Uložit PNG"><svg viewBox="0 0 14 14"><path d="M6 1h2v6l2.2-2.2 1.4 1.4L7 10.8 2.4 6.2l1.4-1.4L6 7V1Z"/><rect x="1.5" y="11" width="11" height="2" rx="1"/></svg></button></div></div><div class="legendbar" id="legendbar"></div><div class="stagebody"><aside class="rail" id="rail"></aside><div class="pb"><canvas id="stage"></canvas></div></div></section>
+    <section class="panel stagepanel"><div class="ph">Tvar plazmatu v řezu tokamakem<span class="sp" id="cfgTag"></span><div class="chips"><label class="chip" style="--c:#0f172a"><input type="checkbox" id="showTrue" checked><span class="g"></span><span class="lg">Rekonstrukce ústavu</span><span class="sh" title="Rekonstrukce ústavu">Rekonstrukce</span></label><label class="chip" style="--c:#e5502f"><input type="checkbox" id="showPred" checked><span class="g dash"></span><span id="predChip">Předpověď</span></label><label class="chip" id="chipNoise" style="--c:#0b8f7c"><input type="checkbox" id="showNoise"><span class="g dot"></span>Šum měření</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showPts" checked><span class="g dot"></span>Body</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showGrid" checked><span class="g grid"></span>Mřížka</label><label class="chip" style="--c:#101d42"><input type="checkbox" id="showLens" checked><span class="g dot"></span>Lupa</label><button id="export" title="Uložit aktuální průřez jako obrázek (PNG)" aria-label="Uložit PNG"><svg viewBox="0 0 14 14"><path d="M6 1h2v6l2.2-2.2 1.4 1.4L7 10.8 2.4 6.2l1.4-1.4L6 7V1Z"/><rect x="1.5" y="11" width="11" height="2" rx="1"/></svg></button></div></div><div class="legendbar" id="legendbar"></div><div class="stagebody"><aside class="rail" id="rail"></aside><div class="pb"><canvas id="stage"></canvas></div></div></section>
     <section class="panel"><div class="ph">Chyba předpovědi v čase <select id="param" aria-label="Parametr"></select><span class="sp" id="chartStats"></span></div><div class="pb"><canvas id="chart"></canvas></div></section>
   </div>
   <section class="panel tablepanel">
     <div class="ph">Parametry v tomto snímku</div>
-    <div class="scroll"><table><thead><tr><th>Parametr</th><th style="text-align:left">Jedn.</th><th>Skutečnost</th><th id="th4">Předpověď</th><th id="th5">Δ</th></tr></thead><tbody id="rows"></tbody></table></div>
+    <div class="scroll"><table><thead><tr><th>Parametr</th><th style="text-align:left">Jedn.</th><th>Rekonstrukce ústavu</th><th id="th4">Předpověď</th><th id="th5">Δ</th></tr></thead><tbody id="rows"></tbody></table></div>
     <div class="sum" id="sum"></div>
   </section>
 </main>
@@ -158,11 +160,11 @@ const COL = { true: css("--true"), pred: css("--pred"), grid: css("--grid"), mut
 const SHIPPED = D.model === "shipped";
 const TXT = SHIPPED
   ? { pred: "Vybraný model", chip: "Vybraný model", a: "Vybraný model (učený bez šumu), zašuměná měření", b: "Model učený se šumem, zašuměná měření", an: "vybraný model", bn: "model se šumem", as: "vybraný", bs: "se šumem",
-      legend: "Černá = skutečný tvar plazmatu, červeně = předpověď vybraného modelu z 24 magnetických čidel (body; obrys model nepředpovídá)",
-      legendNoise: "Černá = skutečný tvar, barevně = dva modely na zašuměných měřeních", lens: "Lupa: kde se model liší", axisTile: "Chyba osy, vybraný model", th: "Vybraný model",
+      legend: "Černá = rekonstrukce tvaru plazmatu ústavem, červeně = předpověď vybraného modelu z 24 magnetických čidel (body; obrys model nepředpovídá)",
+      legendNoise: "Černá = rekonstrukce ústavu, barevně = dva modely na zašuměných měřeních", lens: "Lupa: kde se model liší", axisTile: "Chyba osy, vybraný model", th: "Vybraný model",
       limWarn: "Limiterový snímek: bod dotyku s limiterem je nejméně přesná veličina." }
   : { pred: "Předpověď sítě", chip: "Předpověď", a: "Běžná síť, zašuměná měření", b: "Odolná síť, zašuměná měření", an: "běžná síť", bn: "odolná síť", as: "běžná", bs: "odolná",
-      legend: "Černá = skutečný tvar plazmatu, červeně = předpověď sítě z 24 magnetických čidel", legendNoise: "Černá = skutečný tvar, barevně = dvě sítě na zašuměných měřeních",
+      legend: "Černá = rekonstrukce tvaru plazmatu ústavem, červeně = předpověď sítě z 24 magnetických čidel", legendNoise: "Černá = rekonstrukce ústavu, barevně = dvě sítě na zašuměných měřeních",
       lens: "Lupa: kde se síť liší", axisTile: "Chyba polohy osy", th: "Předpověď", limWarn: "Limiterový snímek: okraj je méně jistý, vnitřní strana se může lišit o 25 až 30 mm." };
 $("#predChip").textContent = TXT.chip;
 const MINUS = "−";
@@ -297,7 +299,7 @@ function drawLegendBar() {
   const glyph = (k, col) => k === "line" || k === "dash"
     ? `<svg viewBox="0 0 22 12"><line x1="1" y1="6" x2="21" y2="6" stroke="${col}" stroke-width="2.2" ${k === "dash" ? 'stroke-dasharray="6 4"' : ""}/></svg>`
     : `<svg viewBox="0 0 22 12"><g transform="translate(11 6)" stroke="#64748b" stroke-width="1.6" fill="none">${{ circle: '<circle r="4.2"/>', x: '<path d="M-4-4L4 4M4-4L-4 4"/>', tri: '<path d="M-4.4-3.6H4.4L0 4Z"/>', square: '<rect x="-4" y="-4" width="8" height="8"/>' }[k]}</g></svg>`;
-  const items = [["line", "Skutečnost", COL.true], ...sets().map(([, col, label]) => ["dash", label, col]), ["circle", "magnetická osa"], ["x", "X-bod"], ["tri", "strike point"], ["square", "bod dotyku s limiterem"]];
+  const items = [["line", "Rekonstrukce ústavu", COL.true], ...sets().map(([, col, label]) => ["dash", label, col]), ["circle", "magnetická osa"], ["x", "X-bod"], ["tri", "strike point"], ["square", "bod dotyku s limiterem"]];
   $("#legendbar").innerHTML = `<span><b>${state.noise ? TXT.legendNoise : TXT.legend}</b></span>` +
     items.map(([k, label, col]) => `<span class="it">${glyph(k, col)}${label}</span>`).join("") +
     (isLimited(cur().c, state.i, "") ? `<span class="it warn">${TXT.limWarn}</span>` : "");
@@ -390,7 +392,7 @@ function drawRail() {
   const tile = (label, val, unit, sub, hot) => `<div class="kpi${hot === true ? " hot" : hot ? " " + hot : ""}"><span>${label}</span><b>${val}<small>${unit}</small></b><em>${sub}</em></div>`;
   const pair = (name, k, dec, label, unit) => {
     const t = value(c, i, name, false), p = value(c, i, name, true);
-    return tile(label, fmt(p == null ? null : p * k, dec), unit, t == null || p == null ? "–" : `Δ ${fmtSigned((p - t) * k, dec)} · skut. ${fmt(t * k, dec)}`);
+    return tile(label, fmt(p == null ? null : p * k, dec), unit, t == null || p == null ? "–" : `Δ ${fmtSigned((p - t) * k, dec)} · rek. ${fmt(t * k, dec)}`);
   };
   const key = lt ? ["R_limiter", "Z_limiter", "bodu limiteru"] : ["R_x_point", "Z_x_point", "X-bodu"];
   if (state.noise) {
@@ -497,8 +499,8 @@ function drawChart() {
   ctx.fillText("relativní čas ve výboji", L + W / 2, f.h - 3);
   const x = Math.round(px(state.i)) + 0.5; ctx.strokeStyle = "#101d42"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + H); ctx.stroke();
   const stat = (q) => { const a = q.s.filter((v) => v != null).map(Math.abs); return a.length ? `${fmt(avg(a), 2)}` : "–"; };
-  $("#chartStats").textContent = state.noise ? `${signed ? "Δ = předpověď − skutečnost · " : ""}průměr |Δ|: ${TXT.an} ${stat(ss[0])} · ${TXT.bn} ${stat(ss[1])}`
-    : `${signed ? "Δ = předpověď − skutečnost · " : ""}průměr |Δ| ${stat(ss[0])} · největší |Δ| ${fmt(Math.max(...valid.map(Math.abs)), 1)}`;
+  $("#chartStats").textContent = state.noise ? `${signed ? "Δ = předpověď − rekonstrukce · " : ""}průměr |Δ|: ${TXT.an} ${stat(ss[0])} · ${TXT.bn} ${stat(ss[1])}`
+    : `${signed ? "Δ = předpověď − rekonstrukce · " : ""}průměr |Δ| ${stat(ss[0])} · největší |Δ| ${fmt(Math.max(...valid.map(Math.abs)), 1)}`;
 }
 function chartSeek(ev) {
   if (!cgeom) return; const r = chart.getBoundingClientRect();

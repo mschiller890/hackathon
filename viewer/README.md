@@ -1,6 +1,6 @@
 # Plasma shape viewer
 
-An offline page that shows, for one discharge of the COMPASS data, the true plasma shape against the prediction of the **shipped model** (`cand` of `analysis/ipp1_final.py`, see `results/ipp1-final.md`), with the
+An offline page that shows, for one discharge of the COMPASS data, the institute's reconstruction of the plasma shape (the "true" values of the data, labelled *Rekonstrukce ústavu*) against the prediction of the **shipped model** (`cand` of `analysis/ipp1_final.py`, see `results/ipp1-final.md`), with the
 parameter table, the error over time, magnifier tiles around the key points, the latency of the shipped pair and a "measurement noise" mode (the shipped model trained on clean data
 against the baseline network trained with noise, both on the provided noisy inputs).
 
