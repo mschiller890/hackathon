@@ -195,3 +195,6 @@ S 30 výboji je chyba osy 1,47 milimetru (radiální) a 0,95 milimetru (svislá)
 - Obsidian `NOW.md` header (last rewritten 14:53) and `Status-Board.md`: not on my list.
 - The review's methodology items about a locked test set, a seed average, sign canonicalisation and the limiter as a
   classifier are experiments, not wording; they are recorded as qualifiers in `docs/DECISIONS.md` DEC-003.
+
+## Added Fri 19:40 (multi-seed check, `results/ipp1-final-seeds.md`)
+- Say "lepší u všech sedmi veličin v každém ze 5 semen"; pro bod X (R) jen "o něco lepší" (zisk 21 procent, nejhorší semeno kandidáta je jen 3 procenta pod nejlepším semenem základu). Proud plazmatem 0,0347 kA je lineární model bez semene.
