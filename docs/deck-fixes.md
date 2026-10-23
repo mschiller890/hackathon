@@ -66,7 +66,7 @@ Second line under the title (smaller): "v křížové validaci na 119 výbojích
 7.3 Chart series "nasazený model" is renamed "vybraný model". Series "základní síť" stays. Values unchanged (0,307 / 0,321 / 0,161 / 0,212 and 0,133 / 0,172 / 0,115 / 0,108).
 
 7.4 Tiles:
-* "0,13 mm" / "průměrná chyba polohy osy, 30 odložených výbojů"
+* "0,13 mm" / "průměrná odchylka radiální osy, 30 odložených výbojů"
 * "4,55 mm" / "bod u limiteru radiálně, dříve 10,6 mm (30 odložených výbojů)"
 * "0,035 kA" / "proud plazmatem: lineární model; síť to neuměla (1,2 kA)" (do not count this tile into "dvakrát lépe")
 
@@ -137,7 +137,7 @@ Delete "bez zhroucení; osa u nejodlišnějších tvarů 1,6 mm místo 0,7 mm". 
 
 14.1 Big number tile: "0,0145 ms" with the label "Jeden odhad základní sítě, procesor Apple M5". Next to it a second, smaller number: "0,027 ms" / "vybraný model, limitované plazma" (measured, not "odhad").
 
-14.2 Line "Klasický výpočet trvá minuty. Zadání chce jednotky až desítky milisekund." stays; add after it: "Obojí je pod naším rozpočtem 1 až 10 ms." (X4: say "našim", the budget is ours.)
+14.2 Line "Klasický výpočet trvá minuty. Zadání chce jednotky až desítky milisekund." stays; add after it: "Obě sítě jsou pod naším rozpočtem 1 až 10 ms (měřen jen výpočet sítě)." (X4: say "našim", the budget is ours.)
 
 14.3 Superseded by 16.9: the tile head "Přesnost" becomes "Shoda s rekonstrukcí" (the numbers are an agreement with the institute's reconstruction, not an accuracy of the plasma position).
 
@@ -158,7 +158,7 @@ The strings of review 3 for X5 and X6 (the old lines 368, 430 and 499 with "zam�
 | 466 to 471 (gloss line) | `p99: 99 % odhadů je rychlejších. Na systému bez reálného času se ojediněle objeví špičky.` | add `Vybraný model: numpy, náhodné váhy stejného tvaru, jen čas; divertorové plazma 0,015 ms.` |
 | 473 to 475 | `"results/ipp1-latency-shipped.md (vybraný model)" if shipped else "results/ipp1-improve.md (asi 0,18 ms, podobný postup, neměřeno)"` | only `"results/ipp1-latency-shipped.md (vybraný model, numpy, 0,027 ms limitované, 0,015 ms divertorové)"` |
 | 561 to 562 | `("  vybraný model" + ("" if shipped else ", odhad"), 18, MUTED, False)` | `("  vybraný model, limitované plazma", 18, MUTED, False)` |
-| 563 to 564 | `"... Zadání chce jednotky až desítky milisekund. Obojí je pod rozpočtem 1 až 10 ms."` | `"... Obojí je pod naším rozpočtem 1 až 10 ms."` (X4) |
+| 563 to 564 | `"... Zadání chce jednotky až desítky milisekund. Obojí je pod rozpočtem 1 až 10 ms."` | `"... Obě sítě jsou pod naším rozpočtem 1 až 10 ms (měřen jen výpočet sítě)."` (X4) |
 | 566 to 567 | `"desetiny milimetru na čistých vstupech, jednotky milimetrů na zašuměných (osa ... mm a ... mm, 30 odložených výbojů)"` | text of 14.3 above (targets named) |
 | 574 | `"Desetiny milimetru za desetiny milisekundy."` | `"Desetiny milimetru za setiny milisekundy."` (X1) |
 | 577 | `add_sources(... "results/ipp1-latency.json (0,0145 ms, Apple M5)" ...)` | add `"results/ipp1-latency-shipped.md (0,027 ms)"` |
@@ -201,7 +201,7 @@ The deck is not edited here. Strings and line numbers are those of `presentation
 * line 554 footnote: keep, and after "řízení model sám nenahradí" add nothing else.
 
 16.9 **Slide 14 (lines 568 to 585).**
-* tile head "Přesnost" (line 571) becomes "Shoda s rekonstrukcí"; its body begins "čisté vstupy, shoda s rekonstrukcí ústavu: osa 0,13 mm, bod X a dotykové body desetiny milimetru, bod u limiteru 4,55 a 8,35 mm. Zašuměné vstupy: ..." (the rest unchanged)
+* tile head "Přesnost" (line 571) becomes "Shoda s rekonstrukcí"; its body begins "čisté vstupy, shoda s rekonstrukcí ústavu: radiální osa 0,13 mm, bod X a dotykové body desetiny milimetru, bod u limiteru 4,55 a 8,35 mm. Zašuměné vstupy: ..." (the rest unchanged)
 * tile "Zbývá" (line 575): "celý řetězec od čidel k řízení a zkouška v uzavřené smyčce, bod u limiteru, neobvyklé tvary (samostatně neověřeny), skutečné chyby čidel"
 * line 574 closing line: "Desetiny milimetru shody s rekonstrukcí za setiny milisekundy."
 * line 585 source "results/ipp1-final.md (přesnost)" becomes "results/ipp1-final.md (shoda s rekonstrukcí)"

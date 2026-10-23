@@ -101,10 +101,10 @@ Obrázek: žádný, na obrazovce je prohlížeč tvaru (repo/viewer/index.html)
 | 2:29 | 13 | A | Teď naživo. Obrys v ukázce je z rekonstrukce ústavu, naše síť odhaduje jen označené body, na třiceti výbojích, které jsme odložili. | Cmd+Tab do prohlížeče. Okno je předem otevřené na výboji 85, rychlost 1×, zastaveno. Dlaždice říká vybraný model. |
 | 2:42 | 12 | A | Tmavá čára je tvar z rekonstrukce ústavu, barevné značky jsou odhad sítě. Výboj číslo 85 je z odložených třiceti a je typický. | Ukázat na dva přepínače. V prohlížeči mají stát Rekonstrukce ústavu a Odhad sítě; dokud tam stojí Skutečnost a Předpověď, tato dvě slova nahlas neříkej (docs/deck-fixes.md, viewer). Mezerník spustí přehrávání. |
 | 2:54 | 6 | A | (ticho, výboj běží a porota se dívá) | Nech výboj proběhnout dvakrát. |
-| 3:00 | 12 | A | Kroužek je osa, křížek bod X. Chyba osy je tady čtvrtina milimetru, na začátku i uprostřed výboje. | Ukázat na značky a tabulku. Čísla z prohlížeče: začátek 0,22 mm, střed 0,25 mm (docs/demo-facts.md). |
-| 3:12 | 14 | A | Teď nejhorší konec: výboj číslo 147, poslední snímek. Osa je vedle o třicet tři milimetrů a bod u limiteru o sto pět, ale průměr celého výboje je pod milimetrem. | Výboj 147 z nabídky, poslední snímek (t 1,0). Čísla: osa 33,7 mm, bod u limiteru asi 105 mm, průměr výboje 0,85 mm (docs/demo-facts.md). |
+| 3:00 | 12 | A | Kroužek je osa, křížek bod X. Vzdálenost osy od rekonstrukce je tady čtvrtina milimetru, na začátku i uprostřed výboje. | Ukázat na značky a tabulku. Čísla z prohlížeče: začátek 0,22 mm, střed 0,25 mm, vzdálenost v R i Z (docs/demo-facts.md); 0,13 mm na slajdech je jen radiální osa R. |
+| 3:12 | 14 | A | Teď nejhorší konec: výboj číslo 147, poslední snímek. Osa je vedle o třicet čtyři milimetry a bod u limiteru o víc než sto pět, ale průměr celého výboje je pod milimetrem. | Výboj 147 z nabídky, poslední snímek (t 1,0). Čísla: osa 33,7 mm, bod u limiteru asi 105 mm, průměr výboje 0,85 mm (docs/demo-facts.md). |
 | 3:26 | 5 | A | (ticho, špatný výboj běží) | Ukázat na místo, kde se čáry rozcházejí. |
-| 3:31 | 14 | B | Takových výbojů je málo: všech třicet odložených má průměrnou chybu osy pod milimetrem, medián asi 0,2. | Protokol: vybraný model, odložených 30 a vývojové výboje mimo učení, vzdálenost osy (docs/demo-facts.md); dva výboje nad 5 mm, obě vývojové (id 0 a 11); pod milimetrem je 135 ze 149 výbojů, nahlas se neříká. |
+| 3:31 | 14 | B | Takových výbojů je málo: všech třicet odložených má průměrnou vzdálenost osy od rekonstrukce pod milimetrem, medián asi dvě desetiny. | Protokol: vybraný model, odložených 30 a vývojové výboje mimo učení, vzdálenost osy (docs/demo-facts.md); dva výboje nad 5 mm, obě vývojové (id 0 a 11); pod milimetrem je 135 ze 149 výbojů, nahlas se neříká. |
 | 3:45 | 4 | A | (ticho, přepnutí zpět) | Cmd+Tab zpět do prezentace, klik na snímek 5. Dlaždici latence v prohlížeči neukazovat ani neříkat (číslo zazní na snímku 5). |
 
 ### Snímek 5: Rychlost, verdikt pro řízení (3:49 až 4:29, 40 s)
@@ -152,7 +152,7 @@ Obrázek: 07-closing.png
 
 | Čas | Sek. | Kdo | Co se říká | Na obrazovce |
 |---|---|---|---|---|
-| 6:17 | 10 | A | Shoda s rekonstrukcí ústavu na čistých vstupech: osa 0,13 milimetru na odložených výbojích, asi 0,2 v křížové validaci. | Snímek 8. Obrázek 07-closing.png. Dlaždice Shoda s rekonstrukcí. |
+| 6:17 | 10 | A | Shoda s rekonstrukcí ústavu na čistých vstupech: osa 0,13 milimetru na odložených výbojích, 0,23 v křížové validaci. | Snímek 8. Obrázek 07-closing.png. Dlaždice Shoda s rekonstrukcí. |
 | 6:27 | 11 | A | Rychlost: základní síť 0,0145 milisekundy, vybraný model asi 0,03. | Velké číslo 0,0145 ms vlevo a vedle něj vybraný model (0,027 ms). Pomalu. |
 | 6:38 | 17 | B | Na zašuměných vstupech je osa na jednotky milimetrů, bod u limiteru na desítky, proud 4,65 kiloampéru. Pro řízení model ještě není: chybí řetězec od čidel a zkouška v uzavřené smyčce. | Dlaždice Shoda s rekonstrukcí (druhý řádek) a Zbývá. Zašuměné vstupy: osa 2,38 mm, bod u limiteru 25,8 a 38,9 mm, proud 4,65 kA (30 odložených výbojů, síť učená se šumem). |
 | 6:55 | 5 | A+B | Na čistých vstupech desetiny milimetru shody s rekonstrukcí, setiny milisekundy výpočtu. Děkujeme. | Oba se dívají na porotu. Konec v 7:00. |
@@ -227,7 +227,7 @@ Odpovídá A: Dělíme po celých výbojích. Základní síť ověřujeme pětk
 ### 6. Odborník na strojové učení
 Otázka: Proč jen jedna síť? Zkoušeli jste stromy nebo jiné architektury?
 
-Odpovídá B: Zkoušeli jsme víc: širší a hlubší sítě, jinou ztrátovou funkci, rozdíly sousedních cívek, soubory tří sítí i stromy pro bod u limiteru. Nejvíc pomohla zvláštní síť pro bod u limiteru a lineární model pro proud; chyba bodu u limiteru klesla na polovinu, 4,55 proti 10,6 milimetru na odložených výbojích. Stromy byly horší než zvláštní síť. Zlepšení platí v pěti z pěti semen, u bodu X radiálně je jen o něco lepší. Kromě sítí jsme zkoušeli jen stromy pro bod u limiteru. Nemáme zvláštní ověřovací část, proto rozdíly pod 10 až 15 procent považujeme za šum.
+Odpovídá B: Zkoušeli jsme víc: širší a hlubší sítě, jinou ztrátovou funkci, rozdíly sousedních cívek, soubory tří sítí i stromy pro bod u limiteru. Nejvíc pomohla zvláštní síť pro bod u limiteru a lineární model pro proud; chyba bodu u limiteru klesla na polovinu, 4,55 proti 10,6 milimetru na odložených výbojích. Stromy byly horší než zvláštní síť. Zlepšení platí v pěti z pěti semen, u bodu X radiálně je jen o něco lepší. Kromě sítí jsme zkoušeli jen stromy pro bod u limiteru. Nemáme zvláštní ověřovací část, proto rozdíly pod asi 20 procent, pokud interval přes výboje nevylučuje 1 považujeme za šum.
 
 ### 7. Fyzik
 Otázka: Chyba 0,13 milimetru zní skvěle, ale hodnoty se skoro nehýbou. Co to znamená?
@@ -346,7 +346,7 @@ Zdroj: `docs/review-physics.md`, část 5 (otázky F1 až F10). Sedm z nich je t
 ### F2. Fyzik
 Otázka: Rekonstrukce potřebuje proudy v cívkách pole a model komory. Vy máte jen 24 čidel. Jak je to možné?
 
-Odpovídá A: Nevíme, co všechno rekonstrukce použila. Naše síť dostává jen těch 24 čidel. To, že to funguje, ukazuje, že v těchto 149 výbojích jsou ostatní veličiny téměř určeny čidly, tedy že výboje patří do úzké rodiny scénářů. Prvních pět hlavních složek nese 99,93 procenta rozptylu vstupů, ale základní síť jen s pěti složkami má v pěti dělení chybu osy 2,63 milimetru místo 0,41. Spíš se tedy naučila rodinu tvarů, které tento stroj vytváří, než že by řešila celou úlohu.
+Odpovídá A: Nevíme, co všechno rekonstrukce použila. Naše síť dostává jen těch 24 čidel. To, že to funguje, ukazuje, že v těchto 149 výbojích jsou ostatní veličiny téměř určeny čidly, tedy že výboje patří do úzké rodiny scénářů. Prvních pět hlavních složek nese 99,93 procenta rozptylu vstupů, ale základní síť jen s pěti složkami má v pěti dělení chybu osy 2,63 milimetru místo 0,41 v téže zkoušce se všemi 24 vstupy (jiné spuštění než 0,38). Spíš se tedy naučila rodinu tvarů, které tento stroj vytváří, než že by řešila celou úlohu.
 
 ### F4. Fyzik
 Otázka: Co znamená chyba bodu u limiteru 4,55 milimetru?
@@ -356,7 +356,7 @@ Odpovídá A: Bod u limiteru je místo na stěně, kde se plazma dotkne, ne spoj
 ### F5. Fyzik
 Otázka: Pro svislou stabilizaci potřebuji rychlost změny polohy. Jak dobrá je?
 
-Odpovídá B: Rychlost změny jsme neměřili. Máme jen krok chyby mezi sousedními řádky. U základní sítě na čistých vstupech je ve svislé ose 1,46 milimetru, zatímco skutečná osa se mezi řádky posune o 2,53; v radiální ose je to 0,45 proti 2,5. Na zašuměných vstupech je krok chyby sítě naučené na čistých datech 8,4krát větší než pohyb osy v radiálním směru a 3,1krát ve svislém, po učení se šumem 1,7 a 1,4krát. Výstup tedy kolísá víc, než se plazma hýbe, a rychlost z něj brát nelze. Časový odstup řádků neznáme.
+Odpovídá B: Rychlost změny jsme neměřili. Máme jen krok chyby mezi sousedními řádky, ne kolísání z poznámky pod čarou. U základní sítě na čistých vstupech je ve svislé ose 1,46 milimetru, zatímco osa z rekonstrukce se mezi řádky posune o 2,53; v radiální ose je to 0,45 proti 2,5. Na zašuměných vstupech je krok chyby sítě naučené na čistých datech 8,4krát větší než pohyb osy v radiálním směru a 3,1krát ve svislém, po učení se šumem 1,7 a 1,4krát. Výstup tedy kolísá víc, než se plazma hýbe, a rychlost z něj brát nelze. Časový odstup řádků neznáme.
 
 ## Lead notes (English, for the team, not spoken)
 
