@@ -12,18 +12,10 @@ CVUT ML Hackathon 2026. A small neural network estimates 16 numbers that describ
 | `slides.pdf`, `slides.pptx` | The presentation (7 minutes, with a live demo of the shape viewer) |
 | `handout.pdf` | One-page summary for the jury (Czech) |
 | `predict.py` | Try the model: `python predict.py input.csv` (numpy only). The CSV has the columns IPR01..IPR16 and FL01..FL08; the output is the 16 estimates per row in mm and kA. Needs `model/ipp1-selected.npz` and `model/ipp1-selected.json` (given to the organisers separately: the weights are derived from the confidential IPP data and are not published) |
-| `code.zip` | Everything needed to rerun from the data: `analysis/` (scripts), `results/` (aggregate results and figures read by the notebooks), `viewer/` (shape viewer sources). Unzip it next to `notebooks/` |
 
 ## Run it again (needs the IPP data)
 
-```
-unzip code.zip
-export HACKATHON_HOME=<folder that has data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.csv>
-python -m pip install numpy pandas scikit-learn torch matplotlib nbclient nbformat ipykernel
-python analysis/make_all.py --quick --notebooks     # about 9 minutes; --viewer also builds the viewer
-```
-
-The data are confidential (IPP provided them only for this hackathon) and are not included; no raw rows are in this folder.
+The code that regenerates every number (`analysis/`, `results/`, `viewer/`, one command `python analysis/make_all.py --quick --notebooks`, about 9 minutes) is in the project repository, branch `main`: github.com/mschiller890/hackathon (private; access on request). It is not duplicated here, so that this folder contains only what is read or tried. The data are confidential (IPP provided them only for this hackathon) and are not included anywhere; no raw rows are in this folder.
 
 ## Limits (what was not shown)
 
