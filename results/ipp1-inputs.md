@@ -16,4 +16,8 @@
 | IPR only (16) | 0.066 ± 0.032 | 1.28 | 0.492 | 0.401 | 0.00546 | 0.284 | 0.344 | 12.3 |
 | FL only (8) | 0.285 ± 0.053 | 6.57 | 2.32 | 1.72 | 0.0203 | 1.49 | 3.03 | 21.9 |
 
-Inputs ranked by permutation importance (most important first): IPR14, IPR01, IPR13, IPR12, IPR02, FL01, IPR09, IPR10, FL08, IPR05, IPR16, IPR08, FL04, IPR11, IPR07, FL05, FL06, IPR06, IPR15, IPR04, IPR03, FL03, FL07, FL02
+Ranking by permutation importance (most important first): IPR14, IPR01, IPR13, IPR12, IPR02, FL01, IPR09, IPR10, FL08, IPR05, IPR16, IPR08, FL04, IPR11, IPR07, FL05, FL06, IPR06, IPR15, IPR04, IPR03, FL03, FL07, FL02
+
+Note (independent review): the ranking is the importance for the trained network (single column permutation on near collinear inputs), not the information content of a sensor. Each fold ranks and retrains with its own top k set, so a "top 8" row estimates the procedure, not the 8 sensors printed above. What holds as evidence: the top k curve, and IPR coils only (0.066) against flux loops only (0.285), 4.3 times worse.
+
+This ranking is the importance of an input for the trained network, not information content: the inputs are collinear, so permuting one column creates rows off the data manifold. Do not read it as 'the important sensors'; the evidence for the number of inputs is the retrain curve ('top k' sets are chosen inside each fold) and its controls in ipp1-inputs-controls.md.

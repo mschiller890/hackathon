@@ -17,6 +17,11 @@ from sklearn.model_selection import GroupKFold
 ROOT = Path(os.environ.get("HACKATHON_HOME", "."))
 OUT = ROOT / "out"
 DATA = ROOT / "data/raw/ipp1-magnetic/uloha_1-magneticka_data"
+if not DATA.exists():
+    raise SystemExit(f"Data folder not found: {DATA}\nSet HACKATHON_HOME to the hackathon/ folder that holds "
+                     "data/raw/ipp1-magnetic/uloha_1-magneticka_data/ (HACKATHON_HOME is "
+                     f"{'unset' if 'HACKATHON_HOME' not in os.environ else 'set to ' + os.environ['HACKATHON_HOME']}).")
+OUT.mkdir(parents=True, exist_ok=True)
 
 # Targets that exist only in one configuration are NaN elsewhere: R_x_point.. and the strike
 # points in the divertor configuration, R_limiter and Z_limiter when the plasma is limited.
@@ -103,4 +108,19 @@ def score(pred, y, m):
                   "r2": float(1 - (e ** 2).sum() / ((y[k, j] - y[k, j].mean()) ** 2).sum()),
                   "nrmse": float(np.sqrt((e ** 2).mean()) / y[k, j].std())}
     res["is_limited"]["accuracy"] = float(((pred[m[:, -1], -1] > 0.5) == (y[m[:, -1], -1] > 0.5)).mean())
+    return res
+
+
+def score_extended(pred, y, m):
+    """Pooled metrics per target over all given rows (not averaged over folds): MAE, median, RMSE, p95, p99, max
+    of the absolute error in report units, plus nRMSE and R2 against the pooled spread."""
+    res = {}
+    for j, t in enumerate(TARGETS):
+        k = m[:, j]
+        e = pred[k, j].astype(np.float64) - y[k, j]
+        a = np.abs(e) * UNIT[t][0]
+        res[t] = {"mae": float(a.mean()), "median": float(np.median(a)), "rmse": float(np.sqrt((a ** 2).mean())),
+                  "p95": float(np.percentile(a, 95)), "p99": float(np.percentile(a, 99)), "max": float(a.max()),
+                  "unit": UNIT[t][1], "nrmse": float(np.sqrt((e ** 2).mean()) / y[k, j].std()),
+                  "r2": float(1 - (e ** 2).sum() / ((y[k, j] - y[k, j].mean()) ** 2).sum())}
     return res
