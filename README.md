@@ -26,7 +26,7 @@ python run.py --full     # about 9 minutes: all analysis steps and all ten noteb
 python run.py --check    # only checks the packages and the data
 ```
 
-`run.py` needs the IPP data in `data/raw/ipp1-magnetic/uloha_1-magneticka_data/` (`equil_data.csv`, `equil_data_noisy.csv`) or `HACKATHON_HOME` pointing to a folder that holds `data/`. The data are confidential (IPP provided them only for this hackathon) and are **not in git**; no raw rows are in the repository. The live demo (`analysis/ipp1_live_train_fast.py`, written by the team's second member) prints rows of the data to the terminal: show it in the room, do not record or send it. Try the exported model on your own file with `python predict.py input.csv --model out/model/ipp1-selected.npz`.
+`run.py` needs the IPP data in `data/raw/ipp1-magnetic/uloha_1-magneticka_data/` (`equil_data.csv`, `equil_data_noisy.csv`) or `HACKATHON_HOME` pointing to a folder that holds `data/`. The data are confidential (IPP provided them only for this hackathon) and are **not in git**; no raw rows are in the repository. The live demo (`analysis/ipp1_live_train_fast.py`, written by the team's second member) prints rows of the data to the terminal: show it in the room, do not record or send it. Try the exported model on your own file with `python predict.py input.csv --model out/model/ipp1-selected.npz`. Millimetre deviation from the institute's reconstruction per quantity (MAE, percentiles, share under 1 mm, bootstrap intervals by discharge): `python analysis/bench_mm.py [--set locked|dev|all] [--noisy] [--csv FILE] [--json OUT]`; its output on the 30 set-aside discharges is in `results/bench-mm.md`.
 
 ## Limits (what was not shown)
 
