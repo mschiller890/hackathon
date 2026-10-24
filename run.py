@@ -20,10 +20,10 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 
-# Kde jsou data: nová plochá složka data/ (soubory jsou v repozitáři), nebo původní struktura z archivu od organizátorů.
+# Kde jsou data: složka data/ (lokální soubory od organizátorů, v gitu nejsou), nebo původní struktura z archivu.
 FLAT_DATA = Path("data")
 NESTED_DATA = Path("data/raw/ipp1-magnetic/uloha_1-magneticka_data")
-CLEAN_NAME, NOISY_NAME = "equil_data", "equil_data_noisy"   # soubory .zip (v repozitáři) nebo .csv (původní z archivu)
+CLEAN_NAME, NOISY_NAME = "equil_data", "equil_data_noisy"   # soubory .zip nebo .csv (původní z archivu)
 
 # Barvy ve výpisu terminálu.
 BOLD, GREEN, RED, DIM, RESET = "\033[1m", "\033[32m", "\033[31m", "\033[2m", "\033[0m"
@@ -81,7 +81,7 @@ def find_home():
             sys.exit(f"{RED}Only one of the two data files is there{RESET} in {home / FLAT_DATA}: "
                      f"both {CLEAN_NAME} and {NOISY_NAME} (.zip or .csv) are needed.")
     sys.exit(f"{RED}The data were not found.{RESET}\n"
-             f"They belong in {HERE / FLAT_DATA} ({CLEAN_NAME}.zip and {NOISY_NAME}.zip; the repository has them)\n"
+             f"They belong in {HERE / FLAT_DATA} ({CLEAN_NAME}.zip and {NOISY_NAME}.zip or the .csv files; the data are confidential and not in git)\n"
              "or set HACKATHON_HOME to a folder that holds data/ with these two files.")
 
 

@@ -62,7 +62,7 @@ def default_model():
 
 
 def ipp_file(noisy):
-    """Soubor s daty ústavu: data/ (soubory jsou v repozitáři) nebo původní struktura z archivu."""
+    """Soubor s daty ústavu: data/ (lokální soubory, v gitu nejsou) nebo původní struktura z archivu."""
     stem = "equil_data_noisy" if noisy else "equil_data"
     homes = [Path(os.environ["HACKATHON_HOME"])] if os.environ.get("HACKATHON_HOME") else []
     for home in homes + [REPO, Path.cwd()]:
