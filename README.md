@@ -119,6 +119,7 @@ python -m pip install -r requirements.txt
 python run.py            # asi 3 minuty: živé učení, test na neviděných výbojích, export modelů
 python run.py --full     # asi 10 minut: všechny analýzy a všech devět notebooků znovu spočítaných
 python run.py --check    # jen zkontroluje balíčky a data
+./try_model.sh          # vyzkouší natrénovaný model a vypíše stručné shrnutí (po `python run.py`)
 ```
 
 **O datech.** Jsou důvěrná (kapitola 9), proto v repozitáři nejsou a složka `data/` je v `.gitignore`. `python run.py --check` ověří, že je skript ve složce `data/` našel. Pak se nic dalšího nenastavuje: `run.py` i všechny skripty a notebooky data najdou samy a vše nové (modely, mezivýsledky) ukládají do složky `out/` v repozitáři (je v `.gitignore`). Proměnná **`HACKATHON_HOME`** je volitelná: ukazuje-li na jinou složku, která má `data/` s těmito dvěma soubory (nebo původní strukturu `data/raw/ipp1-magnetic/uloha_1-magneticka_data/`), použije se ta.
