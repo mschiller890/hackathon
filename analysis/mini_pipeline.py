@@ -1119,7 +1119,7 @@ def run_demo(args, live, width):
         ST.paint(ST.grey, f"{'dávka':<14}{args.batch} okamžiků za {median_batch:.1f} ms (medián) = "
                           f"{median_batch / args.batch * 1000:.2f} µs na odhad; {fmt_int(total)} odhadů za {elapsed:.1f} s"),
         ST.paint(ST.grey, f"{'učení':<14}{args.epochs} epoch za {train_s:.1f} s, {fmt_int(params)} vah, seed 0, "
-                          f"{args.models}x síť s rozdíly cívek + specialista na limiter"),
+                          f"hlavní síť + síť pro limiter"),
         ST.paint(ST.grey, f"{'stroj':<14}{cpu} ({platform.machine()}); torch {args.threads} vláken"),
         ST.paint(ST.grey, f"{'software':<14}Python {platform.python_version()}, torch {torch.__version__}, "
                           f"numpy {np.__version__}"),

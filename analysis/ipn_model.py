@@ -80,7 +80,7 @@ def fit_net(x, y, ridge, mode, seed, epochs, delta=0.2, widths=(256, 256, 128), 
             loss.backward()
             opt.step()
             sched.step()
-            losses.append(float(loss))
+            losses.append(loss.detach().item())
         if on_epoch:
             on_epoch(epoch, float(np.mean(losses)), net, mu, sd, ym, ys)
     net.eval()
