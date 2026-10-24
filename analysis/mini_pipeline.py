@@ -9,12 +9,15 @@ What it prints, in order (Czech, it is the demo for the jury):
      30 discharges it never sees (log scales), with elapsed time and epochs per second;
   2. the error of all 16 outputs on those 30 discharges, as bars relative to each output's spread, and the share of
      instants where the limited/diverted call agrees with the institute's reconstruction;
-  3. one unseen discharge instant by instant: every single-row estimate is timed first in one tight loop, then a live
+  3. the share of those instants inside a tolerance: a chart of the share whose R and Z axis error is under each
+     tolerance from 0.01 to 10 mm (log scale), tiles at 0.1, 0.5, 1 and 2 mm, a bar of the limited/diverted
+     agreement and the R² of every output;
+  4. one unseen discharge instant by instant: every single-row estimate is timed first in one tight loop, then a live
      chart replays the reference and the estimated R and Z axis position with the error and the time of each estimate,
      then the distribution of those times (median, p99);
-  4. full speed: the 30 unseen discharges again and again in batches, a live gauge of estimates per second against
+  5. full speed: the 30 unseen discharges again and again in batches, a live gauge of estimates per second against
      the target, then a summary box;
-  5. every estimate of one full-speed pass (--dump-rows 0 skips it).
+  6. every estimate of one full-speed pass (--dump-rows 0 skips it).
 
 --plain (automatic when stdout is not a terminal) prints the same without redrawing and without colour codes: the
 per-epoch, per-instant and per-second tables of the earlier version, then each chart once.
@@ -43,7 +46,7 @@ import numpy as np
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script folder
-from ipp1_common import TARGETS, UNIT, Net, load
+from ipp1_common import TARGETS, UNIT, Net, load, score
 from ipp1_final import locked_ids
 
 R, Z = TARGETS.index("R_mag_axis"), TARGETS.index("Z_mag_axis")
@@ -526,9 +529,9 @@ def held_out_scores(pred, y):
     return scores
 
 
-def scores_table(pred, y, width):
+def scores_table(pred, y, agree, width):
     """Bars of the error of all 16 outputs on the 30 set-aside discharges, each relative to its own spread
-    (log scale, 0.01 % .. 100 %), and the limited/diverted agreement."""
+    (log scale, 0.01 % .. 100 %), and the limited/diverted agreement (a share 0..1)."""
     bar_w, bar_at = 36, 42
     scores = held_out_scores(pred, y)
     lines = [ST.paint(ST.bold, f"Chyba všech {len(TARGETS)} veličin na 30 kontrolních výbojích (nižší je lepší)"),
@@ -554,8 +557,6 @@ def scores_table(pred, y, width):
         pos = round(k * bar_w / 4)
         scale[pos:pos + len(text)] = list(text)
     lines.append(ST.paint(ST.grey, " " * bar_at + "".join(scale)))
-    limited = ~np.isnan(y[:, -1])
-    agree = float(((pred[limited, -1] > 0.5) == (y[limited, -1] > 0.5)).mean())
     rows_of = {name: n for name, n, _, _ in scores}
     lines += ["", f"Limiterová nebo divertorová konfigurace: shoda s rekonstrukcí ústavu v "
                   f"{ST.paint(ST.bold, f'{100 * agree:.2f} %')} okamžiků."]
@@ -568,7 +569,80 @@ def scores_table(pred, y, width):
     return [fit(line, width) for line in lines]
 
 
-# ----------------------------------------------------------------------------- 3. one unseen discharge
+# ----------------------------------------------------------------------------- 3. share inside a tolerance
+TILE_MM = (0.1, 0.5, 1, 2)          # the tolerances of the tiles; 1 mm is the headline one
+
+
+def share_under(err_mm, tol_mm):
+    """Percent of instants whose error is below each tolerance (err_mm: one error per instant, tol_mm: array)."""
+    return (np.asarray(err_mm)[:, None] < np.asarray(tol_mm, dtype=float)[None, :]).mean(0) * 100
+
+
+def success_lines(pred, y, scores, live, width):
+    """The share of set-aside instants whose axis error is under a tolerance: a chart over 0.01 .. 10 mm (log),
+    tiles at TILE_MM, a bar of the limited/diverted agreement, and the R² of every output; scores from ipp1_common.score."""
+    err = {"R": np.abs(pred[:, R] - y[:, R]) * 1000, "Z": np.abs(pred[:, Z] - y[:, Z]) * 1000}
+    colour = {"R": ST.axis_r, "Z": ST.axis_z}
+    cols = width - AXIS_W
+    rows = min(10, max(5, terminal_rows(live) - 20))
+    log_tol = np.linspace(-2, 1, 2 * cols)           # one tolerance per braille dot column
+    lines = [ST.paint(ST.bold, "Kolik okamžiků 30 kontrolních výbojů má chybu polohy osy pod danou tolerancí "
+                               "(vyšší je lepší)"),
+             ST.paint(ST.grey, "podíl okamžiků (%)  ") + ST.paint(ST.axis_r, "━━ osa R purpurová") + "  "
+             + ST.paint(ST.axis_z, "━━ osa Z modrá"),
+             ""]
+    lines += plot([(log_tol, share_under(err[a], 10 ** log_tol), colour[a]) for a in ("R", "Z")],
+                  (-2, 1), (0, 100), cols, rows, unit="%")
+    lines += x_axis(cols, [(0, "0.01"), (1 / 3, "0.1"), (2 / 3, "1"), (1, "10 mm")])
+    lines += [ST.paint(ST.grey, f"{'':>10}vodorovně tolerance chyby osy, logaritmicky; svisle podíl okamžiků "
+                                f"s menší chybou"), ""]
+
+    tile_w = (width - 3) // 4
+    bar_w = max(3, tile_w - 4 - 10)
+    tiles = []
+    for tol in TILE_MM:
+        strong = ST.bold if tol == 1 else ""
+        body = []
+        for a in ("R", "Z"):
+            pct = float(share_under(err[a], [tol])[0])
+            body.append(ST.paint(colour[a], a + " " + progress(pct / 100, bar_w)) + " "
+                        + ST.paint(strong, f"{pct:5.1f} %"))
+        tiles.append(box(f"pod {tol:g} mm", body, tile_w, strong or ST.grey))
+    lines += [" ".join(parts) for parts in zip(*tiles)]
+
+    agree = scores["is_limited"]["accuracy"]
+    known = int((~np.isnan(y[:, -1])).sum())
+    gauge_w = width - 30
+    lines += ["",
+              ST.paint(ST.bold, "Limiterová nebo divertorová konfigurace: shoda s rekonstrukcí ústavu"),
+              f"{'shoda':<20}{progress(agree, gauge_w)} " + ST.paint(ST.bold, f"{100 * agree:.2f} %"),
+              ST.paint(ST.grey, f"{'':<20}0 %{'100 %':>{gauge_w - 3}}"),
+              ST.paint(ST.grey, f"{'':<20}jinak určená konfigurace v {fmt_int(round((1 - agree) * known))} "
+                                f"z {fmt_int(known)} okamžiků"),
+              "",
+              ST.paint(ST.bold, "Koeficient determinace R² každé veličiny (1 = odhad vysvětlí celý rozptyl veličiny)"),
+              ST.paint(ST.grey, "Pruh od 0 do 1: zelená od 0.99, žlutá od 0.9, červená pod."), ""]
+    col_w = (width - 3) // 2
+    r2_bar = max(4, col_w - 32)
+    cells = []
+    for name in TARGETS:
+        r2 = scores[name]["r2"]
+        if not np.isfinite(r2):
+            cells.append(f"{LABELS[name]:<24} {'—':>{r2_bar + 7}}")
+            continue
+        tint = ST.green if r2 >= 0.99 else ST.yellow if r2 >= 0.9 else ST.red
+        filled = int(round(min(max(r2, 0), 1) * r2_bar))
+        cells.append(f"{LABELS[name]:<24} {ST.paint(tint, '█' * filled)}{ST.paint(ST.grey, '·' * (r2_bar - filled))} "
+                     f"{r2:6.4f}")
+    half = (len(cells) + 1) // 2
+    lines += [pad(left, col_w) + "   " + right for left, right in zip(cells[:half], cells[half:] + [""])]
+    note = ("Chyba = rozdíl odhadu od rekonstrukce ústavu, tedy shoda s ní, ne s plazmatem samotným. Je to základní "
+            "síť z této ukázky, ne vybraný model; ten má vlastní výsledky v results/ipp1-final.md.")
+    lines += [""] + [ST.paint(ST.grey, row) for row in textwrap.wrap(note, width)]
+    return [fit(line, width) for line in lines]
+
+
+# ----------------------------------------------------------------------------- 4. one unseen discharge
 class DischargeView:
     """One unseen discharge instant by instant: a live chart of reference and estimate for the R and Z axis,
     the error and the time of each estimate under it; in plain mode a table line per instant and the chart once."""
@@ -660,7 +734,7 @@ def latency_lines(ms, width):
                               f"tento procesor")]
 
 
-# ----------------------------------------------------------------------------- 4. full speed
+# ----------------------------------------------------------------------------- 5. full speed
 def gauge(value, target, top, width):
     """A bar from 0 to `top` with the target marked ┃; green once the value reaches the target, yellow below."""
     filled = int(round(min(value, top) / top * width))
@@ -755,17 +829,28 @@ def run_demo(args, live, width):
     with torch.no_grad():
         mu, sd, ym, ys = scalers
         torch_pred = net(torch.tensor((x_te - mu) / sd)).numpy() * ys + ym
-    for line in scores_table(torch_pred, y_te, width):
+    scores = score(torch_pred, y_te, ~np.isnan(y_te))      # R² of every output and the configuration agreement
+    agree = scores["is_limited"]["accuracy"]
+    for line in scores_table(torch_pred, y_te, agree, width):
         print(line)
     print()
     print(ST.paint(ST.grey, textwrap.fill(
         f"Kontrola rychlé cesty (složené váhy, float32): na všech {fmt_int(len(x_te))} neviděných okamžicích se od sítě "
         f"liší nejvýš o {np.abs(predict(x_te) - torch_pred)[:, [R, Z]].max() * 1000:.6f} mm.", width)))
 
-    # 3. One unseen discharge, instant by instant, each estimate timed as a single-row call.
+    # 3. Share of the set-aside instants inside a tolerance.
+    section(3, "Úspěšnost: kolik okamžiků je v toleranci", width)
+    say(f"Pro každou toleranci podíl okamžiků {len(lock)} kontrolních výbojů, ve kterých se poloha osy od "
+        f"rekonstrukce ústavu liší méně. Čím dřív křivka dojde ke 100 %, tím lépe.", width)
+    print()
+    for line in success_lines(torch_pred, y_te, scores, live, width):
+        print(line)
+    under_1mm = [float(share_under(np.abs(torch_pred[:, j] - y_te[:, j]) * 1000, [1])[0]) for j in (R, Z)]
+
+    # 4. One unseen discharge, instant by instant, each estimate timed as a single-row call.
     disc = int(lock[0])
     rows = np.where(groups == disc)[0]
-    section(3, f"Výboj {disc}, který síť nikdy neviděla, okamžik po okamžiku", width)
+    section(4, f"Výboj {disc}, který síť nikdy neviděla, okamžik po okamžiku", width)
     say(f"Síť dostane výboj {disc}, který nikdy neviděla: {len(rows)} okamžiků, každý jako samostatný odhad z jednoho "
         f"řádku měření. Časy se nejdřív změří v jedné těsné smyčce (kreslení by je zkreslilo), pak se odhady ukážou "
         f"okamžik po okamžiku.", width)
@@ -794,8 +879,8 @@ def run_demo(args, live, width):
           f"osy Z {ST.paint(ST.bold, f'{np.mean(errs_z):.2f} mm')}.")
     print(ST.paint(ST.grey, f"Medián doby jednoho odhadu {np.median(single_ms):.3f} ms."))
 
-    # 4. Full speed: the unseen rows again and again in batches.
-    section(4, "Plná rychlost", width)
+    # 5. Full speed: the unseen rows again and again in batches.
+    section(5, "Plná rychlost", width)
     say(f"Všech {len(lock)} kontrolních výbojů ({fmt_int(len(x_te))} okamžiků) se odhaduje znovu a znovu, po dávkách "
         f"{args.batch} okamžiků, po dobu {args.seconds:.0f} s. Cíl je {fmt_int(args.target)} odhadů za sekundu.", width)
     print()
@@ -848,6 +933,10 @@ def run_demo(args, live, width):
         + f", p99 {np.percentile(single_ms, 99):.4f} ms (99 % odhadů je rychlejších)",
         f"{'chyba osy':<14}R " + ST.paint(ST.bold, f"{err_r:.3f} mm") + ", Z " + ST.paint(ST.bold, f"{err_z:.3f} mm")
         + f" vůči rekonstrukci ústavu, {len(lock)} kontrolních výbojů",
+        f"{'pod 1 mm':<14}R " + ST.paint(ST.bold, f"{under_1mm[0]:.1f} %") + ", Z "
+        + ST.paint(ST.bold, f"{under_1mm[1]:.1f} %") + " okamžiků má chybu osy pod 1 mm",
+        f"{'konfigurace':<14}limiterová nebo divertorová: shoda s rekonstrukcí ústavu v "
+        + ST.paint(ST.bold, f"{100 * agree:.2f} %") + " okamžiků",
         "",
         ST.paint(ST.grey, f"{'dávka':<14}{args.batch} okamžiků za {median_batch:.1f} ms (medián) = "
                           f"{median_batch / args.batch * 1000:.2f} µs na odhad; {fmt_int(total)} odhadů za {elapsed:.1f} s"),
@@ -860,9 +949,9 @@ def run_demo(args, live, width):
     for line in box("Souhrn", summary, width, ST.grey):
         print(line)
 
-    # 5. Every estimate of one full-speed pass, measured first and listed afterwards.
+    # 6. Every estimate of one full-speed pass, measured first and listed afterwards.
     if args.dump_rows != 0:
-        section(5, "Výpis odhadů jednoho průchodu", width)
+        section(6, "Výpis odhadů jednoho průchodu", width)
         dump_rows(df, y, groups, test, predict, batches, args)
     print(ST.paint(ST.grey, f"\nCelé demo trvalo {time.perf_counter() - demo_started:.0f} s. Nic se neukládá na disk."))
 
