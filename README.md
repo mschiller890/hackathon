@@ -103,6 +103,15 @@ Základní síť, kterou vidí **posledních 5 okamžiků téhož výboje** nask
 
 ## 3. Spuštění: jeden soubor
 
+**Nejdřív data.** Z úlohy IPP 1 stáhněte zip s magnetickými daty a rozbalte ho. Jsou v něm dva soubory, `equil_data.csv` a `equil_data_noisy.csv`. Ty dva soubory dejte do nové složky `data/` v kořeni projektu (vedle `run.py`), ať vznikne `data/equil_data.csv` a `data/equil_data_noisy.csv`. V gitu žádná data nejsou, takže se to dělá po každém naklonování:
+
+```
+mkdir data
+# z rozbaleného zipu zkopírujte do data/ oba soubory .csv
+```
+
+Pak teprve prostředí a spuštění:
+
 ```
 python3.12 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
@@ -112,7 +121,7 @@ python run.py --full     # asi 10 minut: všechny analýzy a všech deset notebo
 python run.py --check    # jen zkontroluje balíčky a data
 ```
 
-**Data** v repozitáři **nejsou** (jsou důvěrná, kapitola 9). Dejte dva soubory od organizátorů do složky `data/` (`equil_data.zip` a `equil_data_noisy.zip`; stačí i původní `equil_data.csv` a `equil_data_noisy.csv`, pandas čte CSV rovnou ze zipu). Pak se nic dalšího nenastavuje: `run.py` i všechny skripty a notebooky je najdou samy a vše nové (modely, mezivýsledky) ukládají do složky `out/` v repozitáři (je v `.gitignore`). Proměnná **`HACKATHON_HOME`** je volitelná: ukazuje-li na jinou složku, která má `data/` s těmito dvěma soubory (nebo původní strukturu `data/raw/ipp1-magnetic/uloha_1-magneticka_data/`), použije se ta. **Repozitář musí zůstat soukromý** (kapitola 9).
+**O datech.** Jsou důvěrná (kapitola 9), proto v repozitáři nejsou a složka `data/` je v `.gitignore`. `python run.py --check` ověří, že je skript ve složce `data/` našel. Pak se nic dalšího nenastavuje: `run.py` i všechny skripty a notebooky data najdou samy a vše nové (modely, mezivýsledky) ukládají do složky `out/` v repozitáři (je v `.gitignore`). Proměnná **`HACKATHON_HOME`** je volitelná: ukazuje-li na jinou složku, která má `data/` s těmito dvěma soubory (nebo původní strukturu `data/raw/ipp1-magnetic/uloha_1-magneticka_data/`), použije se ta.
 
 Co `python run.py` udělá, krok za krokem:
 
