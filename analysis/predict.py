@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Estimate the plasma shape from the 24 magnetic measurements with the shipped model. Numpy only: no torch, no scikit-learn, no pandas.
 
-    python analysis/predict.py input.csv [--model out/model/ipp1-selected.npz] [--out estimates.csv] [--all]
+    python analysis/predict.py input.csv [--model out/model/ipp1-ipn.npz] [--out estimates.csv] [--all]
     python analysis/predict.py input.csv --noisy [--out estimates.csv] [--all]        noisy measurements: the noise-trained model ipp1-noisy.npz
 
 input.csv: a header row and one row per time instant, with the columns IPR01 .. IPR16 (coils) and FL01 .. FL08 (flux loops) in any order, in the units of the data file
@@ -91,6 +91,10 @@ class Model:
         (diff2 adds the second differences) and the current / ip_scale. Made by analysis/ipn_model.features."""
         scale = float(self.z["ip_scale"])
         cur = x.astype(np.float64) @ self.z["ridge_w"] + float(self.z["ridge_b"])
+        low = np.abs(cur) < 1e4          # the training data never go below 10.1 kA; the division is not trusted there
+        if low.any() and not getattr(self, "_warned", False):
+            self._warned = True
+            print(f"warning: {int(low.sum())} rows with an estimated plasma current under 10 kA, outside the training range; their estimates are not reliable", file=sys.stderr)
         xs = x * (scale / cur)[:, None]
         parts = [xs, np.diff(xs[:, :16], axis=1), np.diff(xs[:, 16:24], axis=1)]
         if self.feature_mode == "diff2":
@@ -175,7 +179,7 @@ def read_csv(path, inputs):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("input", help="CSV with the columns IPR01..IPR16 and FL01..FL08")
-    ap.add_argument("--model", default=None, help="the exported model (default: model/ipp1-selected.npz or out/model/ipp1-selected.npz next to analysis/, else out/model/ipp1-selected.npz next to the repository; with --noisy ipp1-noisy.npz in the same places)")
+    ap.add_argument("--model", default=None, help="the exported model (default: ipp1-ipn.npz in model/ or out/model/ next to analysis/, else out/model/ipp1-selected.npz next to the repository; with --noisy ipp1-noisy.npz in the same places)")
     ap.add_argument("--noisy", action="store_true", help="noisy measurements: the noise-trained model on the last 5 instants of each discharge (needs the columns discharge and time)")
     ap.add_argument("--out", help="write the estimates to this CSV instead of printing the first rows")
     ap.add_argument("--all", action="store_true", help="write all 16 numbers for every row (default: leave the cells that do not apply to the configuration empty)")
@@ -186,6 +190,7 @@ def main():
     if not Path(args.input).is_file():
         sys.exit(f"input file not found: {args.input}")
     model = Model(args.model)
+    print(f"model: {args.model}", file=sys.stderr)   # which file was loaded (the default falls back to ipp1-selected.npz when ipp1-ipn.npz is missing)
     if args.noisy != (model.window > 1):
         sys.exit(f"{args.model} is {'not ' if args.noisy else ''}the noise model: " + ("use ipp1-noisy.npz with --noisy" if args.noisy else "run it with --noisy"))
     x, extra = read_csv(args.input, model.inputs)

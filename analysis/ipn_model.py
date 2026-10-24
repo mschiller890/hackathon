@@ -15,8 +15,8 @@ between the two sides is what made a plain regression of the limiter point wrong
 Loss: Huber with delta 0.2 on the standardised targets, masked to the targets that exist; AdamW, one-cycle schedule, 150 epochs, batch 512.
 
     HACKATHON_HOME=<folder> python analysis/ipn_model.py [--feat diff2] [--epochs 150] [--all]        writes out/model/ipp1-ipn.npz and .json
---all trains on all 149 discharges (the set-aside ones too) for the file that is shipped; without it the 119 development discharges only, the model
-behind every number measured on the 30 set-aside discharges. THE WEIGHTS ARE DERIVED FROM THE CONFIDENTIAL IPP DATA: out/ is git-ignored.
+Without --all (as run.py calls it) it trains on the 119 development discharges only: the shipped file and the model behind every number measured on
+the 30 set-aside discharges. --all trains on all 149 discharges (the set-aside ones too), not used for the package. THE WEIGHTS ARE DERIVED FROM THE CONFIDENTIAL IPP DATA: out/ is git-ignored.
 """
 import argparse
 import json

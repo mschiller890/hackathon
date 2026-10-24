@@ -22,8 +22,9 @@ What it prints, in order (Czech, it is the demo for the jury):
 --plain (automatic when stdout is not a terminal) prints the same without redrawing and without colour codes: the
 per-epoch, per-instant and per-second tables of the earlier version, then each chart once.
 
-Same data, network (ipp1_common.Net) and 119/30 split as the project (ipp1_final.locked_ids), one seed, so the
-axis error at the end is the baseline network's number on the locked discharges (results/ipp1-final.md, `base`).
+Same data, network (ipp1_common.Net) and 119/30 split as the project (ipp1_final.locked_ids), one seed; the network is the
+recipe of analysis/ipn_model.py (measurements divided by the plasma current), trained here live, so its numbers are close to,
+not bit-identical with, results/ipp1-ipn.md and results/bench-mm.md.
 Writes nothing. The core of the project, for the reader of this file:
     ipp1_common.py   data loading, the network, masked training, scoring
     ipp1_final.py    the shipped model and the locked 30-discharge test
