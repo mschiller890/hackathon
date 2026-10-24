@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """One file that runs the whole project: python run.py
 
-    python run.py            training live, test on unseen discharges, export of the model, a first estimate (about 3 minutes)
-    python run.py --full     everything: all analysis steps and all ten notebooks (about 9 minutes)
+    python run.py            training live, test on unseen discharges, export of the model, a first estimate (about 45 s to 1 min on an Apple M5)
+    python run.py --full     everything: all analysis steps and all ten notebooks (about 9 to 10 min)
     python run.py --check    only check the Python packages and the data
     python run.py --relu-demo   the same, with the second live demo (ReLU network)
 
@@ -12,6 +12,7 @@ HACKATHON_HOME to the folder that holds data/. The live demo prints rows of the 
 import argparse
 import importlib
 import os
+import shlex
 import subprocess
 import sys
 import time
@@ -19,6 +20,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 EQUIL = Path("data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.csv")
+NOISY = EQUIL.with_name("equil_data_noisy.csv")  # export_model.py reads it too
 B, G, R, D, X = "\033[1m", "\033[32m", "\033[31m", "\033[2m", "\033[0m"
 
 
@@ -45,9 +47,15 @@ def check_packages():
 def find_home():
     step("2. Data")
     for home in [os.environ.get("HACKATHON_HOME"), str(HERE)]:
-        if home and (Path(home) / EQUIL).exists():
-            print(f"{G}data found{X} in {Path(home) / EQUIL.parent}")
-            return Path(home)
+        if not home:
+            continue
+        home = Path(home).expanduser().resolve()  # the children run with cwd=HERE, so a relative path would point elsewhere
+        missing = [f.name for f in (EQUIL, NOISY) if not (home / f).exists()]
+        if not missing:
+            print(f"{G}data found{X} in {home / EQUIL.parent}")
+            return home
+        if len(missing) == 1:
+            sys.exit(f"{R}{missing[0]} is missing{X} in {home / EQUIL.parent}: both equil_data.csv and equil_data_noisy.csv are needed.")
     sys.exit(f"{R}The data were not found.{X}\nThe IPP data are not in git. Copy equil_data.csv and equil_data_noisy.csv to\n"
              f"  {HERE / EQUIL.parent}\nor set HACKATHON_HOME to a folder that holds {EQUIL.parent}.")
 
@@ -64,7 +72,7 @@ def run(cmd, env, title=None):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--full", action="store_true", help="all analysis steps and all ten notebooks (about 9 minutes)")
+    ap.add_argument("--full", action="store_true", help="all analysis steps and all ten notebooks (about 9 to 10 min)")
     ap.add_argument("--check", action="store_true", help="only check packages and data")
     ap.add_argument("--relu-demo", action="store_true", help="use the second live demo (ReLU network, 6 cores) instead of mini_pipeline.py")
     a = ap.parse_args()
@@ -86,19 +94,22 @@ def main():
         run([py, "-u", "analysis/ipp1_live_train_fast.py"], env, True)
     else:
         run([py, "-u", "analysis/mini_pipeline.py", "--dump-rows", "0"], env, True)
-    step("4. Train the shipped model and export it (model/ipp1-selected.npz)")
+    step("4. Train the shipped model and export it (out/model/ipp1-selected.npz)")
     run([py, "analysis/export_model.py"], env, True)
     step("5. First estimate with the exported model (reference reconstruction against our estimate)")
+    # the paths go through argv, not into the source, so a quote in a folder name cannot break the code
     code = (
-        "import sys, numpy as np, pandas as pd; sys.path.insert(0, 'analysis'); import predict;"
-        "df = pd.read_csv('%s'); m = predict.Model('%s');"
-        "x = df[m.inputs].values[:5]; e = m.estimates(x); j = m.outputs.index('R_mag_axis_mm') if 'R_mag_axis_mm' in m.outputs else None;"
+        "import sys, numpy as np, pandas as pd; sys.path.insert(0, 'analysis'); import predict; from ipp1_final import locked_ids;"
+        "df = pd.read_csv(sys.argv[1]); m = predict.Model(sys.argv[2]); g = df['discharge'].values;"
+        "df = df[~np.isin(g, locked_ids(g))]; disc = df['discharge'].iloc[0]; df = df[df['discharge'] == disc];"
+        "x = df[m.inputs].values[:5]; e = m.estimates(x);"
         "print('outputs:', len(m.outputs)); "
         "ref = df['R_mag_axis'].values[:5] * 1000;"
-        "[print(f'  row {i}: reference R axis {ref[i]:.2f} mm, estimate {e[i, m.outputs.index(\"R_mag_axis\")]:.2f} mm') for i in range(5)] if 'R_mag_axis' in m.outputs else print(e[:2])"
-        % ((home / EQUIL).as_posix(), (home / "out" / "model" / "ipp1-selected.npz").as_posix()))
-    run([py, "-c", code], env)
-    print(f"\n{G}Done.{X} Everything: python run.py --full. Try the model on your own file: python predict.py input.csv --model {home / 'out' / 'model' / 'ipp1-selected.npz'}")
+        "print(f'first 5 rows of development discharge {disc} (the exported model was trained on it, so this only checks the export):');"
+        "[print(f'  row {i}: reference R axis {ref[i]:.2f} mm, estimate {e[i, m.outputs.index(\"R_mag_axis\")]:.2f} mm') for i in range(5)] if 'R_mag_axis' in m.outputs else print(e[:2])")
+    model = home / "out" / "model" / "ipp1-selected.npz"
+    run([py, "-c", code, str(home / EQUIL), str(model)], env)
+    print(f"\n{G}Done.{X} Everything: python run.py --full. Try the model on your own file: python predict.py input.csv --model {shlex.quote(str(model))}")
 
 
 if __name__ == "__main__":
