@@ -60,7 +60,8 @@ def window_rows(discharge, time, k):
 
 
 class Model:
-    """The shipped selected model: a general network, a network for the limiter point, a ridge for the plasma current, rows independent.
+    """The shipped selected model: a general network, a network for the limiter point, a ridge for the plasma current, rows independent,
+    and, if the file has one, a separate network that answers R_mag_axis and Z_mag_axis (keys axis_*).
     Or the noise model (ipp1-noisy.npz): one network on the inputs of the last `window` rows of the discharge, see estimates_noisy.
     Both are made by analysis/export_model.py."""
 
@@ -73,6 +74,8 @@ class Model:
         self.lim_cols = [int(v) for v in self.z["limiter_columns"]]
         self.ip_col, self.cls_col = int(self.z["plasma_current_column"]), int(self.z["is_limited_column"])
         self.window = int(self.z["window_rows"]) if "window_rows" in self.z else 1   # only the noise model has a window
+        self.axis_cols = [int(v) for v in self.z["axis_columns"]] if "axis_columns" in self.z else None
+        self.depth = {tag: sum(k.startswith(f"{tag}_W") for k in self.z) for tag in ("gen", "spec", "axis")}
 
     @staticmethod
     def features(x):
@@ -82,9 +85,10 @@ class Model:
     def _net(self, tag, f):
         z = self.z
         h = (f - z[f"{tag}_mu"]) / z[f"{tag}_sd"]
-        for i in range(4):
+        n = self.depth[tag]
+        for i in range(n):
             h = h @ z[f"{tag}_W{i}"] + z[f"{tag}_b{i}"]
-            if i < 3:
+            if i < n - 1:
                 h = silu(h)
         return h * z[f"{tag}_ys"] + z[f"{tag}_ym"]
 
@@ -96,6 +100,8 @@ class Model:
             return self._net("gen", x)
         f = self.features(x)
         out = self._net("gen", f)
+        if self.axis_cols:
+            out[:, self.axis_cols] = self._net("axis", f)
         out[:, self.ip_col] = x.astype(np.float64) @ self.z["ridge_w"] + self.z["ridge_b"]
         gate = np.flatnonzero(out[:, self.cls_col] > 0.5)
         if len(gate):

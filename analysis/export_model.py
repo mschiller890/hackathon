@@ -11,11 +11,16 @@ results/ipp1-noise-window.md): the baseline network of ipp1_common.fit_mlp (60 e
 one copy corrupted per row with ipp1_final.corrupt (noise 0.15, drift 0.15 of each input's SD, seed AUG_SEED + 50) BEFORE windowing, every row
 given as the inputs of rows t, t-1 .. t-4 of its discharge (predict.window_rows, the same function predict.py uses).
 
-    HACKATHON_HOME=... ~/.venvs/hackathon/bin/python -I analysis/export_model.py       (about 1.5 minutes: 2 CPU threads, then 4 for the noise model)
+Also trains, on the same rows and seed, a separate network for R_mag_axis and Z_mag_axis only (ipp1_final.fit_axis_net, 512-512-256,
+400 epochs) and stores it in the same file under the keys axis_*; predict.py then takes the two axis columns from it. `--no-axis-net`
+writes the file without it, as before.
+
+    HACKATHON_HOME=... ~/.venvs/hackathon/bin/python -I analysis/export_model.py       (about 2 to 3 minutes: 2 CPU threads, then 4 for the noise model)
 
 Writes out/model/ipp1-selected.npz and .json, then out/model/ipp1-noisy.npz and .json. THE WEIGHTS ARE DERIVED FROM THE CONFIDENTIAL IPP DATA: out/ is git-ignored and the files go only into the
 submission package for the organizers.
 """
+import argparse
 import json
 import sys
 import time
@@ -32,6 +37,7 @@ from predict import Model, window_rows
 
 MODEL = OUT / "model"
 NOISY_WINDOW = 5
+AXIS_ARCH, AXIS_EPOCHS = (512, 512, 256), 400
 
 
 def closure(fn, names):
@@ -42,6 +48,9 @@ def closure(fn, names):
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--no-axis-net", action="store_true", help="do not train and store the separate network for R_mag_axis and Z_mag_axis")
+    args = ap.parse_args()
     torch.set_num_threads(2)
     assert not F.SMOKE
     started = time.time()
@@ -52,11 +61,14 @@ def main():
     gen = F.fit_net(xt, yt, mt, 0, 150)
     spec = F.fit_net(xt, yt, mt, 0, 150, rows=yt[:, F.J["is_limited"]] > 0.5)
     ridge = F.fit_ridge_col(xt, yt, mt, F.J["plasma_current"])
+    nets = [("gen", gen, 4), ("spec", spec, 4)]
+    if not args.no_axis_net:
+        nets.append(("axis", F.fit_axis_net(xt, yt, mt, 0, AXIS_EPOCHS, AXIS_ARCH), len(AXIS_ARCH) + 1))
     arrays = {}
-    for tag, fn in (("gen", gen), ("spec", spec)):
+    for tag, fn, depth in nets:
         c = closure(fn, ("net", "mu32", "sd32", "ym", "ys"))
         layers = [m for m in c["net"].f if isinstance(m, nn.Linear)]
-        assert len(layers) == 4 and all(isinstance(m, (nn.Linear, nn.SiLU)) for m in c["net"].f)
+        assert len(layers) == depth and all(isinstance(m, (nn.Linear, nn.SiLU)) for m in c["net"].f)
         for i, m in enumerate(layers):
             arrays[f"{tag}_W{i}"] = m.weight.detach().numpy().T.astype(np.float32)      # (inputs, outputs)
             arrays[f"{tag}_b{i}"] = m.bias.detach().numpy().astype(np.float32)
@@ -77,6 +89,9 @@ def main():
             "activation": "SiLU", "hidden_layers": [256, 256, 128],
             "trained_on": f"the {len(np.unique(G[dev_idx]))} development discharges ({len(dev_idx)} rows), seed 0, recipe cand of analysis/ipp1_final.py (150 epochs, Huber 0.5)",
             "confidential": "weights are derived from the confidential IPP data: for the submission package, never for git"}
+    if not args.no_axis_net:
+        arrays["axis_columns"] = np.array(F.AXIS)
+        meta["axis_net"] = {"arch": list(AXIS_ARCH), "epochs": AXIS_EPOCHS, "targets": [F.TARGETS[j] for j in F.AXIS]}
     MODEL.mkdir(parents=True, exist_ok=True)
     np.savez(MODEL / "ipp1-selected.npz", **arrays, input_names=np.array(inputs), output_names=np.array(F.TARGETS), output_scales=scales,
              limiter_columns=np.array(F.LIMITER), plasma_current_column=np.array(F.J["plasma_current"]), is_limited_column=np.array(F.J["is_limited"]))
