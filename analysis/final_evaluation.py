@@ -2,7 +2,7 @@
 """IPP 1: poctivé závěrečné vyhodnocení modelu tvaru plazmatu.
 
 Postup
-  * Odložených 30 výbojů: vylosované s numpy seedem 20261024 (seznam v results/ipp1-locked-test-ids.txt).
+  * Odložených 30 výbojů: vylosované s numpy seedem 20261024 (seznam v results/locked-test-ids.txt).
     Zbývajících 119 výbojů je vývojová sada. Výběr receptur se dělá jen pětinásobnou křížovou validací UVNITŘ
     vývojové sady; odložené výboje se hodnotí jednou, příkazem --report, s modely natrénovanými na celé vývojové sadě.
   * Receptury (všechny se učí po celých výbojích, s maskovanou ztrátou a jedním semínkem):
@@ -16,11 +16,11 @@ Postup
   * Každá receptura se zkouší na čistých vstupech i na zadaném zašuměném souboru (tytéž řádky z equil_data_noisy.csv).
   * Metriky se počítají přes všechny testovací řádky najednou (ne jako průměr přes díly).
 
-Úlohy (každá natrénuje jeden model a jeho odhady uloží do out/ipp1-final-cache/, nikdy ne do repozitáře):
+Úlohy (každá natrénuje jeden model a jeho odhady uloží do out/final-evaluation-cache/, nikdy ne do repozitáře):
     python analysis/final_evaluation.py --job cv:cand:0        # díl 0 vývojové sady, receptura cand
     python analysis/final_evaluation.py --job locked:cand      # celá vývojová sada -> odložené výboje
     python analysis/final_evaluation.py --job blocked:cand     # spodní polovina čísel výbojů -> horní polovina
-    python analysis/final_evaluation.py --report               # složí out/ipp1-final.json/.md a results/ipp1-final.md
+    python analysis/final_evaluation.py --report               # složí out/final-evaluation.json/.md a results/final-evaluation.md
 """
 import argparse
 import json
@@ -41,7 +41,7 @@ from common import OUT, REPO, TARGETS, UNIT, fit_mlp, group_folds, load
 
 # S IPP1_FINAL_SMOKE se každá síť učí jen jednu epochu: slouží to jen k otestování, že všechno spolu funguje.
 SMOKE = bool(os.environ.get("IPP1_FINAL_SMOKE"))
-CACHE = OUT / ("ipp1-final-cache-smoke" if SMOKE else "ipp1-final-cache")
+CACHE = OUT / ("final-evaluation-cache-smoke" if SMOKE else "final-evaluation-cache")
 
 TARGET_COLUMN = {name: column for column, name in enumerate(TARGETS)}  # název veličiny -> číslo sloupce
 LIMITER = [TARGET_COLUMN["R_limiter"], TARGET_COLUMN["Z_limiter"]]
@@ -367,7 +367,7 @@ def bootstrap(predictions, targets, exists, discharges, target_names, seed=LOCK_
 
 
 # ===================================================================================================================
-# Zpráva: složí uložené odhady do out/ipp1-final.json a results/ipp1-final.md
+# Zpráva: složí uložené odhady do out/final-evaluation.json a results/final-evaluation.md
 # ===================================================================================================================
 def assemble(prefix, recipes, n_folds=None):
     """Načte uložené odhady jedné fáze (cv / locked / blocked) a seřadí je podle čísel řádků.
@@ -405,7 +405,7 @@ def report():
     locked, development_rows, locked_rows = split(discharges)
 
     # Soubor se seznamem odložených výbojů (je v repozitáři, ať je vidět, které to jsou).
-    ids_file = REPO / "results/ipp1-locked-test-ids.txt"
+    ids_file = REPO / "results/locked-test-ids.txt"
     ids_file.parent.mkdir(parents=True, exist_ok=True)
     development_ids = np.unique(discharges[development_rows])
     ids_file.write_text(
@@ -498,14 +498,14 @@ def report():
             blocked[recipe] = row
     results["blocked"] = blocked
 
-    (OUT / "ipp1-final.json").write_text(json.dumps(results, indent=1))
+    (OUT / "final-evaluation.json").write_text(json.dumps(results, indent=1))
     markdown = render(results, names)
-    notes = OUT / "ipp1-final-notes.md"
+    notes = OUT / "final-evaluation-notes.md"
     if notes.exists():
         markdown = markdown.replace("\n## Development set", "\n" + notes.read_text().strip() + "\n\n## Development set", 1)
-    (OUT / "ipp1-final.md").write_text(markdown)
+    (OUT / "final-evaluation.md").write_text(markdown)
     (REPO / "results").mkdir(parents=True, exist_ok=True)
-    (REPO / "results/ipp1-final.md").write_text(markdown)
+    (REPO / "results/final-evaluation.md").write_text(markdown)
     print(markdown)
 
 
@@ -514,11 +514,11 @@ RECIPE_LABEL = {"base": "baseline MLP", "base_aug": "baseline MLP, augmented (ex
 
 
 def render(results, names):
-    """Složí výsledky do markdownu results/ipp1-final.md (text je anglicky, protože ho čtou i organizátoři)."""
+    """Složí výsledky do markdownu results/final-evaluation.md (text je anglicky, protože ho čtou i organizátoři)."""
     lines = []
     protocol = results["protocol"]
     lines += ["# IPP 1: final evaluation on a locked test set", "",
-              f"Locked test set: {N_LOCK} discharges ({protocol['n_locked_rows']} rows) drawn with numpy seed {LOCK_SEED}; ids in `results/ipp1-locked-test-ids.txt`. "
+              f"Locked test set: {N_LOCK} discharges ({protocol['n_locked_rows']} rows) drawn with numpy seed {LOCK_SEED}; ids in `results/locked-test-ids.txt`. "
               f"Development set: the other {protocol['n_dev_discharges']} discharges ({protocol['n_dev_rows']} rows). Recipe choices use 5-fold GroupKFold inside the "
               "development set only; the locked set was scored once, with models trained on all development discharges. All metrics are pooled over "
               "the rows of the test set (not means of folds). Every model is one seed (seed noise of earlier runs: 8 to 19 %), so read differences "

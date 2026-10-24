@@ -3,7 +3,7 @@
 
     HACKATHON_HOME=<složka hackathonu> python -I analysis/data_checks.py
 
-Zapíše results/ipp1-data-checks.md v repozitáři (jen souhrnná čísla).
+Zapíše results/data-checks.md v repozitáři (jen souhrnná čísla).
 """
 import sys
 from pathlib import Path
@@ -69,6 +69,6 @@ for target in ("R_mag_axis", "Z_mag_axis", "elongation", "R_x_point", "R_limiter
     mae_five = np.mean([fold[target]["mae"] for fold in scores_five_components])
     lines.append(f"| {target} | {UNIT[target][1] or '-'} | {mae_all:.4g} | {mae_five:.4g} | {mae_five / mae_all:.2f} |")
 lines += ["", "Reading: 99.9 percent of the variance is not 99.9 percent of the information; the low-variance directions carry what the targets need."]
-output_file = Path(__file__).resolve().parent.parent / "results" / "ipp1-data-checks.md"
+output_file = Path(__file__).resolve().parent.parent / "results" / "data-checks.md"
 output_file.write_text("\n".join(lines), encoding="utf-8")
 print("\n".join(lines[-22:]))

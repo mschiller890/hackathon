@@ -22,7 +22,7 @@ po okamžicích a po sekundách ze starší verze a každý graf jednou.
 
 Stejná data, síť (common.Net) a rozdělení 119/30 jako v projektu (final_evaluation.locked_ids), jedno semínko. Síť je recept
 z analysis/clean_model.py (měření dělená proudem plazmatu), jen se tu učí živě, takže její čísla jsou blízká, ne totožná
-s results/ipp1-ipn.md a results/bench-mm.md. Nic nezapisuje. Jádro projektu pro čtenáře tohoto souboru:
+s results/clean-model.md a results/error-in-mm.md. Nic nezapisuje. Jádro projektu pro čtenáře tohoto souboru:
     common.py   načtení dat, síť, učení s maskou, hodnocení
     final_evaluation.py    nasazený model a odložený test na 30 výbojích
     noisy_model.py  predict.py   nasazený model jako jediný soubor jen s numpy
@@ -469,7 +469,7 @@ class Model:
     """Celý model: `members` sítí zprůměrovaných (všech 16 výstupů), proud plazmatu z ridge a specialista na limiter,
     který na řádcích, jež hlavní sítě považují za limiterové, odpoví, na které straně nádoby (nahoře nebo dole) bod dotyku
     leží a kde na ní (strana je skok o stovky mm, který obyčejná regrese rozmaže). Bod limiteru je průměr této odpovědi
-    a odpovědi hlavních sítí: na vývojové sadě je průměr lepší než kterákoli sama (results/ipp1-ipn.md)."""
+    a odpovědi hlavních sítí: na vývojové sadě je průměr lepší než kterákoli sama (results/clean-model.md)."""
 
     def __init__(self, train_measurements, train_targets, test_measurements, test_targets, epochs, members, view):
         self.n_members, self.params = members, 0
@@ -730,7 +730,7 @@ def scores_table(prediction, truth, agreement, width):
             f"odchylka na týchž okamžicích. Bod X a dotykové body existují jen v divertorové konfiguraci "
             f"({format_int(rows_per_output['R_x_point'])} okamžiků), bod u limiteru jen v limiterové "
             f"({format_int(rows_per_output['R_limiter'])}). Model se učí tady v ukázce (síť s rozdíly cívek, ridge pro proud, specialista na limiter); odeslaný "
-            f"model je stejný recept, jeho výsledky jsou v results/ipp1-ipn.md.")
+            f"model je stejný recept, jeho výsledky jsou v results/clean-model.md.")
     lines += [ST.paint(ST.grey, row) for row in textwrap.wrap(note, width)]
     return [fit(line, width) for line in lines]
 
@@ -822,7 +822,7 @@ def success_lines(prediction, truth, scores, live, width, reveal=1.0, part="all"
     half = (len(cells) + 1) // 2
     lines += [pad(left, column_width) + "   " + right for left, right in zip(cells[:half], cells[half:] + [""])]
     note = ("Chyba = rozdíl odhadu od rekonstrukce ústavu, tedy shoda s ní, ne s plazmatem samotným. Model je ten z "
-            "této ukázky; odeslaný model je stejný recept, jeho výsledky jsou v results/ipp1-ipn.md.")
+            "této ukázky; odeslaný model je stejný recept, jeho výsledky jsou v results/clean-model.md.")
     lines += [""] + [ST.paint(ST.grey, row) for row in textwrap.wrap(note, width)]
     chosen = {"top": top_lines, "bottom": lines, "all": top_lines + [""] + lines}[part]
     return [fit(line, width) for line in chosen]

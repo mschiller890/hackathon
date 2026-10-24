@@ -7,12 +7,12 @@ V každém foldu: učí se síť na všech 24 vstupech, vstupy se seřadí podle
 řádcích (pořadí tak nikdy nevidí testovací výboje), síť se přeučí s nejlepšími k vstupy a také jen s 16 cívkami IPR nebo
 jen s 8 smyčkami FL. Pro k = 12, 8, 6 se přidají dvě kontroly, obě vybrané jen na učicích výbojích: náhodná podmnožina
 stejné velikosti (3 tahy, zprůměrované), podmnožina bez modelu (QR s pivotací sloupců na standardizovaných vstupech)
-a podmnožina z hladového zpětného vyřazování (kritérium ridge regrese). Zapíše out/ipp1-inputs.{json,md,png}.
+a podmnožina z hladového zpětného vyřazování (kritérium ridge regrese). Zapíše out/input-importance.{json,md,png}.
 
 Permutační pořadí je důležitost vstupu pro NATRÉNOVANOU SÍŤ, ne obsah informace: vstupy jsou kolineární, takže promíchání
 jednoho sloupce vytvoří řádky mimo varietu dat.
 
-Jen kontroly (levnější běh, zapíše out/ipp1-inputs-controls.{json,md} a hlavní soubory nechá být):
+Jen kontroly (levnější běh, zapíše out/input-importance-controls.{json,md} a hlavní soubory nechá být):
 
     ... input_importance.py --controls-only --only-folds 0,1 --ks 12 --threads 1      (jeden kus, opakovat pro každý fold a k)
     ... input_importance.py --merge                                                   (sesbírá kusy)
@@ -54,7 +54,7 @@ SUMMARY_TARGETS = [target for target in TARGETS if target not in ("R_limiter", "
 SHOWN_TARGETS = ["plasma_current", "R_mag_axis", "Z_mag_axis", "elongation", "R_x_point", "R_strike_point_1", "R_limiter"]
 TOP_K_SIZES = [16, 12, 8, 6, 5, 4, 3, 2]
 CONTROL_K_SIZES = [int(k) for k in args.ks.split(",")]
-PIECES_FOLDER = OUT / "ipp1-inputs-controls-parts"
+PIECES_FOLDER = OUT / "input-importance-controls-parts"
 rng = np.random.default_rng(0)
 
 
@@ -182,7 +182,7 @@ if args.merge:
                                                           for key in ("perm", "random", "qr", "ridge")} for piece in pieces_of_k}}
     per_fold = {name: [summary_error(s) for s in score_list] for name, score_list in runs.items()}
     json.dump({"folds_run": folds, "epochs": pieces[0]["epochs"], "runs": rows_by_name, "per_fold_summary": per_fold,
-               "subsets": extra}, open(OUT / "ipp1-inputs-controls.json", "w"), indent=1, allow_nan=False)
+               "subsets": extra}, open(OUT / "input-importance-controls.json", "w"), indent=1, allow_nan=False)
     lines = ["# Fewer inputs: controls for the permutation-ranked subsets (REQ-004)", "",
              f"Folds run: {', '.join(str(fold) for fold in folds)} of 5{'' if len(folds) == 5 else ' (partial)'}. One seed per cell, fold SD is about 40 % of the mean, "
              "so read differences under 10 to 15 % as noise. Every subset was chosen on the training discharges of its fold only; "
@@ -196,7 +196,7 @@ if args.merge:
     lines += ["", "Reading: the permutation ranking is the importance of an input for the trained network, not information content. "
               "A random subset of the same size and a model-free QR-pivot or ridge-selected subset show how much of the "
               "top-k curve comes from the ranking method and how much from the number of inputs."]
-    (OUT / "ipp1-inputs-controls.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (OUT / "input-importance-controls.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines))
     sys.exit(0)
 
@@ -252,7 +252,7 @@ ranking = [INPUT_NAMES[i] for i in np.argsort(-mean_importance)]
 json.dump({"folds": args.folds, "epochs": args.epochs, "inputs": INPUT_NAMES,
            "permutation_importance": dict(zip(INPUT_NAMES, mean_importance.tolist())),
            "permutation_importance_per_fold": importance_per_fold.tolist(), "ranking": ranking, "control_subsets": chosen_subsets,
-           "runs": rows_by_name}, open(OUT / "ipp1-inputs.json", "w"), indent=1, allow_nan=False)
+           "runs": rows_by_name}, open(OUT / "input-importance.json", "w"), indent=1, allow_nan=False)
 
 row_names = ["all 24"]
 for k in TOP_K_SIZES:
@@ -273,7 +273,7 @@ lines += ["", "Ranking by permutation importance (most important first): " + ", 
           "", "This ranking is the importance of an input for the trained network, not information content: the inputs are "
           "collinear, so permuting one column creates rows off the data manifold. Do not read it as 'the important sensors'; "
           "the evidence for the number of inputs is the retrain curve and its controls above."]
-(OUT / "ipp1-inputs.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+(OUT / "input-importance.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 # Obrázek: chyba podle počtu vstupů (vlevo) a důležitost jednotlivých vstupů (vpravo).
 plt.rcParams.update({"figure.dpi": 140, "axes.spines.top": False, "axes.spines.right": False, "font.size": 8})
@@ -299,5 +299,5 @@ axes[1].set_xticks(range(len(by_importance)))
 axes[1].set_xticklabels([INPUT_NAMES[i] for i in by_importance], rotation=90)
 axes[1].set_title("Důležitost pro naučenou síť, ne obsah informace (modře IPR, oranžově FL)")
 fig.tight_layout()
-fig.savefig(OUT / "ipp1-inputs.png")
+fig.savefig(OUT / "input-importance.png")
 print("\n".join(lines))

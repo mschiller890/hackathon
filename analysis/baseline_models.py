@@ -3,7 +3,7 @@
 
     HACKATHON_HOME=<složka hackathonu> python -I analysis/baseline_models.py [--epochs 60] [--folds 5]
 
-Zapíše $HACKATHON_HOME/out/ipp1-baseline.json a .md.
+Zapíše $HACKATHON_HOME/out/baseline.json a .md.
 """
 import argparse
 import json
@@ -59,7 +59,7 @@ average = {model: {target: {metric: (float(np.mean([fold[target][metric] for fol
                             for metric in fold_scores[model][0][target]} for target in TARGETS} for model in fold_scores}
 OUT.mkdir(exist_ok=True)
 json.dump({"folds": args.folds, "epochs": args.epochs, "average": average, "latency": latency,
-           "seconds": time.time() - started}, open(OUT / "ipp1-baseline.json", "w"), indent=1)
+           "seconds": time.time() - started}, open(OUT / "baseline.json", "w"), indent=1)
 
 lines = [f"# Baseline IPP 1: group split by discharge, {args.folds} folds, {args.epochs} epochs", "",
          "| target | unit | ridge MAE | MLP MAE | ridge R2 | MLP R2 | MLP nRMSE |", "|---|---|---|---|---|---|---|"]
@@ -70,5 +70,5 @@ lines += ["", f"is_limited accuracy: ridge {average['ridge']['is_limited']['accu
           f"Latency (MLP, CPU, one sample): median {latency['single_sample_cpu_ms_median']:.3f} ms, "
           f"p99 {latency['single_sample_cpu_ms_p99']:.3f} ms; batch of 4096: {latency['batch_4096_cpu_ms']:.1f} ms; "
           f"{latency['parameters']:,} parameters"]
-(OUT / "ipp1-baseline.md").write_text("\n".join(lines), encoding="utf-8")
+(OUT / "baseline.md").write_text("\n".join(lines), encoding="utf-8")
 print("\n".join(lines))

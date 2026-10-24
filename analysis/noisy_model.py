@@ -2,7 +2,7 @@
 """Natrénuje a uloží zašuměný model: model pro zašuměná měření, který predict.py spustí jen s numpy.
 (Model pro čistá měření vyrábí clean_model.py.)
 
-Zašuměný model se učí jako závěrečná fáze experimentu ipp1_noise_window.py (čísla jsou v results/ipp1-noise-window.md):
+Zašuměný model se učí jako závěrečná fáze experimentu ipp1_noise_window.py (čísla jsou v results/noise-window.md):
 základní síť z common.fit_mlp (60 epoch, semínko 0) na všech 119 vývojových výbojích. Každý řádek tam je dvakrát:
 čistý a poškozený šumem a driftem (final_evaluation.corrupt, šum 0,15 a drift 0,15 směrodatné odchylky vstupu). Vstupem sítě
 nejsou jen měření v daném okamžiku, ale měření z posledních 5 okamžiků téhož výboje (aktuální a čtyři předchozí),
@@ -10,7 +10,7 @@ což šum částečně zprůměruje. Poškozuje se PŘED sestavením oken, ať m
 
     python analysis/noisy_model.py       (asi 20 s)
 
-Uloží out/model/ipp1-noisy.npz a .json. VÁHY JSOU ODVOZENÉ Z DŮVĚRNÝCH DAT IPP: složka out/ je v .gitignore.
+Uloží out/model/noisy-model.npz a .json. VÁHY JSOU ODVOZENÉ Z DŮVĚRNÝCH DAT IPP: složka out/ je v .gitignore.
 """
 import json
 import sys
@@ -79,7 +79,7 @@ def train_and_export(table, X, noisy_X, Y, discharges, exists, development_rows,
     arrays["gen_ym"] = np.nanmean(y_train, 0).astype(np.float32)
     arrays["gen_ys"] = (np.nanstd(y_train, 0) + 1e-9).astype(np.float32)
 
-    path = MODEL_FOLDER / "ipp1-noisy.npz"
+    path = MODEL_FOLDER / "noisy-model.npz"
     np.savez(path, **arrays, input_names=np.array(input_names), output_names=np.array(F.TARGETS), output_scales=scales,
              window_rows=np.array(WINDOW), limiter_columns=np.array(F.LIMITER),
              plasma_current_column=np.array(F.TARGET_COLUMN["plasma_current"]),
@@ -106,13 +106,13 @@ def train_and_export(table, X, noisy_X, Y, discharges, exists, development_rows,
         "trained_on": f"the {len(np.unique(discharges[development_rows]))} development discharges ({len(development_rows)} rows) twice: clean, and one copy corrupted per row with "
                       f"noise {F.NOISE} and drift {F.DRIFT} of each input's SD (final_evaluation.corrupt, seed {F.AUG_SEED + 50}) before windowing; "
                       "baseline network of common.fit_mlp, 60 epochs, MSE, seed 0 (config base_aug_stack5 of ipp1_noise_window.py, locked stage)",
-        "evidence": "results/ipp1-noise-window.md: on the 30 locked discharges with the provided noisy inputs, axis MAE R 1.85 mm and Z 1.25 mm",
+        "evidence": "results/noise-window.md: on the 30 locked discharges with the provided noisy inputs, axis MAE R 1.85 mm and Z 1.25 mm",
         "numpy_check": f"median relative difference numpy vs torch on 2000 locked noisy rows, max over outputs: {worst_median_difference:.1e}",
         "confidential": "weights are derived from the confidential IPP data: for the submission package, never for git",
     }
-    (MODEL_FOLDER / "ipp1-noisy.json").write_text(json.dumps(description, indent=1) + "\n")
-    size = sum(file.stat().st_size for file in MODEL_FOLDER.glob("ipp1-noisy.*"))
-    print(f"wrote {MODEL_FOLDER}/ipp1-noisy.npz and .json (noise model, window {WINDOW} rows), "
+    (MODEL_FOLDER / "noisy-model.json").write_text(json.dumps(description, indent=1) + "\n")
+    size = sum(file.stat().st_size for file in MODEL_FOLDER.glob("noisy-model.*"))
+    print(f"wrote {MODEL_FOLDER}/noisy-model.npz and .json (noise model, window {WINDOW} rows), "
           f"{size / 1e6:.2f} MB in total, {time.time() - started:.0f} s")
 
 

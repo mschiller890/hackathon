@@ -1,6 +1,6 @@
 # Latency of the shipped model pair (review finding H1a)
 
-One sample, clean-input recipe `cand` of `analysis/final_evaluation.py`: the general network (112,784 parameters, 46 inputs, 16 outputs), the ridge for plasma_current and the limiter network (112,784 parameters), gated by the predicted `is_limited`. Random weights of the trained shapes (weights do not change the timing). Same protocol as `results/ipp1-latency.md`: 5000 calls after 300 warm-up calls (2000 and 200 for the GPU row), times in milliseconds.
+One sample, clean-input recipe `cand` of `analysis/final_evaluation.py`: the general network (112,784 parameters, 46 inputs, 16 outputs), the ridge for plasma_current and the limiter network (112,784 parameters), gated by the predicted `is_limited`. Random weights of the trained shapes (weights do not change the timing). Same protocol as `results/latency.md`: 5000 calls after 300 warm-up calls (2000 and 200 for the GPU row), times in milliseconds.
 
 CPU: Apple M5 (10 logical cores); the GPU row is the Apple GPU of the same chip through torch MPS. Load average (1, 5, 15 minutes) at the start [7.01, 6.47, 8.13], at the end [6.68, 6.42, 8.1]: below 8 in all windows, but other programs were running (not an isolated benchmark machine). The tail columns come from a general-purpose operating system without real-time guarantees: they show what happens on such a machine, they are not a worst-case bound.
 
@@ -21,10 +21,10 @@ CPU: Apple M5 (10 logical cores); the GPU row is the Apple GPU of the same chip 
 ## Reading
 
 - **The shipped pair takes about 0.03 ms per sample on one CPU core, p99 under 0.1 ms:** numpy path from the 24 raw inputs, median 0.0154 ms when the plasma is diverted (general network only) and 0.0274 ms when
-  it is limited (both networks), p99 0.057 and 0.093 ms. The baseline 24-16 network alone is 0.0145 ms (`results/ipp1-latency.md`), so the shipped pair costs about twice as much in the limited case,
+  it is limited (both networks), p99 0.057 and 0.093 ms. The baseline 24-16 network alone is 0.0145 ms (`results/latency.md`), so the shipped pair costs about twice as much in the limited case,
   not twelve times. Both are far inside the 1 to 10 ms budget; the budget statement still covers only this computation, not the acquisition of the signals.
 - The reference `predict()` of `analysis/final_evaluation.py` (torch tensors, copies on every call) needs 0.0260 ms (diverted) and 0.0544 ms (limited) in the same run, so the implementation
-  matters by a factor of 1.5 to 2; a deployed loop would use the numpy path. The figure of 0.1775 ms in `results/ipp1-improve.md` (recipe `combo_diff`, another code path, "shared loaded
+  matters by a factor of 1.5 to 2; a deployed loop would use the numpy path. The figure of 0.1775 ms in `results/improve.md` (recipe `combo_diff`, another code path, "shared loaded
   machine") was **not reproduced** by the recipe of `final_evaluation.py` here; we did not rerun that script, so we do not know which part of it was slow.
 - GPU: 0.98 ms per sample with the copies (0.93 to 1.06 over the runs), 35 to 65 times slower than the CPU numpy path for one sample; it is not an option for a single sample.
 - **The machine was not quiet.** Load average 6.4 to 7.2 (below 8, but a browser, a video editor session and other agents were running); five runs gave the numpy limited median 0.0271 to 0.0287 ms

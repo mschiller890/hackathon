@@ -28,7 +28,7 @@ import synth_equilibrium as se
 TARGETS = se.TARGET_NAMES
 UNIT = {"plasma_current": (1e-3, "kA"), "R_mag_axis": (1e3, "mm"), "Z_mag_axis": (1e3, "mm"), "elongation": (1.0, ""),
         "triangularity": (1.0, ""), "R_x_point": (1e3, "mm"), "Z_x_point": (1e3, "mm"), "is_limited": (1.0, "")}
-NOISE_FRACTION = {"coil": 0.15, "loop": 0.09}   # z rozptylu každého signálu, jako v results/ipp1-data-checks.md
+NOISE_FRACTION = {"coil": 0.15, "loop": 0.09}   # z rozptylu každého signálu, jako v results/data-checks.md
 SCENARIOS = [("clean", "clean"), ("clean", "noisy"), ("noisy", "noisy")]   # (vstupy při učení, vstupy při testu)
 RESULTS = Path(__file__).resolve().parent.parent / "results"
 
@@ -266,7 +266,7 @@ walk-through in `notebooks/10_synthetic_validation.ipynb`.
   signals: noise at that size is the dominant error source, several times the clean error.
 - **It says nothing about the real COMPASS reference labels**, about how close the reference reconstruction is to the real
   plasma, or about real probe calibration. The errors here are against an analytic truth; the 0.13 mm and 0.38 mm in
-  `ipp1-final.md` and `ipp1-baseline.md` are agreements with the institute's reconstruction. The two sets of numbers are
+  `final-evaluation.md` and `baseline.md` are agreements with the institute's reconstruction. The two sets of numbers are
   not comparable and neither is a bound on the other: the synthetic family has about seven free parameters, so the 24
   signals overdetermine it far more than they do a real plasma (see "What is NOT simulated").
 - The synthetic clean error is not zero ({table_value(long_run, clean_to_clean, 'R_mag_axis')} mm on the axis) although the family is deterministic and noise
@@ -336,7 +336,7 @@ Spread of the truth over the {meta['rows']} rows:
 - **No limiter physics and no upper X point or double null.** `limited` is only the symmetric no-X-point family.
 - **No second solver.** The finite-difference fixed-boundary Grad-Shafranov solve named as a second choice was not built;
   the analytic family was enough for the closed test and the time was spent on checking it.
-- Noise is white and independent per row, with no drift (as measured in `ipp1-data-checks.md` for the organizers' file).
+- Noise is white and independent per row, with no drift (as measured in `data-checks.md` for the organizers' file).
 
 ## Method
 
@@ -346,7 +346,7 @@ Spread of the truth over the {meta['rows']} rows:
 - Baseline: ridge regression per target on standardised inputs (the same one `common.py` uses).
 - Splits: 5-fold GroupKFold by synthetic discharge; every row is predicted once out of fold and the errors are pooled.
 - Noise: each channel gets white noise of 15 % (coils) or 9 % (flux loops) of that channel's standard deviation over all
-  rows, as `ipp1-data-checks.md` measured for the organizers' noisy file. Training noise and test noise are two different draws.
+  rows, as `data-checks.md` measured for the organizers' noisy file. Training noise and test noise are two different draws.
 - Scenarios: train clean to test clean; train clean to test noisy; train noisy to test noisy.
 - Epochs: {epochs_low} (the recipe's default) and {epochs_high}. With about {meta['rows'] * 4 // 5} training rows, 60 epochs is only about
   {60 * ((meta['rows'] * 4 // 5 + 511) // 512)} optimiser steps and the network is under-trained, so both settings are given in full. Neither was tuned further.

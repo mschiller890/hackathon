@@ -3,9 +3,9 @@
 
     HACKATHON_HOME=<složka hackathonu> python -I analysis/stability_over_time.py
 
-Potřebuje out/ipp1-predictions.csv (analysis/out_of_fold.py). Když existuje out/ipp1-predictions-noise.csv (analysis/out_of_fold_noisy.py,
+Potřebuje out/predictions.csv (analysis/out_of_fold.py). Když existuje out/predictions-noise.csv (analysis/out_of_fold_noisy.py,
 sloupce <cíl>_clean_on_noisy a <cíl>_hardened_on_noisy), spočítají se stejná čísla i pro zašuměné vstupy.
-Zapíše out/ipp1-time.{json,md,png}. Pokryty jsou všech 16 cílů.
+Zapíše out/stability-over-time.{json,md,png}. Pokryty jsou všech 16 cílů.
 
 Metriky pro každý cíl na řádcích, které jsou v čase sousední (krok pod 0,01 relativního času):
 - poměr chvění (jitter ratio): RMS změny odhadu z řádku na řádek / RMS změny skutečné hodnoty. Zůstává kolem 1, kdykoli se
@@ -31,10 +31,10 @@ from common import OUT, TARGETS, UNIT, load
 table, measurements, targets, discharges, exists = load()
 relative_time = table.time.values
 VARIANTS = {}  # název -> matice predikcí
-clean_table = pd.read_csv(OUT / "ipp1-predictions.csv")
+clean_table = pd.read_csv(OUT / "predictions.csv")
 assert np.array_equal(clean_table.discharge.values, discharges) and np.allclose(clean_table.time.values, relative_time)
 VARIANTS["clean"] = clean_table[[f"{target}_pred" for target in TARGETS]].values
-noise_file = OUT / "ipp1-predictions-noise.csv"
+noise_file = OUT / "predictions-noise.csv"
 if noise_file.exists():
     noisy_table = pd.read_csv(noise_file)
     assert np.array_equal(noisy_table.discharge.values, discharges) and np.allclose(noisy_table.time.values, relative_time)
@@ -93,7 +93,7 @@ def clean_json(value):
     return None if isinstance(value, float) and not np.isfinite(value) else value
 
 
-with open(OUT / "ipp1-time.json", "w") as json_file:
+with open(OUT / "stability-over-time.json", "w") as json_file:
     json.dump(clean_json({"variants": LABEL, "n_neighbour_pairs": int(len(previous_row)), **statistics["clean"],
                           "noisy": {name: values for name, values in statistics.items() if name != "clean"}}),
               json_file, indent=1, allow_nan=False)
@@ -141,8 +141,8 @@ if len(VARIANTS) > 1:
             lines.append(f"| {target} | {UNIT[target][1]} | " + " | ".join(format_or_na(v, ".3g") for v in statistics[kind]["mae_by_time_decile"][target])
                          + f" | {statistics[kind]['bias_share'][target]:.2f} |")
 else:
-    lines += ["", "out/ipp1-predictions-noise.csv not found: stability on noisy inputs not computed."]
-(OUT / "ipp1-time.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    lines += ["", "out/predictions-noise.csv not found: stability on noisy inputs not computed."]
+(OUT / "stability-over-time.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 # Obrázek: kde v čase model chybuje a jak vypadá chyba osy v jednom výboji.
 PLOTTED_TARGETS = ["plasma_current", "R_mag_axis", "Z_mag_axis", "elongation", "triangularity", "R_x_point", "R_strike_point_1",
@@ -175,5 +175,5 @@ for axis, target in zip(axes[1:], ("R_mag_axis", "Z_mag_axis")):
     axis.set_title(f"{target}: chyba v jednom výboji")
 axes[1].legend(fontsize=6)
 fig.tight_layout()
-fig.savefig(OUT / "ipp1-time.png")
+fig.savefig(OUT / "stability-over-time.png")
 print("\n".join(lines))

@@ -93,7 +93,7 @@ def run_command(command, env, show_command=False):
 
 def locked_discharge_ids():
     """Čísla 30 odložených výbojů, přečtená ze souboru, který je zapisuje (nezávisle na kódu učení)."""
-    lines = (HERE / "results" / "ipp1-locked-test-ids.txt").read_text().splitlines()
+    lines = (HERE / "results" / "locked-test-ids.txt").read_text().splitlines()
     ids_line = next(line for line in lines if line.startswith("locked discharge ids"))
     ids = [int(value) for value in ids_line.split(":", 1)[1].split()]
     assert len(ids) == 30, len(ids)
@@ -135,8 +135,8 @@ def compare_models_on_noisy_inputs(home):
 
     table = pd.read_csv(data_folder(home) / NOISY_CSV)
     table = table[table["discharge"].isin(locked_discharge_ids())]
-    clean_model = predict.Model(home / "out" / "model" / "ipp1-ipn.npz")
-    noise_model = predict.Model(home / "out" / "model" / "ipp1-noisy.npz")
+    clean_model = predict.Model(home / "out" / "model" / "clean-model.npz")
+    noise_model = predict.Model(home / "out" / "model" / "noisy-model.npz")
 
     measurements = table[clean_model.inputs].to_numpy()
     estimates = {
@@ -183,18 +183,18 @@ def main():
     run_command([python, "-u", "analysis/live_demo.py", "--dump-rows", "0"], env, show_command=True)
 
     print_step("4. Train the shipped models and export them "
-               "(out/model/ipp1-ipn.npz for clean inputs, out/model/ipp1-noisy.npz for noisy inputs)")
+               "(out/model/clean-model.npz for clean inputs, out/model/noisy-model.npz for noisy inputs)")
     run_command([python, "analysis/noisy_model.py"], env, show_command=True)
     run_command([python, "-u", "analysis/clean_model.py", "--live"], env, show_command=True)  # nasazený model se učí se stejným živým grafem jako demo
 
-    model_path = home / "out" / "model" / "ipp1-ipn.npz"
+    model_path = home / "out" / "model" / "clean-model.npz"
     print_step("5. First estimate with the exported model (reference reconstruction against our estimate)")
     first_estimate(home, model_path)
 
     print_step("6. Noisy inputs: the provided noisy file on the 30 set-aside discharges")
     compare_models_on_noisy_inputs(home)
 
-    noisy_model_path = model_path.with_name("ipp1-noisy.npz")
+    noisy_model_path = model_path.with_name("noisy-model.npz")
     print(f"\n{GREEN}Done.{RESET} Everything: python run.py --full. "
           f"Try the model on your own file: python predict.py input.csv --model {shlex.quote(str(model_path))}"
           f"\nNoisy measurements (needs the columns discharge and time): "

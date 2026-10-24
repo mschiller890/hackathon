@@ -2,7 +2,7 @@
 
 **Wording: "this 96x128 camera network", never "the camera".** What is measured is one small convolutional network on downscaled grey frames; it says nothing about what a camera can do. The labels are the institute's reference reconstruction.
 
-**Why.** The first camera networks of this project were small (`results/cloud-camera-main.md`: 48x64 pixels, width 16, 12 epochs, every 8th frame, one seed, no augmentation) and no occlusion test existed (REQ-B07). This run enlarges the network and tests it harder. The locked test set (`results/ipp1-locked-test-ids.txt`) is not used: only 78 of the 149 discharges have frames, and no camera number is a claim about the shipped magnetic model.
+**Why.** The first camera networks of this project were small (`results/cloud-camera-main.md`: 48x64 pixels, width 16, 12 epochs, every 8th frame, one seed, no augmentation) and no occlusion test existed (REQ-B07). This run enlarges the network and tests it harder. The locked test set (`results/locked-test-ids.txt`) is not used: only 78 of the 149 discharges have frames, and no camera number is a claim about the shipped magnetic model.
 
 ## Fixed in advance (this text was committed before the first run of `analysis/ipp1_camera_v2.py`)
 
@@ -14,7 +14,7 @@
 - **A: bigger.** Width 32, 20 epochs, no augmentation.
 - **B: A plus training augmentation.** Per training sample a random shift of up to 2 pixels (each axis, uniform) and a random rotation of up to 2 degrees about the centre, border padding. Otherwise as A.
 - **C: robustness (REQ-B05).** The networks of A and B tested on the test frames moved by 1 pixel (right, left, down, up) and rotated by 1 degree (both directions), unmoved test as the reference. Reported: MAE moved / MAE unmoved per target (mean over the six moves), for B (the asked case) and A (for contrast).
-- **D: occlusion map (REQ-B07).** With the B network: a patch of 16x16 pixels filled with the mean grey level of the training frames is slid over the test frame on a grid of 6 x 8 positions (steps of 16 pixels); for each position the rise of the mean absolute error (mean over the test frames that have the target, in the unit of the target) against the unoccluded frame, for `R_mag_axis`, `Z_mag_axis`, `elongation` and `R_strike_point_1`, mean over the 5 folds. Saved as `results/ipp1-camera-v2-occlusion.png`: aggregate heat maps only, no frame is shown.
+- **D: occlusion map (REQ-B07).** With the B network: a patch of 16x16 pixels filled with the mean grey level of the training frames is slid over the test frame on a grid of 6 x 8 positions (steps of 16 pixels); for each position the rise of the mean absolute error (mean over the test frames that have the target, in the unit of the target) against the unoccluded frame, for `R_mag_axis`, `Z_mag_axis`, `elongation` and `R_strike_point_1`, mean over the 5 folds. Saved as `results/camera-v2-occlusion.png`: aggregate heat maps only, no frame is shown.
 
 **Reported.** Per target the MAE (mm, kA, dimensionless) and the nRMSE (RMSE divided by the SD of the target), mean over the folds, for A and B next to (1) the old small network (grey, `results/cloud-camera-main.md`: 48x64, width 16, 12 epochs, stride 8, seed 0) and (2) the magnetic baseline on the same frames and folds: the masked MLP of `common.fit_mlp` (60 epochs) on the 24 magnetic inputs interpolated to the frame times, trained on the same training frames and scored on the same test frames; the cloud's own magnetic number (`results/cloud-camera-multimodal.md`, trained on every 8th frame) is quoted next to it. Seed spread: a second seed (fold seed + 10) for A only, if time allows.
 
@@ -71,7 +71,7 @@ Ratio = MAE with the moved test frame / MAE with the unmoved test frame, mean ov
 
 ## D. Occlusion map (REQ-B07)
 
-`results/ipp1-camera-v2-occlusion.png`: for every position of a 16x16 px grey patch (grid of 6 x 8, steps of 16 px) the rise of the mean absolute error of the B network over the unoccluded frame, aggregate over the test frames and the 5 folds; no frame is shown.
+`results/camera-v2-occlusion.png`: for every position of a 16x16 px grey patch (grid of 6 x 8, steps of 16 px) the rise of the mean absolute error of the B network over the unoccluded frame, aggregate over the test frames and the 5 folds; no frame is shown.
 
 | target | unit | error unoccluded | largest rise | at patch (row, column in px) | median rise over the grid | patches with a rise above half of the largest |
 |---|---|---:|---:|---|---:|---:|

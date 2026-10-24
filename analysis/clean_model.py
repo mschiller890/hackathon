@@ -5,7 +5,7 @@ Proč dělit proudem: pole cívek je úměrné proudům, takže tvar plazmatu z�
 plazmatem, ne na jejich velikosti. Proud známe ze vstupu samotného (ridge regrese ze 24 měření, chyba 0,03 kA),
 takže každé měření vydělíme jeho odhadem (i se znaménkem, aby obrácená polarita dopadla stejně) a samotný proud
 přidáme jako další vstup. Na 119 vývojových výbojích (5 dílů po výbojích, jedno semínko) to zmenšilo střední
-relativní chybu přes 16 výstupů z 0,0954 na 0,0447 (viz results/ipp1-ipn.md).
+relativní chybu přes 16 výstupů z 0,0954 na 0,0447 (viz results/clean-model.md).
 
 Vstupy sítí (67 sloupců při --feat diff2): 24 vydělených měření, 22 rozdílů sousedních cívek a smyček,
 20 druhých diferencí a proud / 1e5.
@@ -20,7 +20,7 @@ Dvě sítě:
 Ztráta: Huberova s delta 0,2 na standardizovaných cílech, počítaná jen tam, kde cíl existuje. AdamW, jeden cyklus
 učicí rychlosti, 150 epoch, dávky po 512 řádcích.
 
-    python analysis/clean_model.py [--feat diff2] [--epochs 150] [--all] [--live]    uloží out/model/ipp1-ipn.npz a .json
+    python analysis/clean_model.py [--feat diff2] [--epochs 150] [--all] [--live]    uloží out/model/clean-model.npz a .json
 
 Bez --all (tak to volá run.py) se učí jen na 119 vývojových výbojích: to je soubor, který se nasazuje, a model
 za všemi čísly na 30 odložených výbojích. S --all se učí na všech 149 výbojích (i odložených); do balíčku se nedává.
@@ -201,7 +201,7 @@ def main():
     parser.add_argument("--epochs", type=int, default=150)
     parser.add_argument("--all", action="store_true", help="učit na všech 149 výbojích místo 119 vývojových")
     parser.add_argument("--threads", type=int, default=4)
-    parser.add_argument("--out", default="ipp1-ipn", help="název výstupního souboru bez přípony")
+    parser.add_argument("--out", default="clean-model", help="název výstupního souboru bez přípony")
     parser.add_argument("--live", action="store_true",
                         help="ukazovat učení živým grafem jako demo: ztráta a chyba osy na 30 odložených výbojích po každé epoše "
                              "(jen se měří, nikdy se na nich neučí)")

@@ -27,7 +27,7 @@ TARGET_COLUMNS = [name for name in clean.columns if name not in INPUTS + ROW_KEY
 MAIN_TARGETS = ["plasma_current", "R_mag_axis", "Z_mag_axis", "elongation", "triangularity", "triangularity_upper",
                 "triangularity_lower", "R_x_point", "Z_x_point", "R_strike_point_1", "Z_strike_point_1",
                 "R_strike_point_2", "Z_strike_point_2", "R_limiter", "Z_limiter"]
-facts = {}  # všechna zjištění, uloží se do ipp1-eda.json
+facts = {}  # všechna zjištění, uloží se do eda.json
 
 # Rozměry a časování dat.
 facts["shape"] = list(clean.shape)
@@ -79,7 +79,7 @@ facts["negative_current_share"] = float((clean.plasma_current < 0).mean())
 # Jak jsou si tvary podobné (zadání upozorňuje na korelované parametry).
 correlations = clean[["elongation", "triangularity", "R_mag_axis", "Z_mag_axis", "plasma_current", "a"]].corr().round(2)
 facts["target_correlations"] = correlations.to_dict()
-json.dump(facts, open(OUT / "ipp1-eda.json", "w"), indent=1, default=float)
+json.dump(facts, open(OUT / "eda.json", "w"), indent=1, default=float)
 
 # Obrázky.
 plt.rcParams.update({"figure.dpi": 140, "axes.spines.top": False, "axes.spines.right": False, "font.size": 8})
@@ -90,7 +90,7 @@ for axis, name in zip(axes.ravel(), ["plasma_current", "R_mag_axis", "Z_mag_axis
     axis.set_title(name)
 fig.suptitle("Rozdělení hlavních cílových veličin (data jsou nerovnoměrná)")
 fig.tight_layout()
-fig.savefig(OUT / "fig-ipp1-targets.png")
+fig.savefig(OUT / "fig-targets.png")
 plt.close(fig)
 
 example_discharge = clean[clean.discharge == clean.discharge.unique()[10]].sort_values("time")
@@ -102,7 +102,7 @@ for axis, name in zip(axes.ravel(), ["plasma_current", "elongation", "R_mag_axis
     axis.set_title(name)
 fig.suptitle("Jeden výboj v čase (modře: plazma se dotýká limiteru)")
 fig.tight_layout()
-fig.savefig(OUT / "fig-ipp1-discharge.png")
+fig.savefig(OUT / "fig-discharge.png")
 plt.close(fig)
 
 fig, axes = plt.subplots(1, 3, figsize=(11, 3.2))
@@ -115,7 +115,7 @@ axes[2].scatter(clean.sample(4000, random_state=0).elongation, clean.sample(4000
                 s=3, alpha=0.4, color="#5b7cff")
 axes[2].set_title("Elongace a triangularita: shluk podobných tvarů")
 fig.tight_layout()
-fig.savefig(OUT / "fig-ipp1-structure.png")
+fig.savefig(OUT / "fig-structure.png")
 plt.close(fig)
 
 print(json.dumps({key: facts[key] for key in ["shape", "n_inputs", "n_targets", "discharges", "rows_per_discharge", "time_range",

@@ -28,11 +28,11 @@ Limiter by side on its own (previous model): Z limiter MAE 11.6 -> 6.2 mm, rows 
 
 Accuracy = 100 x (1 - nRMSE). The side network alone was the worst of the four in the total; the mean of the two is the best. Chosen on the development set.
 
-## Locked test (30 discharges, 8,761 rows), model trained on the 119 development discharges, `python analysis/error_in_mm.py --model out/model/ipp1-ipn.npz --set locked`
+## Locked test (30 discharges, 8,761 rows), model trained on the 119 development discharges, `python analysis/error_in_mm.py --model out/model/clean-model.npz --set locked`
 
-Scored once for this recipe, after the recipe was fixed on the development set. These discharges had already been scored for earlier recipes (`ipp1-final.md`), so this is not a fresh test set.
+Scored once for this recipe, after the recipe was fixed on the development set. These discharges had already been scored for earlier recipes (`final-evaluation.md`), so this is not a fresh test set.
 
-| output | MAE, `cand` (ipp1-final.md) | MAE, this model | share under 1 mm |
+| output | MAE, `cand` (final-evaluation.md) | MAE, this model | share under 1 mm |
 |---|---:|---:|---:|
 | R axis | 0.133 mm | 0.0562 mm | 99.93 % |
 | Z axis | 0.172 mm | 0.0647 mm | 99.71 % |
@@ -45,6 +45,6 @@ Scored once for this recipe, after the recipe was fixed on the development set. 
 | mean nRMSE (16), "overall accuracy" 100 x (1 - nRMSE) | 0.0588 (94.12 %, with the axis network) | 0.0417 (95.83 %) | |
 
 The tails of the limiter point are about as before: the worst single rows are 352 mm (R) and 439 mm (Z), the old ones 357 and 485 mm; about 2 % of the limited rows are off by more than 32 mm. Not tested here: the noisy inputs (the estimate of the current
-is noisy, and the division enlarges that at small currents); the noise model of `ipp1-noise-window.md` is unchanged.
+is noisy, and the division enlarges that at small currents); the noise model of `noise-window.md` is unchanged.
 
 Re-training is not bit for bit repeatable (threads): the limiter network of two exports gave 95.81 and 95.83 % overall; the axis and the other outputs came out the same to the printed digits.

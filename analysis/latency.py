@@ -5,7 +5,7 @@ natrénované architektury.
     HACKATHON_HOME=<složka hackathonu> python -I analysis/latency.py
     HACKATHON_HOME=<složka hackathonu> python -I analysis/latency.py --shipped    # nasazená dvojice z final_evaluation.py
 
-Zapíše out/ipp1-latency.{json,md}. Markdown uvádí procesor a zátěž (load average) během běhu: chvost (p99,9, max) naměřený
+Zapíše out/latency.{json,md}. Markdown uvádí procesor a zátěž (load average) během běhu: chvost (p99,9, max) naměřený
 na vytíženém stroji nebo v operačním systému bez záruk reálného času není mez. Pro čistý údaj spusťte, když `uptime`
 ukazuje load average pod 8.
 """
@@ -64,7 +64,7 @@ def measure_shipped_pair():
 
     Dvojice je obecná síť (24 vstupů + 22 rozdílů sousedních cívek = 46 vstupů), ridge pro plasma_current a síť naučená na
     limiterových řádcích, která odpovídá R_limiter a Z_limiter, když obecná síť předpoví is_limited > 0,5. Váhy dobu nemění,
-    měří se náhodné váhy natrénovaných tvarů. Zapíše out/ipp1-latency-shipped.json a results/ipp1-latency-shipped.md.
+    měří se náhodné váhy natrénovaných tvarů. Zapíše out/latency-shipped.json a results/latency-shipped.md.
     """
     from common import REPO, TARGETS
     os.environ["IPP1_FINAL_SMOKE"] = "1"   # final_evaluation učí každou síť jednu epochu: zajímá nás jen doba predict()
@@ -129,13 +129,13 @@ def measure_shipped_pair():
         with torch.no_grad():
             result["mps_end_to_end_limited_with_transfers"] = time_calls(gpu_limited_with_transfers, n_calls=2000, n_warmup=200)
     result["load_average_end"] = [round(v, 2) for v in os.getloadavg()]
-    with open(OUT / "ipp1-latency-shipped.json", "w") as json_file:
+    with open(OUT / "latency-shipped.json", "w") as json_file:
         json.dump(result, json_file, indent=1, allow_nan=False)
     busy = max(result["load_average_start"][0], result["load_average_end"][0], result["load_average_end"][1]) >= 8
     lines = ["# Latency of the shipped model pair (review finding H1a)", "",
              f"One sample, clean-input recipe `cand` of `analysis/final_evaluation.py`: the general network ({result['parameters_general']:,} parameters, 46 inputs, 16 outputs), the ridge for plasma_current "
              f"and the limiter network ({result['parameters_limiter']:,} parameters), gated by the predicted `is_limited`. Random weights of the trained shapes (weights do not change the timing). "
-             "Same protocol as `results/ipp1-latency.md`: 5000 calls after 300 warm-up calls (2000 and 200 for the GPU row), times in milliseconds.", "",
+             "Same protocol as `results/latency.md`: 5000 calls after 300 warm-up calls (2000 and 200 for the GPU row), times in milliseconds.", "",
              f"CPU: {result['cpu']} ({result['cores']} logical cores); the GPU row is the Apple GPU of the same chip through torch MPS. Load average (1, 5, 15 minutes) at the start "
              f"{result['load_average_start']}, at the end {result['load_average_end']}: "
              + ("the machine was busy (a load of 8 or more), so the medians are somewhat pessimistic and the tails are pessimistic: not a clean benchmark. "
@@ -152,7 +152,7 @@ def measure_shipped_pair():
               "The `torch_*` rows time the networks only. **Included:** everything from the 24 raw numbers to the 16 outputs of the shipped pair, on one CPU core (numpy) or the GPU with its copies. "
               "**Not included:** collecting and integrating the coil signals, the noise-trained model needed for noisy inputs, the camera, and the accuracy of random weights (this is timing only)."]
     text = "\n".join(lines) + "\n"
-    report_file = REPO / "results/ipp1-latency-shipped.md"
+    report_file = REPO / "results/latency-shipped.md"
     if report_file.exists() and "\n## Reading" in report_file.read_text(encoding="utf-8"):   # ručně psaný komentář „Reading“ se zachová
         text += "\n## Reading" + report_file.read_text(encoding="utf-8").split("\n## Reading", 1)[1]
     report_file.write_text(text, encoding="utf-8")
@@ -223,7 +223,7 @@ with torch.no_grad():
             torch.mps.synchronize()
         result["mps_batch_4096"] = time_calls(gpu_batch, n_calls=300, n_warmup=50)
 result["load_average_end"] = [round(v, 2) for v in os.getloadavg()]
-with open(OUT / "ipp1-latency.json", "w") as json_file:
+with open(OUT / "latency.json", "w") as json_file:
     json.dump(result, json_file, indent=1, allow_nan=False)
 
 loaded = max(result["load_average_start"][0], result["load_average_end"][0], result["load_average_end"][1]) >= 8
@@ -244,5 +244,5 @@ lines += ["", "cpu_end_to_end_numpy and mps_single_sample_with_transfers include
           "from the GPU (the GPU row) and the de-standardisation of the outputs, which any real loop needs; the other single-sample "
           "rows time the network only. What these numbers do not cover: collecting and integrating the coil signals, and the "
           "accuracy on really noisy signals (see the robustness results)."]
-(OUT / "ipp1-latency.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+(OUT / "latency.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 print("\n".join(lines))

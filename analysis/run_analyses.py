@@ -25,29 +25,29 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 
 # (skript, výstupy, které čtou další kroky nebo notebooky, doba na noteboocích s Ryzen 5 7535HS, pá 23. října).
-# stability_over_time.py potřebuje predikce z out_of_fold.py a řádky se zašuměnými vstupy do results/ipp1-time.md přidá,
+# stability_over_time.py potřebuje predikce z out_of_fold.py a řádky se zašuměnými vstupy do results/stability-over-time.md přidá,
 # jen když předtím proběhl out_of_fold_noisy.py.
 STEPS = [
-    ("explore_data.py", ["ipp1-eda.json"], "2 s"),
-    ("baseline_models.py", ["ipp1-baseline.json"], "1 min"),
-    ("out_of_fold.py", ["ipp1-predictions.csv"], "45 s"),
-    ("out_of_fold_noisy.py", ["ipp1-predictions-noise.csv"], "1.5 min"),
-    ("stability_over_time.py", ["ipp1-time.json"], "3 s"),
-    ("input_importance.py", ["ipp1-inputs.json"], "about 1 h"),
-    ("latency.py", ["ipp1-latency.json"], "10 s"),
+    ("explore_data.py", ["eda.json"], "2 s"),
+    ("baseline_models.py", ["baseline.json"], "1 min"),
+    ("out_of_fold.py", ["predictions.csv"], "45 s"),
+    ("out_of_fold_noisy.py", ["predictions-noise.csv"], "1.5 min"),
+    ("stability_over_time.py", ["stability-over-time.json"], "3 s"),
+    ("input_importance.py", ["input-importance.json"], "about 1 h"),
+    ("latency.py", ["latency.json"], "10 s"),
 ]
-# Notebook 09 čte predikce, které final_evaluation.py ukládá do out/ipp1-final-cache/: recepty `base`, `cand` a `base_aug` (model pro zašuměné
+# Notebook 09 čte predikce, které final_evaluation.py ukládá do out/final-evaluation-cache/: recepty `base`, `cand` a `base_aug` (model pro zašuměné
 # vstupy) na 30 odložených výbojích, na blokovém dělení a na 5 vývojových foldech, dohromady 21 sítí. Každá je jedna úloha (celkem 295 s na Apple M5, nejdelší 32 s);
-# `--report` se tu nespouští, protože přepisuje uložený results/ipp1-final.md.
+# `--report` se tu nespouští, protože přepisuje uložený results/final-evaluation.md.
 FINAL_JOBS = ([f"locked:{r}" for r in ("base", "cand", "base_aug")] + [f"blocked:{r}" for r in ("base", "cand", "base_aug")]
               + [f"cv:{r}:{k}" for r in ("base", "cand", "base_aug") for k in range(5)])
-STEPS += [(f"final_evaluation.py --job {j}", [f"ipp1-final-cache/{j.replace(':', '_')}.npz"], "5 min in total") for j in FINAL_JOBS]
-STEPS.append(("noisy_model.py", ["model/ipp1-noisy.npz"], "20 s"))   # zašuměný model pro predict.py; učí se na 119 vývojových výbojích
-STEPS.append(("clean_model.py", ["model/ipp1-ipn.npz"], "40 s"))   # nasazený model pro čistá měření (čte ho notebook 09)
+STEPS += [(f"final_evaluation.py --job {j}", [f"final-evaluation-cache/{j.replace(':', '_')}.npz"], "5 min in total") for j in FINAL_JOBS]
+STEPS.append(("noisy_model.py", ["model/noisy-model.npz"], "20 s"))   # zašuměný model pro predict.py; učí se na 119 vývojových výbojích
+STEPS.append(("clean_model.py", ["model/clean-model.npz"], "40 s"))   # nasazený model pro čistá měření (čte ho notebook 09)
 SLOW = {"input_importance.py"}  # přes 10 minut: --quick místo toho zkopíruje results/<výstup>
 # Spuštění notebooků po tom trvá asi 2 minuty.
 VIEWER_STEPS = [
-    ("analysis/ipp1_oof_full.py", ["ipp1-predictions-full.csv"]),  # potřebuje ipp1-predictions-noise.csv z STEPS
+    ("analysis/ipp1_oof_full.py", ["predictions-full.csv"]),  # potřebuje predictions-noise.csv z STEPS
     ("analysis/export_viewer_data.py", []),                          # zapisuje viewer/data.js, ne do out/
     ("viewer/build.py", []),                                         # zapisuje viewer/dist/index.html
 ]

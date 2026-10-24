@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 """Odchylky modelu od rekonstrukce ústavu v milimetrech (IPP, úloha 1).
 
-    python analysis/error_in_mm.py [--model out/model/ipp1-ipn.npz] [--set locked|dev|all] [--noisy] [--csv SOUBOR] [--json VÝSTUP]
+    python analysis/error_in_mm.py [--model out/model/clean-model.npz] [--set locked|dev|all] [--noisy] [--csv SOUBOR] [--json VÝSTUP]
 
 Data: ve výchozím stavu equil_data.csv (s --noisy equil_data_noisy.csv) ze složky data/ repozitáře nebo z $HACKATHON_HOME.
 --csv vezme libovolný soubor s 24 vstupy IPR01..IPR16 a FL01..FL08, sloupcem `discharge`, volitelně `time` a libovolnými
 cílovými sloupci; veličiny, jejichž sloupec chybí, se přeskočí.
-Sady: `locked` = 30 výbojů ze souboru results/ipp1-locked-test-ids.txt (tatáž sada jako v results/ipp1-final.md),
+Sady: `locked` = 30 výbojů ze souboru results/locked-test-ids.txt (tatáž sada jako v results/final-evaluation.md),
 `dev` = všechny ostatní, `all` = všechny. Výchozí je `locked` pro data ústavu a `all` pro --csv.
 
 Odhady počítá predict.Model z kořene repozitáře, tedy tentýž numpy kód, který pouští porota. Každá veličina se hodnotí
 na řádcích, kde pro ni rekonstrukce hodnotu má (bod X a dotykové body jen na divertorových řádcích, bod limiteru jen
-na limiterových, ať si model o konfiguraci myslí cokoli), stejně jako v results/ipp1-final.md. 95% intervaly jsou
+na limiterových, ať si model o konfiguraci myslí cokoli), stejně jako v results/final-evaluation.md. 95% intervaly jsou
 bootstrap po výbojích: celé výboje se 1000krát losují s vracením (numpy RandomState(20261025), tytéž tahy jako
 final_evaluation.bootstrap). Výstup popisuje řádky jen číslem výboje a relativním časem, žádná vstupní hodnota se nevypisuje.
 """
@@ -29,7 +29,7 @@ sys.path.insert(0, str(REPO))  # predict.py v kořeni repozitáře (kopie pro po
 from predict import Model
 
 NESTED_DATA = Path("data/raw/ipp1-magnetic/uloha_1-magneticka_data")  # původní struktura z archivu
-LOCKED_IDS_FILE = REPO / "results/ipp1-locked-test-ids.txt"
+LOCKED_IDS_FILE = REPO / "results/locked-test-ids.txt"
 INPUTS = [f"IPR{i:02d}" for i in range(1, 17)] + [f"FL{i:02d}" for i in range(1, 9)]
 TARGETS = ["plasma_current", "R_mag_axis", "Z_mag_axis", "elongation", "triangularity", "triangularity_upper", "triangularity_lower",
            "R_x_point", "Z_x_point", "R_strike_point_1", "Z_strike_point_1", "R_strike_point_2", "Z_strike_point_2",
@@ -55,9 +55,9 @@ def fail(message):
 # Vstupy: model, data, výběr sady výbojů
 # ===================================================================================================================
 def default_model():
-    """Výchozí model: out/model/ipp1-ipn.npz v $HACKATHON_HOME, v repozitáři, vedle něj, nebo v model/."""
+    """Výchozí model: out/model/clean-model.npz v $HACKATHON_HOME, v repozitáři, vedle něj, nebo v model/."""
     homes = [Path(os.environ["HACKATHON_HOME"])] if os.environ.get("HACKATHON_HOME") else []
-    candidates = [home / "out/model/ipp1-ipn.npz" for home in homes + [REPO, REPO.parent]] + [REPO / "model/ipp1-ipn.npz"]
+    candidates = [home / "out/model/clean-model.npz" for home in homes + [REPO, REPO.parent]] + [REPO / "model/clean-model.npz"]
     return next((path for path in candidates if path.exists()), candidates[0])
 
 
@@ -131,7 +131,7 @@ def describe(absolute_deviations):
 
 def bootstrap_draws(n_discharges):
     """Kolikrát se každý výboj dostal do každého z N_BOOTSTRAP vzorků. Stejný generátor a pořadí tahů jako
-    final_evaluation.bootstrap, takže na téže sadě sedí intervaly středních chyb s results/ipp1-final.md."""
+    final_evaluation.bootstrap, takže na téže sadě sedí intervaly středních chyb s results/final-evaluation.md."""
     rng = np.random.RandomState(BOOTSTRAP_SEED)
     draws = [np.bincount(rng.randint(0, n_discharges, n_discharges), minlength=n_discharges) for _ in range(N_BOOTSTRAP)]
     return np.stack(draws).astype(np.float64)
@@ -295,7 +295,7 @@ def render(result, header_lines):
 # ===================================================================================================================
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--model", help="exportovaný model .npz (výchozí: out/model/ipp1-ipn.npz v $HACKATHON_HOME nebo v repozitáři)")
+    parser.add_argument("--model", help="exportovaný model .npz (výchozí: out/model/clean-model.npz v $HACKATHON_HOME nebo v repozitáři)")
     parser.add_argument("--set", choices=("locked", "dev", "all"),
                         help="které výboje (výchozí: locked pro data ústavu, all pro --csv)")
     parser.add_argument("--noisy", action="store_true", help="zašuměný soubor equil_data_noisy.csv místo equil_data.csv")

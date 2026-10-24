@@ -1,6 +1,6 @@
 # Which inputs matter: a retraining ranking (REQ-004)
 
-Computed on the 119 development discharges only (34,211 rows); the 30 locked test discharges of `analysis/final_evaluation.py` are removed before anything is fitted. Inside the development set, 5-fold GroupKFold by whole discharge. Summary error = mean relative error (RMSE / spread) over the 13 targets of `input_importance.SUMMARY` (no limiter point, no is_limited), so it is comparable with `results/ipp1-inputs.md`. All-24 baseline: 0.0741.
+Computed on the 119 development discharges only (34,211 rows); the 30 locked test discharges of `analysis/final_evaluation.py` are removed before anything is fitted. Inside the development set, 5-fold GroupKFold by whole discharge. Summary error = mean relative error (RMSE / spread) over the 13 targets of `input_importance.SUMMARY` (no limiter point, no is_limited), so it is comparable with `results/input-importance.md`. All-24 baseline: 0.0741.
 
 **Read the noise first.** Refitting the same all-24 baseline with 3 seeds per fold moves the summary error by 4.5% on average (per fold: 7.2%, 2.6%, 4.9%, 4.2%, 3.8%). The review measured 8 to 19 % seed noise and said to treat smaller effects as unresolved. Dropping one of 24 collinear inputs is mostly a smaller effect than that, which is the honest headline of this file: **no single magnetic input is individually necessary.** The ranking below is therefore an order of magnitude statement, not a league table.
 
@@ -113,8 +113,8 @@ Published permutation order, for reference (most important first): IPR14, IPR01,
 
 ## What to say about REQ-004
 
-- The defensible claim is about the NUMBER of inputs, not which ones: the retrained subset curves in `results/ipp1-inputs-controls.md` are the evidence, and this file adds that no individual input carries a loss above the 4.5% seed noise when the other 23 remain.
-- The two sensor families do differ, and that result is outside the noise: IPR coils only 0.066 against flux loops only 0.285, 4.3 times worse (`results/ipp1-inputs.md`). Group-level statements survive; single-sensor statements do not.
+- The defensible claim is about the NUMBER of inputs, not which ones: the retrained subset curves in `results/input-importance-controls.md` are the evidence, and this file adds that no individual input carries a loss above the 4.5% seed noise when the other 23 remain.
+- The two sensor families do differ, and that result is outside the noise: IPR coils only 0.066 against flux loops only 0.285, 4.3 times worse (`results/input-importance.md`). Group-level statements survive; single-sensor statements do not.
 - Do not present any of these three orders as 'the important sensors' on a slide. Say 'no single sensor is individually necessary; the coil family carries most of the signal'.
 
 Runtime 9.1 min, 5 folds x (24 drop-column + 3 baseline) network refits plus 5 deterministic elimination paths, 2 torch threads.

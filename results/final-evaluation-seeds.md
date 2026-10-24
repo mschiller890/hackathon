@@ -1,6 +1,6 @@
 # IPP 1: seed noise of the final comparison (locked test set)
 
-Baseline MLP against the plain candidate (differences, Huber, 150 epochs, ridge for plasma current, gated limiter network), clean inputs, 5 seeds each (0, 1, 2, 3, 4; seed 0 is the model of `results/ipp1-final.md`). Recipes, split and metrics are those of `analysis/final_evaluation.py` unchanged; every model is trained on the 119 development discharges and scored on the 30 locked discharges, nothing was tuned after seeing them. Pooled MAE over the locked rows (mm, plasma current in kA); mean and standard deviation (n-1) over seeds. Aggregate numbers only.
+Baseline MLP against the plain candidate (differences, Huber, 150 epochs, ridge for plasma current, gated limiter network), clean inputs, 5 seeds each (0, 1, 2, 3, 4; seed 0 is the model of `results/final-evaluation.md`). Recipes, split and metrics are those of `analysis/final_evaluation.py` unchanged; every model is trained on the 119 development discharges and scored on the 30 locked discharges, nothing was tuned after seeing them. Pooled MAE over the locked rows (mm, plasma current in kA); mean and standard deviation (n-1) over seeds. Aggregate numbers only.
 
 | target | baseline mean (SD) | candidate mean (SD) | ratio of means | paired ratio per seed, min to max | candidate better in | worst candidate seed against best baseline seed |
 |---|---:|---:|---:|---:|---:|---:|
@@ -29,7 +29,7 @@ Per seed pooled MAE (baseline / candidate):
 ## Reading
 
 - **The ordering holds in every seed for all seven targets**, both for the same seed (paired, 5 of 5) and for any pair of seeds (worst candidate seed against
-  best baseline seed is below 1 everywhere). Seed 0 reproduces the numbers of `results/ipp1-final.md` exactly.
+  best baseline seed is below 1 everywhere). Seed 0 reproduces the numbers of `results/final-evaluation.md` exactly.
 - Seed noise (SD over mean) is 3 to 11 % for the baseline and 5 to 13 % for the candidate; the gains for the axis, the strike point and the limiter point
   are 42 to 60 % (ratio of means 0.40 to 0.58), several times the seed noise, and far larger for the plasma current.
 - **R_x_point is the weak one**: mean gain 21 % (0.141 to 0.111 mm), the paired ratio reaches 0.96 in the closest seed, and the worst candidate seed is only 3 %
@@ -37,4 +37,4 @@ Per seed pooled MAE (baseline / candidate):
 - The candidate's plasma current error is 0.0347 kA in every seed with SD 0 because that column comes from a ridge regression, which has no seed. It is not a
   sign of a very stable network; the ridge is a linear fit on the 24 inputs and is about 30 times better than the network for this target.
 - Not covered: five seeds give a rough SD only; seed noise does not include the choice of the 30 locked discharges (see the bootstrap intervals in
-  `results/ipp1-final.md`); noisy inputs and the augmented recipes were not rerun.
+  `results/final-evaluation.md`); noisy inputs and the augmented recipes were not rerun.

@@ -6,7 +6,7 @@
 V každém foldu se obě sítě učí jen na učicích výbojích a odhadují odložené výboje ze souboru equil_data_noisy.csv.
 „Zocelená“ znamená, že učicí sada obsahuje čisté řádky plus jednu poškozenou kopii (gaussovský šum a lineární drift
 s náhodným sklonem pro každý výboj a cívku, amplitudy 0,15 rozptylu každého vstupu), což se osvědčilo.
-Zapíše out/ipp1-predictions-noise.csv (sloupce <cíl>_clean_on_noisy a <cíl>_hardened_on_noisy) a vypíše chyby.
+Zapíše out/predictions-noise.csv (sloupce <cíl>_clean_on_noisy a <cíl>_hardened_on_noisy) a vypíše chyby.
 """
 import argparse
 import sys
@@ -50,8 +50,8 @@ for name, model_predictions in predictions.items():
     for column, target in enumerate(TARGETS):
         result[f"{target}_{name}_on_noisy"] = model_predictions[:, column]
 OUT.mkdir(exist_ok=True)
-result.to_csv(OUT / "ipp1-predictions-noise.csv", index=False, float_format="%.6g")
-print(f"wrote {OUT / 'ipp1-predictions-noise.csv'}: {len(result)} rows")
+result.to_csv(OUT / "predictions-noise.csv", index=False, float_format="%.6g")
+print(f"wrote {OUT / 'predictions-noise.csv'}: {len(result)} rows")
 for name, model_predictions in predictions.items():
     scores = score(model_predictions, targets, exists)
     print(name, " | ".join(f"{target} {scores[target]['mae']:.3g} {scores[target]['unit']}" for target in

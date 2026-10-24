@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Odhad tvaru plazmatu z 24 magnetických měření nasazeným modelem. Jen numpy: žádný torch, scikit-learn ani pandas.
 
-    python predict.py vstup.csv [--model out/model/ipp1-ipn.npz] [--out odhady.csv] [--all]
-    python predict.py vstup.csv --noisy [--out odhady.csv] [--all]     zašuměná měření: model ipp1-noisy.npz
+    python predict.py vstup.csv [--model out/model/clean-model.npz] [--out odhady.csv] [--all]
+    python predict.py vstup.csv --noisy [--out odhady.csv] [--all]     zašuměná měření: model noisy-model.npz
 
 Vstup: CSV se záhlavím a jedním řádkem na časový okamžik, se sloupci IPR01..IPR16 (cívky) a FL01..FL08 (smyčky)
 v libovolném pořadí a v jednotkách datového souboru. Další sloupce (např. `discharge` a `time`) se předají do výstupu.
@@ -11,7 +11,7 @@ Výchozí model (čistá měření) počítá každý řádek zvlášť, na poř
 jsou rozdíly SOUSEDNÍCH CÍVEK uvnitř jednoho řádku (IPR02-IPR01 ... FL08-FL07), ne rozdíly mezi časy.
 
 --noisy použije druhý model, učený na čistých řádcích plus kopii s přidaným šumem a driftem (analysis/noisy_model.py,
-results/ipp1-noise-window.md). Ten NEPOČÍTÁ po řádcích: každý odhad vidí měření z posledních 5 okamžiků téhož výboje
+results/noise-window.md). Ten NEPOČÍTÁ po řádcích: každý odhad vidí měření z posledních 5 okamžiků téhož výboje
 (řádky t, t-1 ... t-4 podle `time`; u prvních řádků výboje se opakuje první řádek; nikdy se nepoužije pozdější řádek).
 Soubor proto musí mít sloupce `discharge` a `time`. Řádky smějí přijít v libovolném pořadí, výstup zachová pořadí vstupu.
 Okno počítá řádky, takže soubor musí mít stejný krok vzorkování jako trénovací data.
@@ -19,7 +19,7 @@ Okno počítá řádky, takže soubor musí mít stejný krok vzorkování jako 
 Výstup, jeden řádek na řádek vstupu: 16 odhadnutých hodnot v mm a kA (tvarová čísla a pravděpodobnost limiterové
 konfigurace bez jednotky) a `is_limited_flag` (1 = limiterové plazma). Bod X a dotykové body existují jen v divertorové
 konfiguraci a bod limiteru jen v limiterové, proto se buňky, které se na daný řádek nevztahují, nechávají prázdné;
-s `--all` se vypíše všech 16 čísel u každého řádku. Hodnoty jsou odhady rekonstrukce ústavu (`results/ipp1-final.md`),
+s `--all` se vypíše všech 16 čísel u každého řádku. Hodnoty jsou odhady rekonstrukce ústavu (`results/final-evaluation.md`),
 ne měření plazmatu.
 
 Na konci se vypíše doba na jeden řádek: pro celý soubor najednou a po jednom řádku (medián, jedno jádro procesoru).
@@ -42,8 +42,8 @@ def find_model_file(name):
     return next((path for path in candidates if path.exists()), REPO_ROOT / "model" / name)
 
 
-DEFAULT_MODEL = find_model_file("ipp1-ipn.npz")
-DEFAULT_NOISY = find_model_file("ipp1-noisy.npz")
+DEFAULT_MODEL = find_model_file("clean-model.npz")
+DEFAULT_NOISY = find_model_file("noisy-model.npz")
 
 # Veličiny, které existují jen v jedné konfiguraci: v druhé se v souboru s odhady nechávají prázdné.
 DIVERTOR_ONLY = ("R_x_point", "Z_x_point", "R_strike_point_1", "Z_strike_point_1", "R_strike_point_2", "Z_strike_point_2")
@@ -82,8 +82,8 @@ def window_rows(discharge, time, size):
 class Model:
     """Natrénovaný model načtený ze souboru .npz.
 
-    Buď model čistých měření (ipp1-ipn.npz, vyrábí ho analysis/clean_model.py): obecná síť, síť pro bod limiteru a ridge
-    pro proud plazmatem; řádky jsou nezávislé. Nebo zašuměný model (ipp1-noisy.npz, vyrábí ho analysis/noisy_model.py):
+    Buď model čistých měření (clean-model.npz, vyrábí ho analysis/clean_model.py): obecná síť, síť pro bod limiteru a ridge
+    pro proud plazmatem; řádky jsou nezávislé. Nebo zašuměný model (noisy-model.npz, vyrábí ho analysis/noisy_model.py):
     jedna síť, která vidí měření z posledních `window` řádků výboje, viz estimates_noisy.
     """
 
@@ -101,8 +101,8 @@ class Model:
         self.divides_by_current = "ipn" in self.arrays  # model z clean_model.py: měření dělená proudem plazmatem
         self.feature_mode = str(self.arrays["feature_mode"]) if self.divides_by_current else None
         if not self.divides_by_current and self.window == 1:
-            sys.exit(f"{path}: not a model of this package (the clean-input model is ipp1-ipn.npz, "
-                     "the noise model ipp1-noisy.npz; make them with python run.py)")
+            sys.exit(f"{path}: not a model of this package (the clean-input model is clean-model.npz, "
+                     "the noise model noisy-model.npz; make them with python run.py)")
 
     def plasma_current(self, measurements):
         """Proud plazmatem odhadnutý ridge regresí ze 24 měření (v ampérech, se znaménkem)."""
@@ -207,8 +207,8 @@ def read_csv(path, input_names):
 def parse_arguments():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("input", help="CSV with the columns IPR01..IPR16 and FL01..FL08")
-    parser.add_argument("--model", default=None, help="the exported model (default: ipp1-ipn.npz in model/ or out/model/ next to this file; "
-                                                      "with --noisy ipp1-noisy.npz in the same places)")
+    parser.add_argument("--model", default=None, help="the exported model (default: clean-model.npz in model/ or out/model/ next to this file; "
+                                                      "with --noisy noisy-model.npz in the same places)")
     parser.add_argument("--noisy", action="store_true", help="noisy measurements: the noise-trained model on the last 5 instants of each "
                                                              "discharge (needs the columns discharge and time)")
     parser.add_argument("--out", help="write the estimates to this CSV instead of printing the first rows")
@@ -258,7 +258,7 @@ def main():
     print(f"model: {args.model}", file=sys.stderr)  # který soubor se načetl
     if args.noisy != (model.window > 1):
         sys.exit(f"{args.model} is {'not ' if args.noisy else ''}the noise model: "
-                 + ("use ipp1-noisy.npz with --noisy" if args.noisy else "run it with --noisy"))
+                 + ("use noisy-model.npz with --noisy" if args.noisy else "run it with --noisy"))
     measurements, extra_columns = read_csv(args.input, model.inputs)
 
     # Vstup, který model opravdu dostane: u zašuměného modelu okna z posledních řádků výboje.

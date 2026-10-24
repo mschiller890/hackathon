@@ -20,7 +20,7 @@ Všechny chyby v tomto textu jsou **shoda s rekonstrukcí Ústavu fyziky plazmat
 
 ## 1. Výsledky v kostce
 
-**Data:** 149 výbojů, 42 972 časových okamžiků. Na začátku jsme **30 výbojů odložili** (nahodile, seed 20261024, seznam v `results/ipp1-locked-test-ids.txt`) a model se na nich neučí. Zbylých 119 výbojů (34 211 řádků) je vývojová sada. Dělíme vždy po celých výbojích, ne po řádcích, protože řádky jednoho výboje jsou téměř kopie.
+**Data:** 149 výbojů, 42 972 časových okamžiků. Na začátku jsme **30 výbojů odložili** (nahodile, seed 20261024, seznam v `results/locked-test-ids.txt`) a model se na nich neučí. Zbylých 119 výbojů (34 211 řádků) je vývojová sada. Dělíme vždy po celých výbojích, ne po řádcích, protože řádky jednoho výboje jsou téměř kopie.
 
 ### Čistá měření: 30 odložených výbojů (8 761 řádků)
 
@@ -35,7 +35,7 @@ Všechny chyby v tomto textu jsou **shoda s rekonstrukcí Ústavu fyziky plazmat
 | proud plazmatem | 0,034 kA | |
 | shoda limiterová / divertorová konfigurace | 99,2 % okamžiků | |
 
-(Hranaté závorky jsou 95% intervaly, bootstrap po výbojích. Celá tabulka s mediánem, p99 a nejhorším řádkem je v `results/bench-mm.md`.)
+(Hranaté závorky jsou 95% intervaly, bootstrap po výbojích. Celá tabulka s mediánem, p99 a nejhorším řádkem je v `results/error-in-mm.md`.)
 
 **Celková přesnost** = 100 × (1 − průměr přes 16 veličin z RMSE / rozptyl reference). 100 % by byla přesná kopie rekonstrukce.
 
@@ -45,7 +45,7 @@ Všechny chyby v tomto textu jsou **shoda s rekonstrukcí Ústavu fyziky plazmat
 | předchozí vybraný model (`cand`) | 94,12 % |
 | **nasazený model (dělení proudem)** | **95,83 %** |
 
-Jednotlivé veličiny jsou na 97 až 100 %. Průměr stahuje hlavně **bod limiteru** (asi 80 až 90 %) a příznak „limiterová / divertorová“ (83,4 % jako regresní veličina, ale 99,2 % jako rozhodnutí: je to 0/1, RMSE ho nadhodnocuje). Grafy: `results/ipp1-accuracy-overall-cs.png`, `...-outputs-cs.png`, `...-ladder-cs.png`.
+Jednotlivé veličiny jsou na 97 až 100 %. Průměr stahuje hlavně **bod limiteru** (asi 80 až 90 %) a příznak „limiterová / divertorová“ (83,4 % jako regresní veličina, ale 99,2 % jako rozhodnutí: je to 0/1, RMSE ho nadhodnocuje). Grafy: `results/accuracy-overall-cs.png`, `...-outputs-cs.png`, `...-ladder-cs.png`.
 
 ### Zašuměná měření
 
@@ -121,7 +121,7 @@ Co `python run.py` udělá, krok za krokem:
 | 1. Balíčky | zkontroluje, že jsou nainstalované numpy, pandas, scikit-learn, torch a další |
 | 2. Data | najde CSV soubory |
 | 3. Živé demo | síť se učí epocha po epoše (graf ztráty a chyby osy, přesnost v procentech), pak odhaduje neviděný výboj okamžik po okamžiku a nakonec běží plnou rychlostí. Výpis ukazuje i řádky dat, **nenahrávat a neposílat** |
-| 4. Export | `noisy_model.py` natrénuje zašuměný model (`ipp1-noisy.npz`), `clean_model.py --live` natrénuje nasazený čistý model (`ipp1-ipn.npz`) se živým grafem. Vše do `out/model/` |
+| 4. Export | `noisy_model.py` natrénuje zašuměný model (`noisy-model.npz`), `clean_model.py --live` natrénuje nasazený čistý model (`clean-model.npz`) se živým grafem. Vše do `out/model/` |
 | 5. První odhad | odhadne prvních 5 řádků jednoho vývojového výboje s exportovaným modelem |
 | 6. Šum | změří osu obou modelů na zašuměném souboru, 30 odložených výbojů |
 
@@ -148,7 +148,7 @@ python predict.py vstup.csv --out odhady.csv --all
 
 | Příkaz | K čemu |
 |---|---|
-| `python analysis/error_in_mm.py --model out/model/ipp1-ipn.npz --set locked` | odchylky v mm po veličinách (průměr, medián, p99, nejhorší řádek, podíl pod prahem, intervaly) |
+| `python analysis/error_in_mm.py --model out/model/clean-model.npz --set locked` | odchylky v mm po veličinách (průměr, medián, p99, nejhorší řádek, podíl pod prahem, intervaly) |
 | `python analysis/plot_accuracy.py --lang cs` | grafy přesnosti v procentech (česky nebo anglicky) |
 | `python analysis/clean_model.py [--all]` | natrénuje nasazený model; `--all` na všech 149 výbojích |
 | `python analysis/run_analyses.py [--notebooks]` | všechny analýzy v pořadí závislostí |
@@ -168,7 +168,7 @@ python predict.py vstup.csv --out odhady.csv --all
 | `slides.pdf`, `slides.pptx` | prezentace |
 | `requirements.txt` | balíčky a verze, se kterými čísla vznikla |
 
-Nejdůležitější soubory v `results/`: `bench-mm.md` (chyby v mm), `ipp1-ipn.md` (nasazený model, co se zkoušelo a nepomohlo), `ipp1-final.md` (výběr receptur na odložených výbojích), `ipp1-noise-window.md` (zašuměný model), `ipp1-accuracy-*.png` (grafy přesnosti).
+Nejdůležitější soubory v `results/`: `error-in-mm.md` (chyby v mm), `clean-model.md` (nasazený model, co se zkoušelo a nepomohlo), `final-evaluation.md` (výběr receptur na odložených výbojích), `noise-window.md` (zašuměný model), `accuracy-*.png` (grafy přesnosti).
 
 ---
 
@@ -178,11 +178,11 @@ Nejdůležitější soubory v `results/`: `bench-mm.md` (chyby v mm), `ipp1-ipn.
 
 **Je model použitelný v reálném čase?** Výpočet sítě trvá asi 0,05 až 0,07 ms (jedno jádro), tedy zhruba stokrát méně než limit jednotek milisekund. Podmíněně: neověřili jsme **sběr signálů z cívek, nejhorší dobu na systému reálného času ani přesnost na skutečně zašuměných signálech**. Na běžném počítači se občas objeví špičky (nejhorší volání z 3 000 trvalo 0,28 ms), takže horní mez netvrdíme. Grafická karta se pro jeden odhad nevyplatí (je pomalejší než procesor). Notebook 05.
 
-**Přesnost po jednotlivých veličinách.** Tabulka v kapitole 1 a `results/bench-mm.md`. Slabina je **bod limiteru** (3 554 limiterových řádků, málo dat) a **konec výboje**.
+**Přesnost po jednotlivých veličinách.** Tabulka v kapitole 1 a `results/error-in-mm.md`. Slabina je **bod limiteru** (3 554 limiterových řádků, málo dat) a **konec výboje**.
 
-**Stabilita v čase** (notebook 04, `results/ipp1-time.md`). Na čistých vstupech kolísá výstup mezi sousedními okamžiky stejně jako skutečnost (poměr 0,97 až 1,07 u sedmi veličin). Chyby rostou hlavně **na konci výboje**: osa má v posledním desetině asi 0,9 mm, uprostřed 0,24 mm (základní síť). Na zašuměných vstupech kolísá výstup čistého modelu 8,4krát víc (osa R), po učení se šumem asi 1,7krát.
+**Stabilita v čase** (notebook 04, `results/stability-over-time.md`). Na čistých vstupech kolísá výstup mezi sousedními okamžiky stejně jako skutečnost (poměr 0,97 až 1,07 u sedmi veličin). Chyby rostou hlavně **na konci výboje**: osa má v posledním desetině asi 0,9 mm, uprostřed 0,24 mm (základní síť). Na zašuměných vstupech kolísá výstup čistého modelu 8,4krát víc (osa R), po učení se šumem asi 1,7krát.
 
-**Méně vstupů** (notebook 03, `results/ipp1-inputs.md`). Samotné cívky IPR (16) stačí skoro na stejnou chybu jako všech 24 (0,066 proti 0,063), osm nejlepších už ne (0,094), samotné smyčky FL jsou slabé (0,285). Žebříček důležitosti vstupů je popis natrénované sítě, **ne informační obsah senzoru**: vstupy jsou kolineární, takže se po vyřazení jednoho sítí dobře nahradí.
+**Méně vstupů** (notebook 03, `results/input-importance.md`). Samotné cívky IPR (16) stačí skoro na stejnou chybu jako všech 24 (0,066 proti 0,063), osm nejlepších už ne (0,094), samotné smyčky FL jsou slabé (0,285). Žebříček důležitosti vstupů je popis natrénované sítě, **ne informační obsah senzoru**: vstupy jsou kolineární, takže se po vyřazení jednoho sítí dobře nahradí.
 
 **Bonusy.**
 
@@ -219,9 +219,9 @@ Nejdůležitější soubory v `results/`: `bench-mm.md` (chyby v mm), `ipp1-ipn.
 | **Metrika příznaku `is_limited`** | RMSE ho u binární veličiny nadhodnocuje: 84,8 % v průměru, ale 99,2 % správných rozhodnutí | uvádíme obojí | celková přesnost je tím asi o bod nižší, než by byla se správným měřením úspěšnosti rozhodnutí |
 | **Žebříček důležitosti vstupů** | vstupy jsou kolineární | nepíšeme „důležité senzory“, jen popis sítě | notebook 03 |
 | **Chyby v nástrojích** | `python -I` skrýval nainstalované balíčky (analýzy padaly), notebook 05 spadl na stroji bez Apple GPU | `-I` odstraněno, notebook počítá bez GPU | `python run.py --full` doběhne na běžném PC |
-| **Opakovatelnost** | trénování není bit po bitu stejné (vlákna) | poslední číslice kolísají | popsáno v `results/ipp1-ipn.md` |
+| **Opakovatelnost** | trénování není bit po bitu stejné (vlákna) | poslední číslice kolísají | popsáno v `results/clean-model.md` |
 
-Co jsme zkoušeli a nezlepšilo to výsledek (podrobně `results/ipp1-ipn.md`): širší síť, delší učení, weight decay, velikost dávky, GELU, šum na vstupu, předchozí vzorky jako další vstup (horší na čistých datech), změna proudu za krok, kvadratická ztráta pro limiter.
+Co jsme zkoušeli a nezlepšilo to výsledek (podrobně `results/clean-model.md`): širší síť, delší učení, weight decay, velikost dávky, GELU, šum na vstupu, předchozí vzorky jako další vstup (horší na čistých datech), změna proudu za krok, kvadratická ztráta pro limiter.
 
 ---
 
@@ -234,7 +234,7 @@ Co jsme zkoušeli a nezlepšilo to výsledek (podrobně `results/ipp1-ipn.md`): 
 * **Neobvyklé tvary:** model je naučený na tvarech z dat, na úplně nový tvar nemáme test.
 * **Kamera:** malá síť na 78 výbojích, slabší než cívky; snímky jednoho výboje jsou téměř kopie, takže nezávislých vzorků je málo.
 * **Jedno semínko** u většiny porovnání.
-* **Slidy** nemusí mít poslední čísla; poslední čísla jsou v `results/bench-mm.md` a `results/ipp1-ipn.md`.
+* **Slidy** nemusí mít poslední čísla; poslední čísla jsou v `results/error-in-mm.md` a `results/clean-model.md`.
 
 ## 9. Důvěrnost dat
 

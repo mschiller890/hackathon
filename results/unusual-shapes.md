@@ -1,7 +1,7 @@
 # IPP 1: unusual shapes (REQ-B08)
 
-Question: how much worse is the network on a family of shapes that was not in training? Full tables: `out/ipp1-unusual_shapes.{json,md}` (not in git);
-figure `ipp1-unusual_shapes.png`.
+Question: how much worse is the network on a family of shapes that was not in training? Full tables: `out/unusual_shapes.{json,md}` (not in git);
+figure `unusual_shapes.png`.
 
 Command (`HACKATHON_HOME=<your hackathon folder>`): `~/.venvs/hackathon/bin/python -I analysis/ipp1_unusual_shapes.py`
 (1.5 minutes; shared MLP, 60 epochs, 2 threads).

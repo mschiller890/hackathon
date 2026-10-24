@@ -3,7 +3,7 @@
 
     HACKATHON_HOME=<složka hackathonu> python -I analysis/out_of_fold.py [--epochs 60] [--folds 5]
 
-Zapíše $HACKATHON_HOME/out/ipp1-predictions.csv se sloupci discharge, time, fold a <cíl>_pred.
+Zapíše $HACKATHON_HOME/out/predictions.csv se sloupci discharge, time, fold a <cíl>_pred.
 Skutečné hodnoty zůstávají v equil_data.csv (spojit podle discharge a time).
 """
 import argparse
@@ -34,5 +34,5 @@ result["fold"] = fold_of_row
 for column, target in enumerate(TARGETS):
     result[f"{target}_pred"] = predictions[:, column]
 OUT.mkdir(exist_ok=True)
-result.to_csv(OUT / "ipp1-predictions.csv", index=False, float_format="%.6g")
-print(f"wrote {OUT / 'ipp1-predictions.csv'}: {len(result)} rows")
+result.to_csv(OUT / "predictions.csv", index=False, float_format="%.6g")
+print(f"wrote {OUT / 'predictions.csv'}: {len(result)} rows")

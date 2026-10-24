@@ -1,6 +1,6 @@
 # Error against the uneven distribution of the data (REQ-007)
 
-Pooled over the 42,972 out-of-fold rows of 149 discharges (`out/ipp1-predictions.csv (analysis/out_of_fold.py, 5 folds by discharge)`); no model is trained here. 44.2% of the rows are limited, 16 of 149 discharges have positive plasma current (7.4% of the rows), 926 rows lie in the first 2 % and 925 in the last 2 % of the relative discharge time.
+Pooled over the 42,972 out-of-fold rows of 149 discharges (`out/predictions.csv (analysis/out_of_fold.py, 5 folds by discharge)`); no model is trained here. 44.2% of the rows are limited, 16 of 149 discharges have positive plasma current (7.4% of the rows), 926 rows lie in the first 2 % and 925 in the last 2 % of the relative discharge time.
 
 All errors are absolute errors in the report unit of the target. `rows` is the group's share of the rows of that target and `sq err` its share of that target's total squared error: where `sq err` is far above `rows`, a minority of the data carries the error. Metrics follow `common.score_extended` (the script asserts this on the full row set), so they are comparable with the other reports. `n/a` means the group has no row of that target, which is expected: the X-point and the strike points exist only in diverted rows, the limiter point only in limited rows.
 
@@ -96,7 +96,7 @@ The first and last 2 % of the relative time, against the middle. This is where t
 
 ## By value quantile of the target
 
-Quintiles of the TRUE value of each target, over the rows where that target exists. `range` is the quintile edge in the report unit. A target whose error grows towards one edge is a target whose rare values are predicted worse, which is the point of REQ-007. Shown for the 10 main targets; all 16 are in `out/ipp1-distribution.json`.
+Quintiles of the TRUE value of each target, over the rows where that target exists. `range` is the quintile edge in the report unit. A target whose error grows towards one edge is a target whose rare values are predicted worse, which is the point of REQ-007. Shown for the 10 main targets; all 16 are in `out/distribution.json`.
 
 ### plasma_current (kA)
 

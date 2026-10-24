@@ -5,12 +5,12 @@ Přesnost = 100 x (1 - nRMSE), kde nRMSE je střední kvadratická chyba veliči
 rekonstrukce ústavu na týchž řádcích. 100 % by byla přesná kopie rekonstrukce. Celková přesnost je průměr přes
 16 veličin, stejně jako v demu (live_demo.overall_accuracy). Je to shoda s rekonstrukcí ústavu, ne s plazmatem.
 
-    python analysis/plot_accuracy.py [--model out/model/ipp1-ipn.npz] [--lang en|cs]
+    python analysis/plot_accuracy.py [--model out/model/clean-model.npz] [--lang en|cs]
 
-Uloží results/ipp1-accuracy-overall-<jazyk>.png, results/ipp1-accuracy-outputs-<jazyk>.png a
-results/ipp1-accuracy-ladder-<jazyk>.png: jen souhrnná čísla, žádné řádky dat.
-Pro základní síť a `cand` potřebuje uložené odhady z final_evaluation.py (out/ipp1-final-cache), nasazený model čte
-z exportovaného souboru. Žebříček zlepšení čte tabulku vývojové sady z results/ipp1-ipn.md.
+Uloží results/accuracy-overall-<jazyk>.png, results/accuracy-outputs-<jazyk>.png a
+results/accuracy-ladder-<jazyk>.png: jen souhrnná čísla, žádné řádky dat.
+Pro základní síť a `cand` potřebuje uložené odhady z final_evaluation.py (out/final-evaluation-cache), nasazený model čte
+z exportovaného souboru. Žebříček zlepšení čte tabulku vývojové sady z results/clean-model.md.
 """
 import argparse
 import re
@@ -81,7 +81,7 @@ TEXT = {
     },
 }
 
-# Kroky žebříčku zlepšení: (název řádku v results/ipp1-ipn.md, český popisek, anglický popisek).
+# Kroky žebříčku zlepšení: (název řádku v results/clean-model.md, český popisek, anglický popisek).
 LADDER_STEPS = [
     ("cand general network (Huber 0.5)", "výchozí síť (Huber 0,5)", "start: general network"),
     ("Huber 0.2", "užší Huberova ztráta (0,2)", "narrower loss"),
@@ -182,13 +182,13 @@ def outputs_chart(accuracies, language, path):
 
 
 def ladder_chart(language, path):
-    """Sloupce: jak celková přesnost na vývojové sadě rostla s jednotlivými kroky. Čísla čte z results/ipp1-ipn.md."""
-    table_text = (RESULTS_FOLDER / "ipp1-ipn.md").read_text().replace("`", "")
+    """Sloupce: jak celková přesnost na vývojové sadě rostla s jednotlivými kroky. Čísla čte z results/clean-model.md."""
+    table_text = (RESULTS_FOLDER / "clean-model.md").read_text().replace("`", "")
     accuracies, labels = [], []
     for row_name, czech, english in LADDER_STEPS:
         match = re.search(r"^\| " + re.escape(row_name) + r" \| ([\d.]+) \|", table_text, re.M)
         if not match:
-            raise SystemExit(f"row not found in results/ipp1-ipn.md: {row_name}")
+            raise SystemExit(f"row not found in results/clean-model.md: {row_name}")
         accuracies.append(100 * (1 - float(match.group(1))))  # v tabulce je střední nRMSE
         labels.append(czech if language == "cs" else english)
 
@@ -215,14 +215,14 @@ def ladder_chart(language, path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--model", default=str(C.OUT / "model" / "ipp1-ipn.npz"))
+    parser.add_argument("--model", default=str(C.OUT / "model" / "clean-model.npz"))
     parser.add_argument("--lang", default="en", choices=["en", "cs"])
     args = parser.parse_args()
 
     accuracies = collect(args.model)
-    overall = overall_chart(accuracies, args.lang, RESULTS_FOLDER / f"ipp1-accuracy-overall-{args.lang}.png")
-    outputs_chart(accuracies, args.lang, RESULTS_FOLDER / f"ipp1-accuracy-outputs-{args.lang}.png")
-    ladder = ladder_chart(args.lang, RESULTS_FOLDER / f"ipp1-accuracy-ladder-{args.lang}.png")
+    overall = overall_chart(accuracies, args.lang, RESULTS_FOLDER / f"accuracy-overall-{args.lang}.png")
+    outputs_chart(accuracies, args.lang, RESULTS_FOLDER / f"accuracy-outputs-{args.lang}.png")
+    ladder = ladder_chart(args.lang, RESULTS_FOLDER / f"accuracy-ladder-{args.lang}.png")
 
     print("overall accuracy on the 30 set-aside discharges:", {model: round(value, 2) for model, value in overall.items()})
     print("development ladder:", {label: round(value, 2) for label, value in ladder.items()})

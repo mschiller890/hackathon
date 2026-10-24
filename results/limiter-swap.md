@@ -1,14 +1,14 @@
 # IPP 1: can the limiter point be improved by changing only the limiter network?
 
 **Protocol and decision rule, written before any run of this experiment** (committed before `analysis/ipp1_limiter_swap.py` was first executed; the script header carries the same text).
-Motivation: `results/ipp1-search-dev.md` found that the residual network of the best search trial cut the limiter error of the `cand` pipeline by 39 % (`R_limiter` 4.85 to 2.97 mm,
+Motivation: `results/search-dev.md` found that the residual network of the best search trial cut the limiter error of the `cand` pipeline by 39 % (`R_limiter` 4.85 to 2.97 mm,
 `Z_limiter` 12.2 to 7.44 mm) but was worse on other targets. The limiter targets are the weakest of the shipped model (locked 30 discharges: 4.55 mm and 8.35 mm). Here only the limiter
 network is changed.
 
 ## Arms (119 development discharges, 5 group folds, 3 seeds, paired: same folds, same seed = fold + 10 x s for every arm)
 
 - **arm 0, `cand` as is.** Predictions of `cand` (the cached cross-validation of `final_evaluation.py` for seed 0 and of `ipp1_search_dev.py` for seeds 1 and 2).
-- **arm 1, residual limiter network.** `cand` with ONLY the limiter network replaced by the residual network of the best search trial (`resA` of `results/ipp1-search-dev.md`: residual MLP,
+- **arm 1, residual limiter network.** `cand` with ONLY the limiter network replaced by the residual network of the best search trial (`resA` of `results/search-dev.md`: residual MLP,
   width 192, depth 4, GELU, 100 epochs, loss weight 1.5 on the limiter targets), trained on the limited rows of the training discharges.
 - **arm 2, control.** `cand` with its own limiter network (MLP 256-256-128, 46 inputs) trained with the same loss weight 1.5 on the limiter targets and the same 100 epochs instead of 150.
   It tells whether the gain comes from the weight and the epochs and not from the architecture.
@@ -27,7 +27,7 @@ An arm *passes* only if all of these hold:
 2. **Gain above noise:** for each of the two targets the absolute gain (mm) is larger than the seed SD of the arm and larger than the seed SD of arm 0.
 3. **Nothing else changes:** all columns other than `R_limiter` and `Z_limiter` are identical to arm 0 (checked), and therefore the axis error in the limited rows (`R_mag_axis`, `Z_mag_axis` MAE
    on the rows with `is_limited` true) does not get worse (it is printed).
-4. **Latency:** the median latency of the limited path (numpy path of `results/ipp1-latency-shipped.md`: 24 raw inputs to 16 outputs, both networks run) stays below 0.1 ms, measured here with the
+4. **Latency:** the median latency of the limited path (numpy path of `results/latency-shipped.md`: 24 raw inputs to 16 outputs, both networks run) stays below 0.1 ms, measured here with the
    same protocol (5,000 timed calls after warm-up, one core) in the same run for all three arms.
 
 **Winner.** If arm 2 passes and (its gain is at least half of the gain of arm 1 for both targets, or arm 1 does not pass), the winner is **arm 2**: it changes only a hyperparameter. Otherwise, if arm 1 passes,
@@ -92,7 +92,7 @@ Amended criterion 4: median latency of arm 1 over the runs 0.0872 ms against the
 ## Reading
 
 - **Two verdicts, both kept.** By the original rule as written: nobody wins (arm 1 failed criterion 4 in the two `nice` runs, 0.117 and 0.108 ms). By the post hoc amended criterion 4 (5 runs at normal priority, median 0.087 ms): arm 1 passes all four criteria. The amendment was made after the first result was known and is marked as such above; it was written and pushed before the new measurements and the locked scoring.
-- **Development (119 discharges, 5 folds x 3 seeds):** `R_limiter` 4.85 to 2.98 mm and `Z_limiter` 12.2 to 7.44 mm (39 % both), gain 1.9 and 4.8 mm against seed SDs of 0.14 to 0.45 mm. **Locked 30 discharges, scored once, seed 0:** `R_limiter` 4.55 to 3.26 mm (-28 %) and `Z_limiter` 8.35 to 5.55 mm (-34 %). Not worse on either target, so the post hoc condition for shipping is met. The locked gain is smaller than in development (28 and 34 % against 39 %); it is one seed, and the seed SD of `cand` itself on the locked set is about 0.3 and 0.5 mm (`results/ipp1-final-seeds.md`), smaller than the gains of 1.3 and 2.8 mm.
+- **Development (119 discharges, 5 folds x 3 seeds):** `R_limiter` 4.85 to 2.98 mm and `Z_limiter` 12.2 to 7.44 mm (39 % both), gain 1.9 and 4.8 mm against seed SDs of 0.14 to 0.45 mm. **Locked 30 discharges, scored once, seed 0:** `R_limiter` 4.55 to 3.26 mm (-28 %) and `Z_limiter` 8.35 to 5.55 mm (-34 %). Not worse on either target, so the post hoc condition for shipping is met. The locked gain is smaller than in development (28 and 34 % against 39 %); it is one seed, and the seed SD of `cand` itself on the locked set is about 0.3 and 0.5 mm (`results/final-evaluation-seeds.md`), smaller than the gains of 1.3 and 2.8 mm.
 - **What it does NOT change:** every other column is identical to `cand` (difference 0 on development and on the locked set): axis, X point, strike points, plasma current, `is_limited`, and the axis error in the limited rows (0.331 and 0.404 mm in development). The gate that decides when the limiter network answers is that of `cand`.
 - **What it costs:** the limiter network is the residual network of the best search trial (width 192, depth 4 against 256-256-128), about three times the cost of `cand`'s in the limited path: median 0.087 ms against 0.029 ms (5 runs at normal priority, load average 7 to 9, Apple M5, one core, random weights), still far below the budget of 1 to 10 ms; the diverted path is unchanged (general network only, 0.015 ms). Shipping it changes the limiter network, not a hyperparameter, and would be a new recipe next to `cand`.
 - **The control (arm 2) found no gain** from the loss weight 1.5 and the 100 epochs (+5 % and +1 % worse), so those two settings are not the reason; which other part of the residual network's configuration carries the gain (residual blocks, GELU, cosine schedule, Huber delta 0.36, learning rate 0.0028, weight decay 2e-6, dropout 0.05) was not isolated.

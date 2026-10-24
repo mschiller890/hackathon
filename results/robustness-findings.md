@@ -2,14 +2,14 @@
 
 Evidence for REQ-B02, REQ-B04, REQ-B06. Same masked MLP and 5 folds split by whole discharge as the baseline
 (`analysis/common.py`). Mean absolute error (MAE) on held-out discharges, mean over 5 folds. Full tables:
-`out/ipp1-{robustness,learning_curve,temporal}.{json,md}` (not in git); figures next to this file. Each script is run with
+`out/{robustness,learning_curve,temporal}.{json,md}` (not in git); figures next to this file. Each script is run with
 `HACKATHON_HOME=... ~/.venvs/hackathon/bin/python -I analysis/<name>.py`, about 1 to 2.5 minutes each. Checks of the
-helper logic: `python -I results/ipp1-robustness-checks.py` (4 tests, OK).
+helper logic: `python -I results/robustness-checks.py` (4 tests, OK).
 
 Sanity: the noise-free full-data case reproduces the baseline (R axis 0.377 mm, limiter 10.7 and 22.2 mm,
 `is_limited` 99.26 %).
 
-## 1. Noise and drift (`ipp1-robustness.png`)
+## 1. Noise and drift (`robustness.png`)
 
 Synthetic noise is Gaussian, per row, with SD as a fraction of each input's training SD. The provided noisy file differs
 from the clean one by 0.155 of an input SD (median), and the synthetic level 0.15 gives the same errors (R axis 10.4 mm
@@ -42,7 +42,7 @@ Gaussian slope per discharge and coil, `t` the relative time; drift runs add noi
 - The provided `equil_data_noisy.csv` itself contains white noise only (no measurable drift; lag 1 autocorrelation of
   the noise about -0.005). Every drift row above is synthetic.
 
-## 2. Amount of training data (`ipp1-learning_curve.png`)
+## 2. Amount of training data (`learning_curve.png`)
 
 Nested subsets of the training discharges (mean 6, 12, 30, 60, 119 discharges; 1.7 k to 34 k rows), the same test folds.
 Fixed 60 epochs, so smaller sets also get fewer optimizer updates.
@@ -59,7 +59,7 @@ From 30 discharges up, the axis error roughly halves with every doubling (1.47, 
 epochs, so part of the improvement is more optimizer updates and the slope is overstated; the limiter point improves
 slowest (34, 29, 22 mm). With 30 discharges the axis error is 1.47 mm (R) and 0.95 mm (Z), not "about 1 mm" for both.
 
-## 3. Time context (`ipp1-temporal.png`)
+## 3. Time context (`temporal.png`)
 
 Inputs from rows t-2, t-1, t of the same discharge (causal, the first row repeats at the start), 72 instead of 24 inputs.
 "Error step" is the mean absolute change of the prediction error between consecutive samples (catches jitter and lag; a
