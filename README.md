@@ -175,7 +175,7 @@ python predict.py vstup.csv --out odhady.csv --all
 | `notebooks/` (01–05 a 07–10) | **všechny závěry**, s uloženými výstupy (jdou číst bez spuštění): 01 data, 02 základní modely, 03 vstupy a důležitost, 04 stabilita v čase, 05 odezva, 07 nerovnoměrné rozdělení a neobvyklé tvary, 08 šum, drift a množství dat, 09 nasazený model na odložených výbojích, 10 syntetický test se známou pravdou |
 | `data/` | sem patří **důvěrná data ÚFP** (`equil_data.zip`, `equil_data_noisy.zip`, v každém CSV 42 972 řádků). Složka je v `.gitignore`, do gitu se nedává (kapitola 9) |
 | `results/` | agregované výsledky a grafy, které notebooky čtou (žádná surová data); přehled podle témat v `results/README.md` |
-| `slides.pdf`, `slides.pptx` | prezentace |
+| `slides.pdf` | prezentace |
 | `requirements.txt` | balíčky a verze, se kterými čísla vznikla |
 
 Nejdůležitější soubory v `results/`: `error-in-mm.md` (chyby v mm), `clean-model.md` (nasazený model, co se zkoušelo a nepomohlo), `final-evaluation.md` (výběr receptur na odložených výbojích), `noise-window.md` (zašuměný model), `accuracy-*.png` (grafy přesnosti).
