@@ -23,7 +23,7 @@ _DATA_CANDIDATES = (ROOT / "data", ROOT / "data/raw/ipp1-magnetic/uloha_1-magnet
 
 
 def data_file(folder, stem):
-    """Soubor s daty ve složce: `stem`.csv (původní z archivu), nebo `stem`.zip (v repozitáři; pandas čte CSV rovnou ze zipu)."""
+    """Soubor s daty ve složce: `stem`.csv (původní z archivu), nebo `stem`.zip (pandas čte CSV rovnou ze zipu)."""
     csv_file = Path(folder) / f"{stem}.csv"
     return csv_file if csv_file.exists() else Path(folder) / f"{stem}.zip"
 

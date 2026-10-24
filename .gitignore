@@ -7,8 +7,7 @@ __pycache__/
 *.pyc
 vstup.csv
 /*.csv
-data/ (equil_data.zip, equil_data_noisy.zip) IS committed on purpose: the repository is PRIVATE and shared only with the hackathon participants (IPP/UFP terms).
-# Never make this repository public and never copy data/ elsewhere.
-# the unpacked CSVs (same content as the zips) and LibreOffice lock files stay local
-data/*.csv
+# The IPP/UFP data are confidential and are NOT part of the submission: data/ stays out of git completely.
+# Put equil_data.zip and equil_data_noisy.zip (or the original .csv files) into data/ locally.
+data/
 .~lock.*
