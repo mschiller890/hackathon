@@ -368,18 +368,40 @@ def train(x, y, x_test, y_test, epochs, on_epoch, seed=0):
     return net, (mu, sd, ym, ys)
 
 
-def numpy_predictor(net, scalers):
-    """The trained network as plain numpy matrix products: no torch on the fast path, same numbers."""
-    mu, sd, ym, ys = scalers
-    layers = [(m.weight.detach().numpy().T.copy(), m.bias.detach().numpy().copy()) for m in net.f if isinstance(m, torch.nn.Linear)]
+def fast_predictor(net, scalers, chunk=2048):
+    """The trained network as a fast pass: raw inputs in, physical units out, no autograd, same numbers.
+
+    As in the earlier live-training script: the input standardisation is folded into the first layer and the output scaling into
+    the last one (exact algebra), float32, torch.addmm into preallocated buffers and SiLU in place, `chunk` rows at a time.
+    Weights plus the buffers are about 6 MB, so a call stays inside the L3 cache and runs on all torch threads.
+    """
+    mu, sd, ym, ys = (torch.as_tensor(np.asarray(a), dtype=torch.float64) for a in scalers)
+    lin = [m for m in net.f if isinstance(m, torch.nn.Linear)]
+    with torch.no_grad():
+        w = [m.weight.T.double().clone() for m in lin]
+        b = [m.bias.double().clone() for m in lin]
+        b[0] = b[0] - (mu / sd) @ w[0]
+        w[0] = w[0] / sd[:, None]
+        w[-1], b[-1] = w[-1] * ys, b[-1] * ys + ym
+    fw = [x.float().contiguous() for x in w]
+    fb = [x.float().contiguous() for x in b]
+    bufs = [torch.empty(chunk, x.shape[1]) for x in fw]
 
     def predict(rows):
-        h = (rows - mu) / sd
-        for k, (w, b) in enumerate(layers):
-            h = h @ w + b
-            if k < len(layers) - 1:
-                h = h / (1 + np.exp(-h))     # SiLU, as in ipp1_common.Net
-        return h * ys + ym
+        rows = torch.as_tensor(np.ascontiguousarray(rows, dtype=np.float32))
+        out = np.empty((len(rows), fw[-1].shape[1]), np.float32)
+        with torch.inference_mode():
+            for s in range(0, len(rows), chunk):
+                h = rows[s:s + chunk]
+                m = len(h)
+                for k in range(len(fw)):
+                    o = bufs[k][:m]
+                    torch.addmm(fb[k], h, fw[k], out=o)
+                    if k < len(fw) - 1:
+                        torch.nn.functional.silu(o, inplace=True)
+                    h = o
+                out[s:s + m] = h.numpy()
+        return out
     return predict
 
 
@@ -744,7 +766,7 @@ def run_demo(args, live, width):
 
     # 2. All outputs on the set-aside discharges.
     section(2, f"Všech {len(TARGETS)} veličin na {len(lock)} kontrolních výbojích", width)
-    predict = numpy_predictor(net, scalers)
+    predict = fast_predictor(net, scalers)
     with torch.no_grad():
         mu, sd, ym, ys = scalers
         torch_pred = net(torch.tensor((x_te - mu) / sd)).numpy() * ys + ym
@@ -752,7 +774,7 @@ def run_demo(args, live, width):
         print(line)
     print()
     print(ST.paint(ST.grey, textwrap.fill(
-        f"Kontrola rychlé cesty (jen numpy, bez torch): na všech {fmt_int(len(x_te))} neviděných okamžicích se od sítě "
+        f"Kontrola rychlé cesty (složené váhy, float32): na všech {fmt_int(len(x_te))} neviděných okamžicích se od sítě "
         f"liší nejvýš o {np.abs(predict(x_te) - torch_pred)[:, [R, Z]].max() * 1000:.6f} mm.", width)))
 
     # 3. One unseen discharge, instant by instant, each estimate timed as a single-row call.
@@ -797,28 +819,30 @@ def run_demo(args, live, width):
     tview = ThroughputView(args.target, args.seconds, width)
     if not live:
         print("     čas | odhadů celkem | odhadů za poslední sekundu | chyba osy R")
-    total = last = 0
-    t_start = t_tick = t_draw = time.perf_counter()
-    batch_times, windows, recent = [], [], []
-    while (now := time.perf_counter()) - t_start < args.seconds:
+    total = 0
+    compute = 0.0                       # seconds inside predict() only; drawing and printing are not counted
+    batch_times, windows = [], []
+    win_rows, win_secs = 0, 0.0
+    last_draw = time.perf_counter()
+    while compute < args.seconds:
         for b in batches:
             t0 = time.perf_counter()
             predict(b)
-            batch_times.append((time.perf_counter() - t0) * 1000)
+            dt = time.perf_counter() - t0
+            batch_times.append(dt * 1000)
+            compute += dt
             total += len(b)
-        if now - t_tick >= 1:
-            windows.append((total - last, now - t_tick))
-            if not live:
-                print(f"{now - t_start:6.1f} s | {fmt_int(total):>13} | {fmt_int(total - last):>22}     | {err_r:6.3f} mm")
-            last, t_tick = total, now
-        if live and now - t_draw >= 0.2:
-            recent.append((now, total))
-            while now - recent[0][0] > 1:         # gauge = speed over the last second, refreshed every redraw
-                recent.pop(0)
-            span = now - recent[0][0]
-            tview.draw(now - t_start, total, windows, (total - recent[0][1]) / span if span > 0.1 else None)
-            t_draw = now
-    elapsed = time.perf_counter() - t_start
+            win_rows += len(b)
+            win_secs += dt
+            if win_secs >= 1:
+                windows.append((win_rows, win_secs))
+                if not live:
+                    print(f"{compute:6.1f} s | {fmt_int(total):>13} | {fmt_int(int(win_rows / win_secs)):>22}     | {err_r:6.3f} mm")
+                win_rows, win_secs = 0, 0.0
+        if live and time.perf_counter() - last_draw >= 1:   # outside the timed loop
+            tview.draw(compute, total, windows)
+            last_draw = time.perf_counter()
+    elapsed = compute
     rate = total / elapsed
     if live:
         tview.draw(elapsed, total, windows)
