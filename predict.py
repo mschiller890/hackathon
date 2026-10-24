@@ -76,11 +76,24 @@ class Model:
         self.window = int(self.z["window_rows"]) if "window_rows" in self.z else 1   # only the noise model has a window
         self.axis_cols = [int(v) for v in self.z["axis_columns"]] if "axis_columns" in self.z else None
         self.depth = {tag: sum(k.startswith(f"{tag}_W") for k in self.z) for tag in ("gen", "spec", "axis")}
+        self.ipn = "ipn" in self.z        # the model of analysis/ipn_model.py: measurements divided by the plasma current
+        self.feature_mode = str(self.z["feature_mode"]) if self.ipn else "diff"
 
     @staticmethod
     def features(x):
         """The 24 inputs plus the differences of neighbouring coils (15) and of neighbouring flux loops (7), inside each row: 46 columns."""
         return np.concatenate([x, np.diff(x[:, :16], axis=1), np.diff(x[:, 16:24], axis=1)], axis=1).astype(np.float32)
+
+    def ipn_features(self, x):
+        """ipn model: the measurements divided by the plasma current (the ridge on the 24 inputs, signed), their differences inside the row
+        (diff2 adds the second differences) and the current / ip_scale. Made by analysis/ipn_model.features."""
+        scale = float(self.z["ip_scale"])
+        cur = x.astype(np.float64) @ self.z["ridge_w"] + float(self.z["ridge_b"])
+        xs = x * (scale / cur)[:, None]
+        parts = [xs, np.diff(xs[:, :16], axis=1), np.diff(xs[:, 16:24], axis=1)]
+        if self.feature_mode == "diff2":
+            parts += [np.diff(xs[:, :16], 2, axis=1), np.diff(xs[:, 16:24], 2, axis=1)]
+        return np.concatenate(parts + [(cur / scale)[:, None]], axis=1).astype(np.float32)
 
     def _net(self, tag, f):
         z = self.z
@@ -98,14 +111,18 @@ class Model:
         x = np.asarray(x, dtype=np.float32)
         if self.window > 1:
             return self._net("gen", x)
-        f = self.features(x)
+        f = self.ipn_features(x) if self.ipn else self.features(x)
         out = self._net("gen", f)
         if self.axis_cols:
             out[:, self.axis_cols] = self._net("axis", f)
         out[:, self.ip_col] = x.astype(np.float64) @ self.z["ridge_w"] + self.z["ridge_b"]
         gate = np.flatnonzero(out[:, self.cls_col] > 0.5)
         if len(gate):
-            out[np.ix_(gate, self.lim_cols)] = self._net("spec", f[gate])[:, self.lim_cols]
+            sp = self._net("spec", f[gate])
+            if sp.shape[1] == 5:       # ipn model: side (+up / -down), then R, Z when up and R, Z when down
+                out[np.ix_(gate, self.lim_cols)] = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
+            else:
+                out[np.ix_(gate, self.lim_cols)] = sp[:, self.lim_cols]
         return out
 
     def estimates(self, x):

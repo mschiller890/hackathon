@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """The whole idea of the project, live in the terminal: 24 magnetic measurements in, plasma shape out.
 
-    HACKATHON_HOME=<hackathon folder> python analysis/mini_pipeline.py [--epochs 60] [--seconds 10] [--dump-rows N] [--plain]
+    HACKATHON_HOME=<hackathon folder> python analysis/mini_pipeline.py [--epochs 150] [--models 1] [--seconds 10] [--dump-rows N] [--plain]
 
 What it prints, in order (Czech, it is the demo for the jury):
   0. a title banner: inputs, outputs, network, split, machine;
@@ -40,10 +40,12 @@ import subprocess
 import sys
 import textwrap
 import time
+import warnings
 from pathlib import Path
 
 import numpy as np
 import torch
+from sklearn.linear_model import Ridge
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script folder
 from ipp1_common import TARGETS, UNIT, Net, load, score
@@ -335,77 +337,207 @@ def axis_error(pred, y):
     return [float(np.abs(pred[:, j] - y[:, j]).mean() * 1000) for j in (R, Z)]
 
 
-def train(x, y, x_test, y_test, epochs, on_epoch, seed=0):
-    """The masked training of ipp1_common.fit_mlp, with the test error measured after every epoch.
+def overall_accuracy(pred, y):
+    """Overall accuracy in %: 100 x (1 - mean over the outputs of the RMSE relative to the spread of the reference), on the
+    rows where an output exists. 100 % would be an exact copy of the institute's reconstruction."""
+    rel = []
+    for j in range(y.shape[1]):
+        k = ~np.isnan(y[:, j])
+        if k.sum() > 1 and y[k, j].std() > 0:
+            rel.append(np.sqrt(np.mean((pred[k, j] - y[k, j]) ** 2)) / y[k, j].std())
+    return 100 * (1 - float(np.mean(rel)))
 
-    on_epoch(epoch, mean training loss, axis R error mm, axis Z error mm, seconds so far) shows it.
-    Returns the trained net and the input/target scalers; the test rows are only measured, never trained on.
-    """
-    torch.manual_seed(seed)
+
+IP, IL = TARGETS.index("plasma_current"), TARGETS.index("is_limited")
+RL, ZL = TARGETS.index("R_limiter"), TARGETS.index("Z_limiter")
+HUBER = 0.2                      # Huber delta of the loss on standardised targets (0.2 beat 0.5 and 1.0 in the 5-fold search)
+
+
+def add_diffs(x):
+    """The 24 measurements plus the differences of neighbouring coils (15) and neighbouring loops (7): 46 inputs.
+    Linear in x, so the first layer absorbs it exactly (see Fit.folded)."""
+    return np.concatenate([x, np.diff(x[:, :16], axis=1), np.diff(x[:, 16:24], axis=1)], 1)
+
+
+DIFF_MAP = add_diffs(np.eye(24))     # 24 x 46: add_diffs(x) == x @ DIFF_MAP
+
+
+def fit_current_ridge(x, y):
+    """Plasma current (A) as a linear function of the 24 measurements, a ridge on standardised inputs folded into raw
+    coefficients: (w, b) with current = x @ w + b. It is accurate to about 0.03 kA and is available from the inputs alone."""
+    k = ~np.isnan(y[:, IP])
     mu, sd = x.mean(0), x.std(0) + 1e-9
-    ym, ys = np.nanmean(y, 0), np.nanstd(y, 0) + 1e-9     # scale each target so mm and kA weigh alike
-    xt, xv = torch.tensor((x - mu) / sd), torch.tensor((x_test - mu) / sd)
-    yt = torch.tensor(np.nan_to_num((y - ym) / ys))
-    exists = torch.tensor((~np.isnan(y)).astype(np.float32))   # 1 where the target exists in that row
-    net = Net(x.shape[1], y.shape[1])
-    opt = torch.optim.AdamW(net.parameters(), lr=2e-3, weight_decay=1e-4)
-    steps = epochs * ((len(xt) + 511) // 512)
-    sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=3e-3, total_steps=steps)
-    started = time.perf_counter()
-    for epoch in range(1, epochs + 1):
-        order = torch.randperm(len(xt))
-        losses = []
-        for i in range(0, len(xt), 512):
-            b = order[i:i + 512]
-            # Masked squared error: a missing target contributes nothing instead of a bogus error.
-            loss = ((net(xt[b]) - yt[b]) ** 2 * exists[b]).sum() / exists[b].sum()
-            opt.zero_grad()
-            loss.backward()
-            opt.step()
-            sched.step()
-            losses.append(loss.item())
+    m = Ridge(alpha=1.0).fit((x[k] - mu) / sd, y[k, IP])
+    w = (m.coef_ / sd).astype(np.float64)
+    return w, float(m.intercept_ - (mu * w).sum())
+
+
+I_SCALE = 1e5                    # amperes: the measurements are divided by the current / I_SCALE
+
+
+class Fit:
+    """One trained network with its scalers: raw 24 measurements in, physical units out.
+
+    The input is the 24 measurements divided by the plasma current estimated from them (the field is proportional to the
+    currents, so the shape depends on the ratios, not on the size), their neighbour differences, and the current itself."""
+
+    def __init__(self, x, y, ip, epochs, seed, on_epoch=None, x_test=None, y_test=None):
+        """Masked Huber loss (a missing target contributes nothing), AdamW, one-cycle schedule, standardised inputs and
+        targets. on_epoch(epoch, loss, axis R mm, axis Z mm, seconds so far, overall accuracy %) is called after each epoch
+        with the network's own estimates on x_test, which is measured but never trained on."""
+        torch.manual_seed(seed)
+        self.ip = ip
+        f = self.features(x)
+        self.mu, self.sd = f.mean(0), f.std(0) + 1e-9
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            self.ym, self.ys = np.nanmean(y, 0), np.nanstd(y, 0) + 1e-9    # scale each target so mm and kA weigh alike
+        self.ym, self.ys = np.nan_to_num(self.ym), np.where(np.isnan(self.ys), 1.0, self.ys)
+        xt = torch.tensor((f - self.mu) / self.sd)
+        yt = torch.tensor(np.nan_to_num((y - self.ym) / self.ys).astype(np.float32))
+        exists = torch.tensor((~np.isnan(y)).astype(np.float32))
+        self.net = Net(f.shape[1], y.shape[1])
+        opt = torch.optim.AdamW(self.net.parameters(), lr=2e-3, weight_decay=1e-4)
+        steps = epochs * ((len(xt) + 511) // 512)
+        sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=3e-3, total_steps=steps)
+        started = time.perf_counter()
+        for epoch in range(1, epochs + 1):
+            order = torch.randperm(len(xt))
+            losses = []
+            for i in range(0, len(xt), 512):
+                b = order[i:i + 512]
+                err = 2 * torch.nn.functional.huber_loss(self.net(xt[b]), yt[b], reduction="none", delta=HUBER)
+                loss = (err * exists[b]).sum() / exists[b].sum()
+                opt.zero_grad()
+                loss.backward()
+                opt.step()
+                sched.step()
+                losses.append(loss.item())
+            if on_epoch:
+                pred = self.slow(x_test)
+                err_r, err_z = axis_error(pred, y_test)
+                on_epoch(epoch, float(np.mean(losses)), err_r, err_z, time.perf_counter() - started, overall_accuracy(pred, y_test))
+        self.net.eval()
+
+    def features(self, x):
+        cur = (x.astype(np.float64) @ self.ip[0] + self.ip[1])[:, None]
+        return np.concatenate([add_diffs(x * (I_SCALE / cur)), cur / I_SCALE], 1).astype(np.float32)
+
+    def slow(self, x):
+        """The network itself (torch, float32), the reference the fast path is checked against."""
         with torch.no_grad():
-            err_r, err_z = axis_error(net(xv).numpy() * ys + ym, y_test)
-        on_epoch(epoch, float(np.mean(losses)), err_r, err_z, time.perf_counter() - started)
-    net.eval()
-    return net, (mu, sd, ym, ys)
+            self.net.eval()
+            return self.net(torch.from_numpy((self.features(x) - self.mu) / self.sd)).numpy() * self.ys + self.ym
+
+    def folded(self):
+        """Weights for raw 24-column inputs and physical outputs. With cur = x @ w + b the first layer is
+        (x @ Wa) * (I_SCALE / cur) + cur * c1 + b0 (the difference map, the standardisation and the division all fold in
+        exactly because the measurements enter linearly before the division); the output scaling goes into the last layer."""
+        lin = [m for m in self.net.f if isinstance(m, torch.nn.Linear)]
+        with torch.no_grad():
+            w = [m.weight.T.double().clone() for m in lin]
+            b = [m.bias.double().clone() for m in lin]
+            sd, mu = torch.as_tensor(self.sd, dtype=torch.float64), torch.as_tensor(self.mu, dtype=torch.float64)
+            ys, ym = torch.as_tensor(self.ys, dtype=torch.float64), torch.as_tensor(self.ym, dtype=torch.float64)
+            w1 = w[0]                                                   # 47 x width: 46 scaled features, the current
+            wa = torch.as_tensor(DIFF_MAP) @ (w1[:46] / sd[:46, None])
+            c1 = w1[46] / sd[46] / I_SCALE
+            b0 = b[0] - (mu[:46] / sd[:46]) @ w1[:46] - (mu[46] / sd[46]) * w1[46]
+            rest = [(w[k].float().contiguous(), b[k].float().contiguous()) for k in range(1, len(w) - 1)]
+            last = ((w[-1] * ys).float().contiguous(), (b[-1] * ys + ym).float().contiguous())
+        return (wa.float().contiguous(), c1.float().contiguous(), b0.float().contiguous()), rest + [last]
 
 
-def fast_predictor(net, scalers, chunk=2048):
-    """The trained network as a fast pass: raw inputs in, physical units out, no autograd, same numbers.
+class Model:
+    """The whole model: `members` networks averaged (all 16 outputs), the plasma current from a ridge, and a limiter
+    specialist that, on rows the main networks call limited, answers which side of the vessel (up or down) the contact point
+    is on and where it is on that side (the side is a jump of hundreds of mm that a plain regression smears over)."""
 
-    As in the earlier live-training script: the input standardisation is folded into the first layer and the output scaling into
-    the last one (exact algebra), float32, torch.addmm into preallocated buffers and SiLU in place, `chunk` rows at a time.
-    Weights plus the buffers are about 6 MB, so a call stays inside the L3 cache and runs on all torch threads.
-    """
-    mu, sd, ym, ys = (torch.as_tensor(np.asarray(a), dtype=torch.float64) for a in scalers)
-    lin = [m for m in net.f if isinstance(m, torch.nn.Linear)]
-    with torch.no_grad():
-        w = [m.weight.T.double().clone() for m in lin]
-        b = [m.bias.double().clone() for m in lin]
-        b[0] = b[0] - (mu / sd) @ w[0]
-        w[0] = w[0] / sd[:, None]
-        w[-1], b[-1] = w[-1] * ys, b[-1] * ys + ym
-    fw = [x.float().contiguous() for x in w]
-    fb = [x.float().contiguous() for x in b]
-    bufs = [torch.empty(chunk, x.shape[1]) for x in fw]
+    def __init__(self, x_tr, y_tr, x_te, y_te, epochs, members, view):
+        self.n_members, self.params = members, 0
+        self.ridge = fit_current_ridge(x_tr, y_tr)
+        self.fits = [Fit(x_tr, y_tr, self.ridge, epochs, 0, view, x_te, y_te)]
+        view.finish()
+        self.after_view = (x_tr, y_tr, epochs)
 
-    def predict(rows):
-        rows = torch.as_tensor(np.ascontiguousarray(rows, dtype=np.float32))
-        out = np.empty((len(rows), fw[-1].shape[1]), np.float32)
-        with torch.inference_mode():
-            for s in range(0, len(rows), chunk):
-                h = rows[s:s + chunk]
-                m = len(h)
-                for k in range(len(fw)):
-                    o = bufs[k][:m]
-                    torch.addmm(fb[k], h, fw[k], out=o)
-                    if k < len(fw) - 1:
-                        torch.nn.functional.silu(o, inplace=True)
-                    h = o
-                out[s:s + m] = h.numpy()
+    def finish_training(self, say):
+        x_tr, y_tr, epochs = self.after_view
+        for s in range(1, self.n_members):
+            say(f"učí se další síť {s + 1}/{self.n_members} (průměr sítí)")
+            self.fits.append(Fit(x_tr, y_tr, self.ridge, epochs, s))
+        say("učí se specialista na bod dotyku limiteru (strana a poloha)")
+        lim = y_tr[:, IL] > 0.5
+        up = y_tr[:, ZL] > 0
+        spec_y = np.full((len(y_tr), 5), np.nan, np.float32)
+        spec_y[:, 0] = np.where(up, 1.0, -1.0)
+        spec_y[np.ix_(up, [1, 2])] = y_tr[np.ix_(up, [RL, ZL])]
+        spec_y[np.ix_(~up, [3, 4])] = y_tr[np.ix_(~up, [RL, ZL])]
+        self.spec = Fit(x_tr[lim], spec_y[lim], self.ridge, epochs, 100)
+        self.params = sum(p.numel() for f in self.fits + [self.spec] for p in f.net.parameters())
+
+    def current(self, x):
+        return x.astype(np.float64) @ self.ridge[0] + self.ridge[1]
+
+    def slow(self, x):
+        out = np.mean([f.slow(x) for f in self.fits], 0)
+        out[:, IP] = self.current(x)
+        g = out[:, IL] > 0.5
+        if g.any():
+            sp = self.spec.slow(x[g])
+            out[np.ix_(g, [RL, ZL])] = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
         return out
-    return predict
+
+    def predictor(self, chunk=2048):
+        """Fast pass: float32, torch.addmm into preallocated buffers, SiLU in place, `chunk` rows at a time, on all torch
+        threads. Weights plus buffers are a few MB per network, so a call stays inside the L3 cache."""
+        chains = [f.folded() for f in self.fits]
+        spec = self.spec.folded()
+        wip = torch.from_numpy(self.ridge[0].astype(np.float32))
+        bip = float(self.ridge[1])
+
+        def make_bufs(chain):
+            first, rest = chain
+            return [torch.empty(chunk, first[0].shape[1])] + [torch.empty(chunk, w.shape[1]) for w, _ in rest]
+        bufs, sbufs = [make_bufs(c) for c in chains], make_bufs(spec)
+
+        def run(chain, bs, h, cur):
+            (wa, c1, b0), rest = chain
+            m = len(h)
+            o = bs[0][:m]
+            torch.mm(h, wa, out=o)
+            o.mul_((I_SCALE / cur)[:, None])
+            o.addcmul_(cur[:, None], c1[None, :])
+            o.add_(b0)
+            torch.nn.functional.silu(o, inplace=True)
+            h = o
+            for k, (w, b) in enumerate(rest):
+                o = bs[k + 1][:m]
+                torch.addmm(b, h, w, out=o)
+                if k < len(rest) - 1:
+                    torch.nn.functional.silu(o, inplace=True)
+                h = o
+            return h
+
+        def predict(rows):
+            rows = np.ascontiguousarray(rows, dtype=np.float32)
+            out = np.empty((len(rows), len(TARGETS)), np.float32)
+            with torch.inference_mode():
+                for s in range(0, len(rows), chunk):
+                    t = torch.from_numpy(rows[s:s + chunk])
+                    cur = torch.mv(t, wip) + bip
+                    acc = run(chains[0], bufs[0], t, cur).clone() if len(chains) > 1 else run(chains[0], bufs[0], t, cur)
+                    for c, bs in zip(chains[1:], bufs[1:]):
+                        acc += run(c, bs, t, cur)
+                    o = (acc / len(chains)).numpy().copy()
+                    o[:, IP] = cur.numpy()
+                    g = o[:, IL] > 0.5
+                    if g.any():
+                        gt = torch.from_numpy(g)
+                        sp = run(spec, sbufs, t[gt], cur[gt]).numpy()
+                        o[np.ix_(g, [RL, ZL])] = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
+                    out[s:s + chunk] = o
+            return out
+        return predict
 
 
 # ----------------------------------------------------------------------------- the machine
@@ -458,19 +590,20 @@ class LearningView:
     def __init__(self, epochs, live, width):
         self.epochs, self.live, self.width = epochs, live, width
         self.block = LiveBlock() if live else None
-        self.loss, self.err_r, self.err_z, self.elapsed = [], [], [], 0.0
+        self.loss, self.err_r, self.err_z, self.acc, self.elapsed = [], [], [], [], 0.0
         if not live:
-            print(f"{'epocha':^6} | {'ztráta učení':^12} | {'chyba osy R na neviděných výbojích':<51} | {'osa Z':^9} | {'čas':>7}")
+            print(f"{'epocha':^6} | {'ztráta učení':^12} | {'chyba osy R na neviděných výbojích':<51} | {'osa Z':^9} | {'přesnost':>8} | {'čas':>7}")
 
-    def __call__(self, epoch, loss, err_r, err_z, elapsed):
+    def __call__(self, epoch, loss, err_r, err_z, elapsed, acc):
         self.loss.append(loss)
         self.err_r.append(err_r)
         self.err_z.append(err_z)
+        self.acc.append(acc)
         self.elapsed = elapsed
         if self.live:
             self.block.draw(self.frame())
         else:
-            print(f"{epoch:^6d} | {loss:^12.4f} | {bar(err_r)} | {err_z:6.3f} mm | {elapsed:5.1f} s")
+            print(f"{epoch:^6d} | {loss:^12.4f} | {bar(err_r)} | {err_z:6.3f} mm | {acc:6.2f} % | {elapsed:5.1f} s")
 
     def finish(self):
         """Plain mode: the chart once, after the table."""
@@ -505,7 +638,8 @@ class LearningView:
         lines += [
             "",
             f"epocha {ST.paint(ST.bold, f'{n:>3}/{self.epochs}')}     chyba osy R {ST.paint(ST.bold, f'{self.err_r[-1]:.3f} mm')}"
-            f"     osa Z {ST.paint(ST.bold, f'{self.err_z[-1]:.3f} mm')}",
+            f"     osa Z {ST.paint(ST.bold, f'{self.err_z[-1]:.3f} mm')}"
+            f"     celková přesnost {ST.paint(ST.bold, f'{self.acc[-1]:.2f} %')}",
             progress(n / self.epochs, 30) + ST.paint(ST.grey, f"  ztráta {self.loss[-1]:.4f} · {self.elapsed:.1f} s · "
                                                               f"{rate:.1f} epoch za sekundu"),
         ]
@@ -563,8 +697,8 @@ def scores_table(pred, y, agree, width):
     note = (f"Průměrná chyba = průměrný rozdíl odhadu od rekonstrukce ústavu. Rozptyl veličiny = její směrodatná "
             f"odchylka na týchž okamžicích. Bod X a dotykové body existují jen v divertorové konfiguraci "
             f"({fmt_int(rows_of['R_x_point'])} okamžiků), bod u limiteru jen v limiterové "
-            f"({fmt_int(rows_of['R_limiter'])}). Je to základní síť (60 epoch), ne vybraný model; ten má vlastní "
-            f"výsledky v results/ipp1-final.md.")
+            f"({fmt_int(rows_of['R_limiter'])}). Model se učí tady v ukázce (síť s rozdíly cívek, ridge pro proud, specialista na limiter); odeslaný "
+            f"model má vlastní výsledky v results/ipp1-final.md.")
     lines += [ST.paint(ST.grey, row) for row in textwrap.wrap(note, width)]
     return [fit(line, width) for line in lines]
 
@@ -653,8 +787,8 @@ def success_lines(pred, y, scores, live, width, reveal=1.0, part="all"):
                      f"{r2:6.4f}")
     half = (len(cells) + 1) // 2
     lines += [pad(left, col_w) + "   " + right for left, right in zip(cells[:half], cells[half:] + [""])]
-    note = ("Chyba = rozdíl odhadu od rekonstrukce ústavu, tedy shoda s ní, ne s plazmatem samotným. Je to základní "
-            "síť z této ukázky, ne vybraný model; ten má vlastní výsledky v results/ipp1-final.md.")
+    note = ("Chyba = rozdíl odhadu od rekonstrukce ústavu, tedy shoda s ní, ne s plazmatem samotným. Model je ten z "
+            "této ukázky; odeslaný model má vlastní výsledky v results/ipp1-final.md.")
     lines += [""] + [ST.paint(ST.grey, row) for row in textwrap.wrap(note, width)]
     chosen = {"top": top, "bottom": lines, "all": top + [""] + lines}[part]
     return [fit(line, width) for line in chosen]
@@ -838,10 +972,10 @@ def run_demo(args, live, width):
     lock = locked_ids(groups)
     test = np.isin(groups, lock)
     x_tr, y_tr, x_te, y_te = x[~test], y[~test], x[test], y[test]
-    shape_net = Net(x.shape[1], y.shape[1])          # only for the banner; train() seeds torch again before its own net
+    shape_net = Net(len(add_diffs(x[:1])[0]) + 1, y.shape[1])      # only for the banner
     linears = [m for m in shape_net.f if isinstance(m, torch.nn.Linear)]
-    layer_sizes = [linears[0].in_features] + [m.out_features for m in linears]
-    params = sum(p.numel() for p in shape_net.parameters())
+    layer_sizes = [x.shape[1]] + [m.out_features for m in linears]
+    params = sum(p.numel() for p in shape_net.parameters()) * args.models
     cpu = cpu_name()
 
     print()
@@ -854,18 +988,18 @@ def run_demo(args, live, width):
     print()
     started = time.perf_counter()
     view = LearningView(args.epochs, live, width)
-    net, scalers = train(x_tr, y_tr, x_te, y_te, args.epochs, view)
-    view.finish()
+    model = Model(x_tr, y_tr, x_te, y_te, args.epochs, args.models, view)
+    model.finish_training(lambda text: print(ST.paint(ST.grey, text)))
+    params = model.params
     train_s = time.perf_counter() - started
     print(f"\nNaučeno za {train_s:.0f} s." + ST.paint(ST.grey, f" ({args.epochs / train_s:.1f} epoch za sekundu, "
                                                              f"včetně výpisu na obrazovku)"))
 
     # 2. All outputs on the set-aside discharges.
     section(2, f"Všech {len(TARGETS)} veličin na {len(lock)} odložených výbojích", width)
-    predict = fast_predictor(net, scalers)
-    with torch.no_grad():
-        mu, sd, ym, ys = scalers
-        torch_pred = net(torch.tensor((x_te - mu) / sd)).numpy() * ys + ym
+    predict = model.predictor()
+    torch_pred = model.slow(x_te)
+    overall = overall_accuracy(torch_pred, y_te)
     scores = score(torch_pred, y_te, ~np.isnan(y_te))      # R² of every output and the configuration agreement
     agree = scores["is_limited"]["accuracy"]
     for line in scores_table(torch_pred, y_te, agree, width):
@@ -969,6 +1103,7 @@ def run_demo(args, live, width):
         + f", p99 {np.percentile(single_ms, 99):.4f} ms (99 % odhadů je rychlejších)",
         f"{'chyba osy':<14}R " + ST.paint(ST.bold, f"{err_r:.3f} mm") + ", Z " + ST.paint(ST.bold, f"{err_z:.3f} mm")
         + f" vůči rekonstrukci ústavu, {len(lock)} odložených výbojů",
+        f"{'přesnost':<14}" + ST.paint(ST.bold, f"{overall:.2f} %") + " celkem: 100 % minus průměrná relativní chyba všech 16 veličin",
         f"{'pod 1 mm':<14}R " + ST.paint(ST.bold, f"{under_1mm[0]:.1f} %") + ", Z "
         + ST.paint(ST.bold, f"{under_1mm[1]:.1f} %") + " okamžiků má chybu osy pod 1 mm",
         f"{'konfigurace':<14}limiterová nebo divertorová: shoda s rekonstrukcí ústavu v "
@@ -977,7 +1112,7 @@ def run_demo(args, live, width):
         ST.paint(ST.grey, f"{'dávka':<14}{args.batch} okamžiků za {median_batch:.1f} ms (medián) = "
                           f"{median_batch / args.batch * 1000:.2f} µs na odhad; {fmt_int(total)} odhadů za {elapsed:.1f} s"),
         ST.paint(ST.grey, f"{'učení':<14}{args.epochs} epoch za {train_s:.1f} s, {fmt_int(params)} vah, seed 0, "
-                          f"základní síť"),
+                          f"{args.models}x síť s rozdíly cívek + specialista na limiter"),
         ST.paint(ST.grey, f"{'stroj':<14}{cpu} ({platform.machine()}); torch {args.threads} vláken"),
         ST.paint(ST.grey, f"{'software':<14}Python {platform.python_version()}, torch {torch.__version__}, "
                           f"numpy {np.__version__}"),
@@ -1019,7 +1154,8 @@ def dump_rows(df, y, groups, test, predict, batches, args):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--epochs", type=int, default=60)
+    ap.add_argument("--epochs", type=int, default=150)
+    ap.add_argument("--models", type=int, default=1, help="networks averaged (slower: each costs one more pass per estimate)")
     ap.add_argument("--seconds", type=float, default=10, help="length of the full-speed run")
     ap.add_argument("--batch", type=int, default=2048, help="rows per estimate call in the full-speed run")
     ap.add_argument("--target", type=int, default=800_000, help="estimates per second the full-speed run is compared with")
