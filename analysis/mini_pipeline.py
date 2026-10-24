@@ -453,7 +453,9 @@ class Fit:
 class Model:
     """The whole model: `members` networks averaged (all 16 outputs), the plasma current from a ridge, and a limiter
     specialist that, on rows the main networks call limited, answers which side of the vessel (up or down) the contact point
-    is on and where it is on that side (the side is a jump of hundreds of mm that a plain regression smears over)."""
+    is on and where it is on that side (the side is a jump of hundreds of mm that a plain regression smears over). The limiter
+    point is the mean of that answer and the main networks' own answer: on the development set the mean beats either one
+    alone (results/ipp1-ipn.md)."""
 
     def __init__(self, x_tr, y_tr, x_te, y_te, epochs, members, view):
         self.n_members, self.params = members, 0
@@ -486,7 +488,8 @@ class Model:
         g = out[:, IL] > 0.5
         if g.any():
             sp = self.spec.slow(x[g])
-            out[np.ix_(g, [RL, ZL])] = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
+            side = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
+            out[np.ix_(g, [RL, ZL])] = 0.5 * (side + out[np.ix_(g, [RL, ZL])])
         return out
 
     def predictor(self, chunk=2048):
@@ -536,7 +539,8 @@ class Model:
                     if g.any():
                         gt = torch.from_numpy(g)
                         sp = run(spec, sbufs, t[gt], cur[gt]).numpy()
-                        o[np.ix_(g, [RL, ZL])] = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
+                        side = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
+                        o[np.ix_(g, [RL, ZL])] = 0.5 * (side + o[np.ix_(g, [RL, ZL])])
                     out[s:s + chunk] = o
             return out
         return predict

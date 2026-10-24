@@ -121,8 +121,9 @@ class Model:
         gate = np.flatnonzero(out[:, self.cls_col] > 0.5)
         if len(gate):
             sp = self._net("spec", f[gate])
-            if sp.shape[1] == 5:       # ipn model: side (+up / -down), then R, Z when up and R, Z when down
-                out[np.ix_(gate, self.lim_cols)] = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
+            if sp.shape[1] == 5:       # ipn model: side (+up / -down), then R, Z when up and R, Z when down; averaged with the general network's answer
+                side = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
+                out[np.ix_(gate, self.lim_cols)] = 0.5 * (side + out[np.ix_(gate, self.lim_cols)])
             else:
                 out[np.ix_(gate, self.lim_cols)] = sp[:, self.lim_cols]
         return out

@@ -9,8 +9,9 @@ by it (signed, so a reversed polarity turns into the same picture) and the curre
 Inputs of the networks (67 columns for --feat diff2): the 24 divided measurements, the 22 differences of neighbouring coils/loops, the 20 second
 differences, and current / 1e5. Networks: a general network (all 16 outputs) and a limiter network on the rows that are really limited, with five
 outputs: which side of the vessel the contact point is on (+1 up, -1 down) and where it is on each side (R and Z for up and for down); on the rows
-where the general network says is_limited > 0.5 the side is decided and the answer for that side is used. A jump of hundreds of mm between the two
-sides is what made a plain regression of the limiter point wrong by 300-500 mm on a few percent of the rows.
+where the general network says is_limited > 0.5 the side is decided and the answer for that side is used, averaged with the general network's own
+answer for R_limiter and Z_limiter (predict.py): on the development set the mean of the two is better than either alone. A jump of hundreds of mm
+between the two sides is what made a plain regression of the limiter point wrong by 300-500 mm on a few percent of the rows.
 Loss: Huber with delta 0.2 on the standardised targets, masked to the targets that exist; AdamW, one-cycle schedule, 150 epochs, batch 512.
 
     HACKATHON_HOME=<folder> python analysis/ipn_model.py [--feat diff2] [--epochs 150] [--all]        writes out/model/ipp1-ipn.npz and .json
