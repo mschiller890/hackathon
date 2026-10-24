@@ -354,12 +354,14 @@ HUBER = 0.2                      # Huber delta of the loss on standardised targe
 
 
 def add_diffs(x):
-    """The 24 measurements plus the differences of neighbouring coils (15) and neighbouring loops (7): 46 inputs.
+    """The 24 measurements, the differences of neighbouring coils (15) and loops (7) and their second differences (14 + 6): 66 inputs.
     Linear in x, so the first layer absorbs it exactly (see Fit.folded)."""
-    return np.concatenate([x, np.diff(x[:, :16], axis=1), np.diff(x[:, 16:24], axis=1)], 1)
+    return np.concatenate([x, np.diff(x[:, :16], axis=1), np.diff(x[:, 16:24], axis=1),
+                           np.diff(x[:, :16], 2, axis=1), np.diff(x[:, 16:24], 2, axis=1)], 1)
 
 
-DIFF_MAP = add_diffs(np.eye(24))     # 24 x 46: add_diffs(x) == x @ DIFF_MAP
+DIFF_MAP = add_diffs(np.eye(24))     # 24 x 66: add_diffs(x) == x @ DIFF_MAP
+N_DIFF = DIFF_MAP.shape[1]
 
 
 def fit_current_ridge(x, y):
@@ -439,10 +441,10 @@ class Fit:
             b = [m.bias.double().clone() for m in lin]
             sd, mu = torch.as_tensor(self.sd, dtype=torch.float64), torch.as_tensor(self.mu, dtype=torch.float64)
             ys, ym = torch.as_tensor(self.ys, dtype=torch.float64), torch.as_tensor(self.ym, dtype=torch.float64)
-            w1 = w[0]                                                   # 47 x width: 46 scaled features, the current
-            wa = torch.as_tensor(DIFF_MAP) @ (w1[:46] / sd[:46, None])
-            c1 = w1[46] / sd[46] / I_SCALE
-            b0 = b[0] - (mu[:46] / sd[:46]) @ w1[:46] - (mu[46] / sd[46]) * w1[46]
+            w1 = w[0]                                                   # (N_DIFF + 1) x width: the scaled features, then the current
+            wa = torch.as_tensor(DIFF_MAP) @ (w1[:N_DIFF] / sd[:N_DIFF, None])
+            c1 = w1[N_DIFF] / sd[N_DIFF] / I_SCALE
+            b0 = b[0] - (mu[:N_DIFF] / sd[:N_DIFF]) @ w1[:N_DIFF] - (mu[N_DIFF] / sd[N_DIFF]) * w1[N_DIFF]
             rest = [(w[k].float().contiguous(), b[k].float().contiguous()) for k in range(1, len(w) - 1)]
             last = ((w[-1] * ys).float().contiguous(), (b[-1] * ys + ym).float().contiguous())
         return (wa.float().contiguous(), c1.float().contiguous(), b0.float().contiguous()), rest + [last]
