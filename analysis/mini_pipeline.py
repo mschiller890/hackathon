@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """The whole idea of the project, live in the terminal: 24 magnetic measurements in, plasma shape out.
 
-    HACKATHON_HOME=<hackathon folder> python -I analysis/mini_pipeline.py [--epochs 60] [--seconds 10] [--dump-rows N] [--plain]
+    HACKATHON_HOME=<hackathon folder> python analysis/mini_pipeline.py [--epochs 60] [--seconds 10] [--dump-rows N] [--plain]
 
 What it prints, in order (Czech, it is the demo for the jury):
   0. a title banner: inputs, outputs, network, split, machine;
@@ -423,21 +423,6 @@ def cpu_name():
     return platform.processor() or platform.machine() or "neznámý"
 
 
-def blas_info():
-    """The BLAS library numpy uses for the fast path, with its thread count when threadpoolctl can see it."""
-    try:
-        from threadpoolctl import threadpool_info      # installed with scikit-learn
-        for lib in threadpool_info():
-            if lib.get("user_api") == "blas":
-                return f"{lib['internal_api']}, {lib['num_threads']} vláken"
-    except Exception:
-        pass
-    try:
-        return f"{np.show_config(mode='dicts')['Build Dependencies']['blas']['name']}, vlákna řídí knihovna"
-    except Exception:
-        return "neznámá"
-
-
 # ----------------------------------------------------------------------------- 0. banner
 def banner(width, n_in, layer_sizes, params, dev_ids, dev_rows, lock, lock_rows, cpu):
     """The title box: what goes in, what comes out, the network, the split, the machine, the colours."""
@@ -746,7 +731,7 @@ def run_demo(args, live, width):
     linears = [m for m in shape_net.f if isinstance(m, torch.nn.Linear)]
     layer_sizes = [linears[0].in_features] + [m.out_features for m in linears]
     params = sum(p.numel() for p in shape_net.parameters())
-    cpu, blas = cpu_name(), blas_info()
+    cpu = cpu_name()
 
     print()
     banner(width, x.shape[1], layer_sizes, params, len(np.unique(groups[~test])), len(x_tr), len(lock), len(x_te), cpu)
@@ -868,7 +853,7 @@ def run_demo(args, live, width):
                           f"{median_batch / args.batch * 1000:.2f} µs na odhad; {fmt_int(total)} odhadů za {elapsed:.1f} s"),
         ST.paint(ST.grey, f"{'učení':<14}{args.epochs} epoch za {train_s:.1f} s, {fmt_int(params)} vah, seed 0, "
                           f"základní síť"),
-        ST.paint(ST.grey, f"{'stroj':<14}{cpu} ({platform.machine()}); torch {args.threads} vláken; BLAS {blas}"),
+        ST.paint(ST.grey, f"{'stroj':<14}{cpu} ({platform.machine()}); torch {args.threads} vláken"),
         ST.paint(ST.grey, f"{'software':<14}Python {platform.python_version()}, torch {torch.__version__}, "
                           f"numpy {np.__version__}"),
     ]
