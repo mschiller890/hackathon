@@ -34,7 +34,8 @@ def silu(h):
 
 
 class Model:
-    """The shipped pair: a general network, a network for the limiter point, a ridge for the plasma current (see analysis/export_model.py)."""
+    """The shipped pair: a general network, a network for the limiter point, a ridge for the plasma current (see analysis/export_model.py),
+    and, if the file has one, a separate network that answers R_mag_axis and Z_mag_axis (keys axis_*)."""
 
     def __init__(self, path):
         z = np.load(path, allow_pickle=False)
@@ -44,6 +45,8 @@ class Model:
         self.scales = self.z["output_scales"]
         self.lim_cols = [int(v) for v in self.z["limiter_columns"]]
         self.ip_col, self.cls_col = int(self.z["plasma_current_column"]), int(self.z["is_limited_column"])
+        self.axis_cols = [int(v) for v in self.z["axis_columns"]] if "axis_columns" in self.z else None
+        self.depth = {tag: sum(k.startswith(f"{tag}_W") for k in self.z) for tag in ("gen", "spec", "axis")}
 
     @staticmethod
     def features(x):
@@ -53,9 +56,10 @@ class Model:
     def _net(self, tag, f):
         z = self.z
         h = (f - z[f"{tag}_mu"]) / z[f"{tag}_sd"]
-        for i in range(4):
+        n = self.depth[tag]
+        for i in range(n):
             h = h @ z[f"{tag}_W{i}"] + z[f"{tag}_b{i}"]
-            if i < 3:
+            if i < n - 1:
                 h = silu(h)
         return h * z[f"{tag}_ys"] + z[f"{tag}_ym"]
 
@@ -64,6 +68,8 @@ class Model:
         x = np.asarray(x, dtype=np.float32)
         f = self.features(x)
         out = self._net("gen", f)
+        if self.axis_cols:
+            out[:, self.axis_cols] = self._net("axis", f)
         out[:, self.ip_col] = x.astype(np.float64) @ self.z["ridge_w"] + self.z["ridge_b"]
         gate = np.flatnonzero(out[:, self.cls_col] > 0.5)
         if len(gate):
