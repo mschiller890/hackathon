@@ -42,7 +42,8 @@ STEPS = [
 FINAL_JOBS = ([f"locked:{r}" for r in ("base", "cand", "base_aug")] + [f"blocked:{r}" for r in ("base", "cand", "base_aug")]
               + [f"cv:{r}:{k}" for r in ("base", "cand", "base_aug") for k in range(5)])
 STEPS += [(f"ipp1_final.py --job {j}", [f"ipp1-final-cache/{j.replace(':', '_')}.npz"], "5 min in total") for j in FINAL_JOBS]
-STEPS.append(("export_model.py", ["model/ipp1-selected.npz"], "30 s"))   # the shipped model for analysis/predict.py (notebook 09 calls it); trained on the 119 development discharges
+STEPS.append(("export_model.py", ["model/ipp1-noisy.npz"], "20 s"))   # the noise model for predict.py; trained on the 119 development discharges
+STEPS.append(("ipn_model.py", ["model/ipp1-ipn.npz"], "40 s"))   # the shipped model for clean inputs (notebook 09 reads it)
 SLOW = {"ipp1_inputs.py"}  # over 10 minutes: --quick copies results/<output> instead
 # Executing the notebooks afterwards takes about 2 minutes.
 VIEWER_STEPS = [

@@ -4,7 +4,6 @@
     python run.py            training live, test on unseen discharges, export of the two models, a first estimate, the noisy inputs (about 1.5 to 2 min on an Apple M5)
     python run.py --full     everything: all analysis steps and all ten notebooks (about 9 to 10 min)
     python run.py --check    only check the Python packages and the data
-    python run.py --relu-demo   the same, with the second live demo (ReLU network)
 
 The IPP data are confidential: the repository is private and only the hackathon participants may have access. The files are in ./data; or set
 HACKATHON_HOME to the folder that holds data/ (by default the folder of this file; the two CSV files are in the repository). The live demo prints rows of the data to the terminal: show it in the room, do not record or send it.
@@ -89,7 +88,7 @@ def noisy_inputs(home):
     """Step 6: axis MAE of both exported models on the provided noisy file, 30 set-aside discharges. Prints aggregates only, no data rows."""
     import numpy as np
     import pandas as pd
-    sys.path.insert(0, str(HERE / "analysis"))
+    sys.path.insert(0, str(HERE))
     import predict
     df = pd.read_csv(data_folder(home) / NOISY.name)
     df = df[df["discharge"].isin(locked_ids())]
@@ -109,7 +108,6 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--full", action="store_true", help="all analysis steps and all ten notebooks (about 9 to 10 min)")
     ap.add_argument("--check", action="store_true", help="only check packages and data")
-    ap.add_argument("--relu-demo", action="store_true", help="use the second live demo (ReLU network, 6 cores) instead of mini_pipeline.py")
     a = ap.parse_args()
     print(f"{B}Plasma shape from magnetic measurements (COMPASS, task IPP 1){X}")
     check_packages()
@@ -125,12 +123,9 @@ def main():
         print(f"\n{G}Finished.{X} Executed notebooks: {home / 'out' / 'notebooks'}")
         return
     step("3. Live: the network learns, then estimates a discharge it never saw, then runs at full speed")
-    if a.relu_demo:
-        run([py, "-u", "analysis/ipp1_live_train_fast.py"], env, True)
-    else:
-        run([py, "-u", "analysis/mini_pipeline.py", "--dump-rows", "0"], env, True)
+    run([py, "-u", "analysis/mini_pipeline.py", "--dump-rows", "0"], env, True)
     step("4. Train the shipped models and export them (out/model/ipp1-ipn.npz for clean inputs, out/model/ipp1-noisy.npz for noisy inputs)")
-    run([py, "analysis/export_model.py", "--no-axis-net"], env, True)
+    run([py, "analysis/export_model.py"], env, True)
     run([py, "-u", "analysis/ipn_model.py", "--live"], env, True)   # the shipped model learns with the same live chart as the demo
     step("5. First estimate with the exported model (reference reconstruction against our estimate)")
     # the paths go through argv, not into the source, so a quote in a folder name cannot break the code

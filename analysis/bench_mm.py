@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Benchmark of the millimetre deviation of a model from the institute's reconstruction (IPP task 1).
 
-    python analysis/bench_mm.py [--model out/model/ipp1-selected.npz] [--set locked|dev|all] [--noisy] [--csv FILE] [--json OUT]
+    python analysis/bench_mm.py [--model out/model/ipp1-ipn.npz] [--set locked|dev|all] [--noisy] [--csv FILE] [--json OUT]
     python analysis/bench_mm.py --make-synthetic DIR      # SYNTHETIC data and model, to test this script without the IPP data
 
 Data: by default the IPP file equil_data.csv (equil_data_noisy.csv with --noisy) from data/raw/ipp1-magnetic/uloha_1-magneticka_data/
@@ -52,7 +52,7 @@ def fail(msg):
 # ----------------------------------------------------------------------------- inputs
 def default_model():
     homes = [Path(os.environ["HACKATHON_HOME"])] if os.environ.get("HACKATHON_HOME") else []
-    cands = [h / "out/model/ipp1-selected.npz" for h in homes + [REPO, REPO.parent]] + [REPO / "model/ipp1-selected.npz"]
+    cands = [h / "out/model/ipp1-ipn.npz" for h in homes + [REPO, REPO.parent]] + [REPO / "model/ipp1-ipn.npz"]
     return next((p for p in cands if p.exists()), cands[0])
 
 
@@ -313,7 +313,7 @@ def make_synthetic(root, n_discharges=60, seed=0):
 # ----------------------------------------------------------------------------- main
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--model", help="exported model .npz (default: out/model/ipp1-selected.npz under HACKATHON_HOME or the repository)")
+    ap.add_argument("--model", help="exported model .npz (default: out/model/ipp1-ipn.npz under HACKATHON_HOME or the repository)")
     ap.add_argument("--set", choices=("locked", "dev", "all"), help="which discharges (default: locked for the IPP data, all for --csv)")
     ap.add_argument("--noisy", action="store_true", help="the IPP noisy file equil_data_noisy.csv instead of equil_data.csv")
     ap.add_argument("--csv", help="any CSV with the 24 inputs, `discharge`, optionally `time`, and target columns")

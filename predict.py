@@ -34,8 +34,6 @@ def _default(name):
 
 
 DEFAULT_MODEL, DEFAULT_NOISY = _default("ipp1-ipn.npz"), _default("ipp1-noisy.npz")
-if not DEFAULT_MODEL.exists():            # a package exported before the ipn model: the earlier selected model
-    DEFAULT_MODEL = _default("ipp1-selected.npz")
 DIVERTOR_ONLY = ("R_x_point", "Z_x_point", "R_strike_point_1", "Z_strike_point_1", "R_strike_point_2", "Z_strike_point_2")
 LIMITED_ONLY = ("R_limiter", "Z_limiter")
 
@@ -62,10 +60,9 @@ def window_rows(discharge, time, k):
 
 
 class Model:
-    """The shipped selected model: a general network, a network for the limiter point, a ridge for the plasma current, rows independent,
-    and, if the file has one, a separate network that answers R_mag_axis and Z_mag_axis (keys axis_*).
-    Or the noise model (ipp1-noisy.npz): one network on the inputs of the last `window` rows of the discharge, see estimates_noisy.
-    Both are made by analysis/export_model.py."""
+    """The clean-input model (ipp1-ipn.npz, made by analysis/ipn_model.py): a general network, a network for the limiter point and a ridge for the plasma current;
+    rows are independent. Or the noise model (ipp1-noisy.npz, made by analysis/export_model.py): one network on the inputs of the last `window` rows of the
+    discharge, see estimates_noisy."""
 
     def __init__(self, path):
         z = np.load(path, allow_pickle=False)
@@ -76,15 +73,11 @@ class Model:
         self.lim_cols = [int(v) for v in self.z["limiter_columns"]]
         self.ip_col, self.cls_col = int(self.z["plasma_current_column"]), int(self.z["is_limited_column"])
         self.window = int(self.z["window_rows"]) if "window_rows" in self.z else 1   # only the noise model has a window
-        self.axis_cols = [int(v) for v in self.z["axis_columns"]] if "axis_columns" in self.z else None
-        self.depth = {tag: sum(k.startswith(f"{tag}_W") for k in self.z) for tag in ("gen", "spec", "axis")}
+        self.depth = {tag: sum(k.startswith(f"{tag}_W") for k in self.z) for tag in ("gen", "spec")}
         self.ipn = "ipn" in self.z        # the model of analysis/ipn_model.py: measurements divided by the plasma current
-        self.feature_mode = str(self.z["feature_mode"]) if self.ipn else "diff"
-
-    @staticmethod
-    def features(x):
-        """The 24 inputs plus the differences of neighbouring coils (15) and of neighbouring flux loops (7), inside each row: 46 columns."""
-        return np.concatenate([x, np.diff(x[:, :16], axis=1), np.diff(x[:, 16:24], axis=1)], axis=1).astype(np.float32)
+        self.feature_mode = str(self.z["feature_mode"]) if self.ipn else None
+        if not self.ipn and self.window == 1:
+            sys.exit(f"{path}: not a model of this package (the clean-input model is ipp1-ipn.npz, the noise model ipp1-noisy.npz; make them with python run.py)")
 
     def ipn_features(self, x):
         """ipn model: the measurements divided by the plasma current (the ridge on the 24 inputs, signed), their differences inside the row
@@ -117,19 +110,14 @@ class Model:
         x = np.asarray(x, dtype=np.float32)
         if self.window > 1:
             return self._net("gen", x)
-        f = self.ipn_features(x) if self.ipn else self.features(x)
+        f = self.ipn_features(x)
         out = self._net("gen", f)
-        if self.axis_cols:
-            out[:, self.axis_cols] = self._net("axis", f)
         out[:, self.ip_col] = x.astype(np.float64) @ self.z["ridge_w"] + self.z["ridge_b"]
         gate = np.flatnonzero(out[:, self.cls_col] > 0.5)
         if len(gate):
-            sp = self._net("spec", f[gate])
-            if sp.shape[1] == 5:       # ipn model: side (+up / -down), then R, Z when up and R, Z when down; averaged with the general network's answer
-                side = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
-                out[np.ix_(gate, self.lim_cols)] = 0.5 * (side + out[np.ix_(gate, self.lim_cols)])
-            else:
-                out[np.ix_(gate, self.lim_cols)] = sp[:, self.lim_cols]
+            sp = self._net("spec", f[gate])        # side (+up / -down), then R, Z when up and R, Z when down; averaged with the general network's answer
+            side = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
+            out[np.ix_(gate, self.lim_cols)] = 0.5 * (side + out[np.ix_(gate, self.lim_cols)])
         return out
 
     def estimates(self, x):

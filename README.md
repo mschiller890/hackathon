@@ -110,7 +110,6 @@ python -m pip install -r requirements.txt
 python run.py            # asi 3 minuty: živé učení, test na neviděných výbojích, export modelů
 python run.py --full     # asi 10 minut: všechny analýzy a všech deset notebooků znovu spočítaných
 python run.py --check    # jen zkontroluje balíčky a data
-python run.py --relu-demo   # druhé živé demo (síť s ReLU)
 ```
 
 **Data** jsou přímo v repozitáři ve složce `data/` (`equil_data.csv` a `equil_data_noisy.csv`), takže se nic nenastavuje: `run.py` i všechny skripty a notebooky je najdou samy a vše nové (modely, mezivýsledky) ukládají do složky `out/` v repozitáři (je v `.gitignore`). Proměnná **`HACKATHON_HOME`** je volitelná: ukazuje-li na jinou složku, která má `data/` s těmito dvěma soubory (nebo původní strukturu `data/raw/ipp1-magnetic/uloha_1-magneticka_data/`), použije se ta. **Repozitář musí zůstat soukromý** (kapitola 9).
@@ -122,7 +121,7 @@ Co `python run.py` udělá, krok za krokem:
 | 1. Balíčky | zkontroluje, že jsou nainstalované numpy, pandas, scikit-learn, torch a další |
 | 2. Data | najde CSV soubory |
 | 3. Živé demo | síť se učí epocha po epoše (graf ztráty a chyby osy, přesnost v procentech), pak odhaduje neviděný výboj okamžik po okamžiku a nakonec běží plnou rychlostí. Výpis ukazuje i řádky dat, **nenahrávat a neposílat** |
-| 4. Export | `export_model.py` natrénuje zašuměný model (`ipp1-noisy.npz`) a starý model (`ipp1-selected.npz`, jen kvůli reprodukci starých výsledků), `ipn_model.py --live` natrénuje nasazený čistý model (`ipp1-ipn.npz`) se živým grafem. Vše do `out/model/` |
+| 4. Export | `export_model.py` natrénuje zašuměný model (`ipp1-noisy.npz`), `ipn_model.py --live` natrénuje nasazený čistý model (`ipp1-ipn.npz`) se živým grafem. Vše do `out/model/` |
 | 5. První odhad | odhadne prvních 5 řádků jednoho vývojového výboje s exportovaným modelem |
 | 6. Šum | změří osu obou modelů na zašuměném souboru, 30 odložených výbojů |
 
@@ -161,8 +160,8 @@ python predict.py vstup.csv --out odhady.csv --all
 | Soubor / složka | Obsah |
 |---|---|
 | `run.py` | **jediný soubor, který spustí všechno** (kapitola 3) |
-| `predict.py` | použití modelu na vlastním CSV (kapitola 4); kopie v `analysis/predict.py` |
-| `analysis/` | skripty: `ipp1_common.py` (načtení dat, síť, skórování), `ipp1_final.py` (receptury a odložené výboje), `ipn_model.py` (nasazený model), `export_model.py` (zašuměný a starý model), `mini_pipeline.py` (živé demo), `ipp1_live_train_fast.py` (druhé demo s ReLU), `bench_mm.py`, `plot_accuracy.py`, `make_all.py`, analýzy (`ipp1_eda.py`, `ipp1_baseline.py`, `ipp1_oof*.py`, `ipp1_time.py`, `ipp1_inputs.py`, `ipp1_latency.py`, `ipp1_data_checks.py`) a syntetický test (`synth_equilibrium.py`, `synth_validation.py`) |
+| `predict.py` | použití modelu na vlastním CSV (kapitola 4) |
+| `analysis/` | skripty: `ipp1_common.py` (načtení dat, síť, skórování), `ipp1_final.py` (receptury a odložené výboje), `ipn_model.py` (nasazený model), `export_model.py` (zašuměný model), `mini_pipeline.py` (živé demo), `bench_mm.py`, `plot_accuracy.py`, `make_all.py`, analýzy (`ipp1_eda.py`, `ipp1_baseline.py`, `ipp1_oof*.py`, `ipp1_time.py`, `ipp1_inputs.py`, `ipp1_latency.py`, `ipp1_data_checks.py`) a syntetický test (`synth_equilibrium.py`, `synth_validation.py`) |
 | `notebooks/01 … 10` | **všechny závěry**, s uloženými výstupy (jdou číst bez spuštění): 01 data, 02 základní modely, 03 vstupy a důležitost, 04 stabilita v čase, 05 odezva, 06 kamera, 07 nerovnoměrné rozdělení a neobvyklé tvary, 08 šum, drift a množství dat, 09 nasazený model na odložených výbojích, 10 syntetický test se známou pravdou |
 | `data/` | **důvěrná data ÚFP** (`equil_data.csv`, `equil_data_noisy.csv`, 42 972 řádků každý). Repozitář je soukromý, kapitola 9 |
 | `results/` | agregované výsledky a grafy, které notebooky čtou (žádná surová data) |

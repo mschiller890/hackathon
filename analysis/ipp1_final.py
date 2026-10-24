@@ -37,13 +37,12 @@ import torch.nn.functional as F
 from sklearn.linear_model import Ridge
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script folder
-from ipp1_common import OUT, REPO, ROOT, TARGETS, UNIT, fit_mlp, group_folds, load
+from ipp1_common import OUT, REPO, TARGETS, UNIT, fit_mlp, group_folds, load
 
 SMOKE = bool(os.environ.get("IPP1_FINAL_SMOKE"))          # one epoch per network: only to test the plumbing
 CACHE = OUT / ("ipp1-final-cache-smoke" if SMOKE else "ipp1-final-cache")
 J = {t: i for i, t in enumerate(TARGETS)}
 LIMITER = [J["R_limiter"], J["Z_limiter"]]
-AXIS = [J["R_mag_axis"], J["Z_mag_axis"]]
 NOISE, DRIFT, AUG_SEED = 0.15, 0.15, 20261023             # as ipp1_robustness.py and ipp1_improve.py
 LOCK_SEED, N_LOCK, N_BOOT = 20261024, 30, 1000
 RECIPES = ["base", "base_aug", "cand", "cand_aug"]
@@ -136,11 +135,6 @@ def fit_net(xtr, ytr, mtr, seed, epochs, rows=None, arch=(256, 256, 128), wd=1e-
             return net(torch.from_numpy((feats(x) - mu32) / sd32)).numpy() * ys + ym
     return predict
 
-
-def fit_axis_net(xtr, ytr, mtr, seed, epochs=400, arch=(256, 256, 128)):
-    """The general network of `cand` (same features, loss, optimizer, schedule, scalers, seed) trained only on R_mag_axis
-    and Z_mag_axis; returns (n, 2) predictions in that order. Not part of any recipe: analysis/export_model.py ships it."""
-    return fit_net(xtr, ytr[:, AXIS], mtr[:, AXIS], seed, epochs, arch=arch)
 
 
 def fit_ridge_col(xtr, ytr, mtr, j, alpha=1.0):
