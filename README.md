@@ -248,3 +248,6 @@ Data poskytl ÚFP AV ČR jen pro účely tohoto hackathonu a **není dovoleno je
 * Datové soubory (`data/equil_data.zip`, `data/equil_data_noisy.zip`) **nejsou součástí repozitáře ani odevzdání**: složka `data/` je v `.gitignore`. Každý účastník je má lokálně od organizátorů. **Nikdy je nedávejte do gitu, nekopírujte `data/` do veřejného forku, balíčku ani na jiné místo.** Pozor: starší commity (do `83150c3`) obsahovaly CSV a ta zůstávají v historii gitu, takže repozitář musí zůstat **soukromý**, dokud se historie nepřepíše.
 * Natrénované váhy modelů jsou z dat odvozené, proto se do gitu nedávají (`out/` a `model/` jsou v `.gitignore`) a organizátorům se předávají zvlášť.
 * Živé demo vypisuje do terminálu řádky dat: ukazujte ho v místnosti, ale **nenahrávejte ho a nepřeposílejte**.
+
+a je to!
+děkujeme
