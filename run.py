@@ -2,7 +2,7 @@
 """Jeden soubor, který spustí celý projekt: python run.py
 
     python run.py            živé učení, test na neviděných výbojích, export modelů, první odhad, zašuměná měření (asi 3 minuty)
-    python run.py --full     všechno: všechny analýzy a všech deset notebooků (asi 10 minut)
+    python run.py --full     všechno: všechny analýzy a všech devět notebooků (asi 10 minut)
     python run.py --check    jen zkontroluje balíčky a data
 
 Data od ÚFP jsou důvěrná: repozitář je soukromý a smějí k němu mít přístup jen účastníci hackathonu. Soubory jsou ve složce
@@ -163,7 +163,7 @@ def compare_models_on_noisy_inputs(home):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--full", action="store_true", help="all analysis steps and all ten notebooks (about 9 to 10 min)")
+    parser.add_argument("--full", action="store_true", help="all analysis steps and all nine notebooks (about 9 to 10 min)")
     parser.add_argument("--check", action="store_true", help="only check packages and data")
     args = parser.parse_args()
 
@@ -179,7 +179,7 @@ def main():
     python = sys.executable
 
     if args.full:
-        print_step("3. Everything: all analysis steps, then all ten notebooks")
+        print_step("3. Everything: all analysis steps, then all nine notebooks")
         run_command([python, "analysis/run_analyses.py", "--quick", "--notebooks"], env, show_command=True)
         print(f"\n{GREEN}Finished.{RESET} Executed notebooks: {home / 'out' / 'notebooks'}")
         return

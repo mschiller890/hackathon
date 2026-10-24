@@ -33,8 +33,7 @@ cesty v notebookech a skriptech; tady jsou seřazené podle tématu.
 | `robustness-findings.md` | šum, drift, množství dat, časový kontext |
 | `signcanon.md`, `limiter-swap.md` | pokusy, které se nenasadily |
 
-## Kamera a syntetická data
+## Syntetická data
 | Soubor | Co v něm je |
 |---|---|
-| `cloud-camera-*.md/.json`, `camera-v2*.{md,png}` | modely z kamery |
 | `synthetic-validation.*` | uzavřený test na simulovaných rovnováhách se známou pravdou |

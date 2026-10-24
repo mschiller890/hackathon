@@ -117,7 +117,7 @@ python3.12 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 python -m pip install -r requirements.txt
 python run.py            # asi 3 minuty: živé učení, test na neviděných výbojích, export modelů
-python run.py --full     # asi 10 minut: všechny analýzy a všech deset notebooků znovu spočítaných
+python run.py --full     # asi 10 minut: všechny analýzy a všech devět notebooků znovu spočítaných
 python run.py --check    # jen zkontroluje balíčky a data
 ```
 
@@ -171,7 +171,7 @@ python predict.py vstup.csv --out odhady.csv --all
 | `run.py` | **jediný soubor, který spustí všechno** (kapitola 3) |
 | `predict.py` | použití modelu na vlastním CSV (kapitola 4) |
 | `analysis/` | skripty: `common.py` (načtení dat, síť, skórování), `final_evaluation.py` (receptury a odložené výboje), `clean_model.py` (nasazený model), `noisy_model.py` (zašuměný model), `live_demo.py` (živé demo), `error_in_mm.py`, `plot_accuracy.py`, `run_analyses.py`, analýzy (`explore_data.py`, `baseline_models.py`, `out_of_fold*.py`, `stability_over_time.py`, `input_importance.py`, `latency.py`, `data_checks.py`) a syntetický test (`synth_equilibrium.py`, `synth_validation.py`) |
-| `notebooks/01 … 10` | **všechny závěry**, s uloženými výstupy (jdou číst bez spuštění): 01 data, 02 základní modely, 03 vstupy a důležitost, 04 stabilita v čase, 05 odezva, 06 kamera, 07 nerovnoměrné rozdělení a neobvyklé tvary, 08 šum, drift a množství dat, 09 nasazený model na odložených výbojích, 10 syntetický test se známou pravdou |
+| `notebooks/` (01–05 a 07–10) | **všechny závěry**, s uloženými výstupy (jdou číst bez spuštění): 01 data, 02 základní modely, 03 vstupy a důležitost, 04 stabilita v čase, 05 odezva, 07 nerovnoměrné rozdělení a neobvyklé tvary, 08 šum, drift a množství dat, 09 nasazený model na odložených výbojích, 10 syntetický test se známou pravdou |
 | `data/` | sem patří **důvěrná data ÚFP** (`equil_data.zip`, `equil_data_noisy.zip`, v každém CSV 42 972 řádků). Složka je v `.gitignore`, do gitu se nedává (kapitola 9) |
 | `results/` | agregované výsledky a grafy, které notebooky čtou (žádná surová data); přehled podle témat v `results/README.md` |
 | `slides.pdf`, `slides.pptx` | prezentace |
@@ -197,10 +197,6 @@ Nejdůležitější soubory v `results/`: `error-in-mm.md` (chyby v mm), `clean-
 
 | Téma | Zjištění |
 |---|---|
-| Model z kamery | malá konvoluční síť na šedých snímcích 96×128 (78 výbojů, 115 872 snímků): osa R **1,59 mm**, Z 1,99 mm. Magnetický model na týchž snímcích 0,41 / 0,42 mm. Kamera je tedy horší |
-| Spojení kamery a cívek | v našem testu **nepomohlo proti samotným cívkám**: kamera sama 1,79 / 2,48 mm (osa R / Z), cívky samy 0,59 / 0,50 mm, spojení 1,54 / 1,13 mm. Spojení je tedy lepší než kamera sama, ale horší než cívky (`results/cloud-camera-multimodal.md`) |
-| Černobílá kamera | **žádný rozdíl**: osa R 1,70 mm šedá proti 1,79 mm barevná (`results/cloud-camera-main.md`) |
-| Citlivost na posun kamery | o 1 pixel nebo 1 stupeň: bez augmentace chyby stoupnou 1,3krát, s náhodným posunem a otočením při učení zůstanou beze změny (poměr 0,99). 1 pixel a 1 stupeň je ale málo, nenahrazuje skutečně posunutou kameru |
 | Množství dat (notebook 08) | z 30 výbojů je chyba osy R 1,47 mm, ze 60 výbojů 0,83 mm, ze 119 výbojů 0,38 mm (základní síť, pevných 60 epoch, takže část zlepšení je víc kroků učení). Limiter se zlepšuje nejpomaleji |
 | Čas jako kontext | více vzorků za sebou **na čistých datech škodí** (osa 0,38 → 0,57 mm), **na šumu pomáhá** (chyba 0,2891 → 0,2187), proto jen zašuměný model vidí okno |
 | Šum a drift | čistý model na šumu selže, model učený se šumem a driftem dává osu R 1,85 mm. Drift je náš syntetický model (v zadaném souboru je jen bílý šum) |
@@ -241,7 +237,6 @@ Co jsme zkoušeli a nezlepšilo to výsledek (podrobně `results/clean-model.md`
 * **Zašuměný model je slabší** (78 % celkově, osa 1,85 / 1,25 mm) a otestovaný jen na bílém šumu zadaného souboru. Drift je jen naše simulace.
 * **Reálný čas jsme neověřili** (sběr signálů, nejhorší doba na systému reálného času).
 * **Neobvyklé tvary:** model je naučený na tvarech z dat, na úplně nový tvar nemáme test.
-* **Kamera:** malá síť na 78 výbojích, slabší než cívky; snímky jednoho výboje jsou téměř kopie, takže nezávislých vzorků je málo.
 * **Jedno semínko** u většiny porovnání.
 * **Slidy** nemusí mít poslední čísla; poslední čísla jsou v `results/error-in-mm.md` a `results/clean-model.md`.
 
