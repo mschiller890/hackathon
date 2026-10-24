@@ -22,8 +22,8 @@ from pathlib import Path
 import numpy as np
 
 _ROOT = Path(__file__).resolve().parent
-# in the submission package the model sits in model/ next to analysis/; in the repository it is hackathon/out/model next to the repository folder
-DEFAULT_MODEL = next((p for p in (_ROOT / "model" / "ipp1-selected.npz", _ROOT.parent / "out" / "model" / "ipp1-selected.npz") if p.exists()), _ROOT / "model" / "ipp1-selected.npz")
+# in the submission package the model sits in model/ next to analysis/, or in out/model/ where run.py exports it; in the repository it is hackathon/out/model next to the repository folder
+DEFAULT_MODEL = next((p for p in (_ROOT / "model" / "ipp1-selected.npz", _ROOT / "out" / "model" / "ipp1-selected.npz", _ROOT.parent / "out" / "model" / "ipp1-selected.npz") if p.exists()), _ROOT / "model" / "ipp1-selected.npz")
 DIVERTOR_ONLY = ("R_x_point", "Z_x_point", "R_strike_point_1", "Z_strike_point_1", "R_strike_point_2", "Z_strike_point_2")
 LIMITED_ONLY = ("R_limiter", "Z_limiter")
 
@@ -76,30 +76,46 @@ class Model:
 
 
 def read_csv(path, inputs):
-    with open(path, newline="") as fh:
+    """Bad input stops with one line naming the row as a spreadsheet numbers it (the header is row 1), exit code 1."""
+    with open(path, newline="", encoding="utf-8-sig") as fh:  # utf-8-sig: Excel's "CSV UTF-8" starts with a byte order mark
         reader = csv.reader(fh)
-        header = next(reader)
-        rows = [r for r in reader if r]
+        header = next(reader, None)
+        rows = [(reader.line_num, r) for r in reader if any(v.strip() for v in r)]
+    if header is None:
+        sys.exit(f"{path}: empty file")
+    header = [h.strip() for h in header]
     missing = [c for c in inputs if c not in header]
     if missing:
         sys.exit(f"missing columns in {path}: {', '.join(missing)}")
+    if not rows:
+        sys.exit(f"{path}: no data rows after the header")
     idx = [header.index(c) for c in inputs]
-    x = np.array([[float(r[i]) for i in idx] for r in rows], dtype=np.float64)
-    if not np.isfinite(x).all():
-        sys.exit("the input has empty or non-numeric values")
-    extra = [(c, [r[header.index(c)] for r in rows]) for c in ("discharge", "time") if c in header]
+    x = np.empty((len(rows), len(idx)))
+    for k, (line, r) in enumerate(rows):
+        if len(r) < len(header):
+            sys.exit(f"{path}: row {line}: {len(r)} values, the header has {len(header)} columns")
+        for j, i in enumerate(idx):
+            try:
+                x[k, j] = float(r[i])
+            except ValueError:
+                x[k, j] = np.nan
+            if not np.isfinite(x[k, j]):
+                sys.exit(f"{path}: row {line}: column {inputs[j]} is empty or not a number ({r[i]!r})")
+    extra = [(c, [r[header.index(c)] for _, r in rows]) for c in ("discharge", "time") if c in header]
     return x, extra
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("input", help="CSV with the columns IPR01..IPR16 and FL01..FL08")
-    ap.add_argument("--model", default=str(DEFAULT_MODEL), help="the exported model (default: model/ipp1-selected.npz next to this file)")
+    ap.add_argument("--model", default=str(DEFAULT_MODEL), help="the exported model (default: model/ipp1-selected.npz or out/model/ipp1-selected.npz next to this file)")
     ap.add_argument("--out", help="write the estimates to this CSV instead of printing the first rows")
     ap.add_argument("--all", action="store_true", help="write all 16 numbers for every row (default: leave the cells that do not apply to the configuration empty)")
     args = ap.parse_args()
     if not Path(args.model).exists():
         sys.exit(f"model not found: {args.model} (make it with analysis/export_model.py)")
+    if not Path(args.input).is_file():
+        sys.exit(f"input file not found: {args.input}")
     model = Model(args.model)
     x, extra = read_csv(args.input, model.inputs)
     t0 = time.perf_counter()

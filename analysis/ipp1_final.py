@@ -27,6 +27,7 @@ import json
 import os
 import sys
 import time
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -107,7 +108,9 @@ def fit_net(xtr, ytr, mtr, seed, epochs, rows=None, arch=(256, 256, 128), wd=1e-
     torch.manual_seed(seed)
     ftr = feats(xtr)
     mu, sd = ftr.mean(0), ftr.std(0) + 1e-9
-    ym, ys = np.nanmean(ytr, 0), np.nanstd(ytr, 0) + 1e-9
+    with warnings.catch_warnings():  # an all-NaN column (divertor targets on limited rows) gives NaN, masked out of the loss
+        warnings.filterwarnings("ignore", "Mean of empty slice|Degrees of freedom", RuntimeWarning)
+        ym, ys = np.nanmean(ytr, 0), np.nanstd(ytr, 0) + 1e-9
     xt = torch.tensor((ftr - mu) / sd)
     yt = torch.tensor(np.nan_to_num((ytr - ym) / ys))
     mt = torch.tensor(mtr.astype(np.float32))
@@ -405,8 +408,9 @@ def render(R, names):
         d = R["development_cv"]
         for c in ("clean", "noisy"):
             r = R["choice"][c]
+            parts = ", ".join(f"{LABEL[x]} {d[x]['all16_' + c]:.4f}" for x in d)
             L.append(f"- **{c} inputs: {LABEL[r]}** (`{r}`): lowest mean nRMSE over the 16 targets in the development cross-validation "
-                     f"({', '.join(f'{LABEL[x]} {d[x]['all16_' + c]:.4f}' for x in d)}).")
+                     f"({parts}).")
         if names:
             L.append("- Locked-set check of that choice: mean nRMSE over 16 targets, " + "; ".join(
                 f"{c}: " + ", ".join(f"{LABEL[r]} {R['locked'][r]['all16_' + c]:.4f}" for r in names) for c in ("clean", "noisy")) + ".")

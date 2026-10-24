@@ -28,7 +28,7 @@ print(f"{B}Tvar plazmatu z magnetických měření: síť se učí živě (aktiv
 df, X, Y, groups, mask = C.load()
 tr, te = C.group_folds(X, Y, groups)[0]
 print(f"Učení: {len(np.unique(groups[tr]))} výbojů ({len(tr):,} okamžiků). Kontrola: {len(np.unique(groups[te]))} výbojů, "
-      f"které síť nikdy neuvidí.\n")
+      f"na kterých se síť neučí.\n")
 
 # --- ipp1_common.fit_mlp, with a progress line per epoch ---
 torch.manual_seed(0)
@@ -75,7 +75,7 @@ for ep in range(1, EPOCHS + 1):
     print(f"{ep:^6d} | {total / nb:^12.4f} | {col}{eR:7.3f} mm {bar:40s}{X0} | {eZ:6.3f} mm | {time.time() - t0:5.1f} s",
           flush=True)
 net.eval()
-print(f"\n{G}Naučeno za {time.time() - t0:.0f} s.{X0} Teď síť dostane výboj, který nikdy neviděla, okamžik po okamžiku.\n")
+print(f"\n{G}Naučeno za {time.time() - t0:.0f} s.{X0} Teď síť dostane výboj, na kterém se neučila, okamžik po okamžiku.\n")
 
 # --- fast pass from the trained weights: raw sensor values in, physical units out ---
 lin = [m for m in net.f if isinstance(m, torch.nn.Linear)]
@@ -128,7 +128,7 @@ dis = sorted(test_ids, key=lambda g: abs(lengths[g] - np.median(list(lengths.val
 rows = np.where(groups == dis)[0]
 rows = rows[np.argsort(df["time"].values[rows])]
 print(f"{B}Výboj {dis}: {len(rows)} okamžiků.{X0}")
-print(f"{D}čas   | osa R skutečná  odhad   chyba | osa Z skutečná  odhad   chyba | doba odhadu{X0}")
+print(f"{D}čas   | osa R ústav     odhad   chyba | osa Z ústav     odhad   chyba | doba odhadu{X0}")
 lat, eRs = [], []
 for i in rows:
     t = time.perf_counter()
@@ -183,7 +183,7 @@ with torch.inference_mode():
         batch_us.append((time.perf_counter_ns() - tb) / 1e3)
 print(f"\n{B}Každý odhad jednoho průchodu plnou rychlostí:{X0} {len(xraw):,} odhadů za {sum(batch_us) / 1000:.2f} ms "
       f"({len(xraw) / sum(batch_us) * 1e6:,.0f} za sekundu). Vypisují se až po změření.".replace(",", " "))
-print(f"{D}  odhad | výboj   čas  | osa R skutečná  odhad   chyba | osa Z skutečná  odhad   chyba | dávka  µs na odhad v dávce{X0}")
+print(f"{D}  odhad | výboj   čas  | osa R ústav     odhad   chyba | osa Z ústav     odhad   chyba | dávka  µs na odhad v dávce{X0}")
 times, gte = df["time"].values[te], groups[te]
 for k in range(len(xraw)):
     j = k // BATCH

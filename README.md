@@ -20,9 +20,11 @@ CVUT ML Hackathon 2026. A small neural network estimates 16 numbers that describ
 ## Run it: one file
 
 ```
+python3.12 -m venv .venv
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
 python -m pip install -r requirements.txt
-python run.py            # about 2 minutes: live training, test on unseen discharges, export of the model, a first estimate
-python run.py --full     # about 9 minutes: all analysis steps and all ten notebooks, executed
+python run.py            # about 45 s to 1 min on an Apple M5: live training, test on unseen discharges, export of the model, a first estimate
+python run.py --full     # about 9 to 10 min: all analysis steps and all ten notebooks, executed
 python run.py --check    # only checks the packages and the data
 ```
 
@@ -30,6 +32,6 @@ python run.py --check    # only checks the packages and the data
 
 ## Limits (what was not shown)
 
-Physical accuracy against the real plasma (only agreement with the reference reconstruction); shapes outside the data range (18 most unusual discharges were held out of training: about 2.5 times larger axis error, but 14 of them are early discharges); a real-time control system (signal acquisition and worst case on real hardware were not measured); noisy inputs for the model trained on clean data (it fails: use the noise-trained one). Drift results are synthetic: the provided noisy file has white noise only. The camera part uses a small 48x64 network on 78 discharges and is weaker than the coils.
+Physical accuracy against the real plasma (only agreement with the reference reconstruction); shapes outside the data range (18 most unusual discharges were held out of training: about 2.5 times larger axis error, but 14 of them are early discharges); a real-time control system (signal acquisition and worst case on real hardware were not measured); noisy inputs for the model trained on clean data, which fails on them and needs a noise-trained model (notebook 08, not exported in this package). Drift results are synthetic: the provided noisy file has white noise only. The camera part uses a small 48x64 network on 78 discharges and is weaker than the coils.
 
 Czech summary: malá neuronová síť odhadne z 24 magnetických měření polohu a tvar plazmatu v tokamaku COMPASS za setiny milisekundy; čísla jsou shoda s rekonstrukcí ústavu, ne přesnost vůči skutečnému plazmatu.

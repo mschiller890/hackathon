@@ -103,7 +103,7 @@ def main():
         nb_out = out / "notebooks"
         for nb in sorted((REPO / "notebooks").glob("*.ipynb")):
             run([sys.executable, "-m", "jupyter", "nbconvert", "--to", "notebook", "--execute",
-                 "--ExecutePreprocessor.timeout=1800", "--output-dir", str(nb_out), str(nb.relative_to(REPO))], env)
+                 "--ExecutePreprocessor.timeout=1800", "--ExecutePreprocessor.kernel_name=python3", "--output-dir", str(nb_out), str(nb.relative_to(REPO))], env)
     print("done")
 
 

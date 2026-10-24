@@ -56,11 +56,11 @@ ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 HIDE_CURSOR, SHOW_CURSOR = "\033[?25l", "\033[?25h"
 LABELS = {  # Czech names of the 16 outputs, for the jury
     "plasma_current": "proud plazmatem", "R_mag_axis": "magnetická osa R", "Z_mag_axis": "magnetická osa Z",
-    "elongation": "protažení (elongace)", "triangularity": "trojúhelníkovitost",
-    "triangularity_upper": "trojúhelníkovitost horní", "triangularity_lower": "trojúhelníkovitost dolní",
-    "R_x_point": "X-bod R", "Z_x_point": "X-bod Z", "R_strike_point_1": "dopadový bod 1 R",
-    "Z_strike_point_1": "dopadový bod 1 Z", "R_strike_point_2": "dopadový bod 2 R", "Z_strike_point_2": "dopadový bod 2 Z",
-    "R_limiter": "bod dotyku limiteru R", "Z_limiter": "bod dotyku limiteru Z", "is_limited": "limiterová konfigurace",
+    "elongation": "protažení (elongace)", "triangularity": "trojúhelníkovost",
+    "triangularity_upper": "trojúhelníkovost horní", "triangularity_lower": "trojúhelníkovost dolní",
+    "R_x_point": "bod X R", "Z_x_point": "bod X Z", "R_strike_point_1": "dotykový bod 1 R",
+    "Z_strike_point_1": "dotykový bod 1 Z", "R_strike_point_2": "dotykový bod 2 R", "Z_strike_point_2": "dotykový bod 2 Z",
+    "R_limiter": "bod u limiteru R", "Z_limiter": "bod u limiteru Z", "is_limited": "limiterová konfigurace",
 }
 
 
@@ -436,10 +436,10 @@ def banner(width, n_in, layer_sizes, params, dev_ids, dev_rows, lock, lock_rows,
         ST.paint(ST.bold, "TVAR PLAZMATU Z MAGNETICKÝCH MĚŘENÍ") + ST.paint(ST.grey, "   COMPASS · úloha IPP 1 · živě v terminálu"),
         "",
         f"{key('vstup')}{n_in} čísel z magnetických měření v jednom okamžiku",
-        f"{key('výstup')}{len(TARGETS)} čísel o plazmatu: proud, poloha, tvar, X-bod, dopadové body, limiter",
+        f"{key('výstup')}{len(TARGETS)} čísel o plazmatu: proud, poloha, tvar, bod X, dotykové body, limiter",
         f"{key('síť')}malá neuronová síť {' → '.join(str(n) for n in layer_sizes)}, {fmt_int(params)} vah, pevný seed 0",
-        f"{key('data')}učí se na {dev_ids} výbojích ({fmt_int(dev_rows)} okamžiků); {lock} dalších "
-        f"({fmt_int(lock_rows)} okamžiků) nikdy neuvidí",
+        f"{key('data')}učí se na {dev_ids} výbojích ({fmt_int(dev_rows)} okamžiků); na {lock} odložených "
+        f"({fmt_int(lock_rows)} okamžiků) se neučí",
         f"{key('chyba')}rozdíl od rekonstrukce ústavu (shoda s ní, ne s plazmatem samotným)",
         f"{key('stroj')}{cpu}",
         f"{key('barvy')}{ST.paint(ST.ref, 'bílá')} = rekonstrukce ústavu, {ST.paint(ST.est, 'tyrkysová')} = odhad sítě",
@@ -492,7 +492,7 @@ class LearningView:
         ticks = [(0, "1"), (0.5, str(round(1 + (self.epochs - 1) / 2))), (1, f"{self.epochs}")]
         panel_w, gap = AXIS_W + cols, "   "
         lines = [
-            ST.paint(ST.bold, "Jak se síť učí: vlevo ztráta při učení, vpravo chyba polohy osy na 30 kontrolních výbojích"),
+            ST.paint(ST.bold, "Jak se síť učí: vlevo ztráta při učení, vpravo chyba polohy osy na 30 odložených výbojích"),
             ST.paint(ST.grey, "U obou grafů nižší je lepší. Svisle logaritmická škála, vodorovně epocha (průchod daty)."),
             "",
             pad(ST.paint(ST.grey, "ztráta (bez jednotky)  ") + ST.paint(ST.bold, "━━ ztráta"), panel_w) + gap
@@ -534,7 +534,7 @@ def scores_table(pred, y, agree, width):
     (log scale, 0.01 % .. 100 %), and the limited/diverted agreement (a share 0..1)."""
     bar_w, bar_at = 36, 42
     scores = held_out_scores(pred, y)
-    lines = [ST.paint(ST.bold, f"Chyba všech {len(TARGETS)} veličin na 30 kontrolních výbojích (nižší je lepší)"),
+    lines = [ST.paint(ST.bold, f"Chyba všech {len(TARGETS)} veličin na 30 odložených výbojích (nižší je lepší)"),
              ST.paint(ST.grey, "Pruh = chyba vůči rozptylu veličiny, logaritmicky: zelená pod 2 %, žlutá pod 10 %, "
                                "červená nad."),
              "",
@@ -561,9 +561,9 @@ def scores_table(pred, y, agree, width):
     lines += ["", f"Limiterová nebo divertorová konfigurace: shoda s rekonstrukcí ústavu v "
                   f"{ST.paint(ST.bold, f'{100 * agree:.2f} %')} okamžiků."]
     note = (f"Průměrná chyba = průměrný rozdíl odhadu od rekonstrukce ústavu. Rozptyl veličiny = její směrodatná "
-            f"odchylka na týchž okamžicích. X-bod a dopadové body existují jen v divertorové konfiguraci "
-            f"({fmt_int(rows_of['R_x_point'])} okamžiků), bod dotyku limiteru jen v limiterové "
-            f"({fmt_int(rows_of['R_limiter'])}). Je to základní síť (60 epoch), ne odeslaný model; ten má vlastní "
+            f"odchylka na týchž okamžicích. Bod X a dotykové body existují jen v divertorové konfiguraci "
+            f"({fmt_int(rows_of['R_x_point'])} okamžiků), bod u limiteru jen v limiterové "
+            f"({fmt_int(rows_of['R_limiter'])}). Je to základní síť (60 epoch), ne vybraný model; ten má vlastní "
             f"výsledky v results/ipp1-final.md.")
     lines += [ST.paint(ST.grey, row) for row in textwrap.wrap(note, width)]
     return [fit(line, width) for line in lines]
@@ -586,7 +586,7 @@ def success_lines(pred, y, scores, live, width):
     cols = width - AXIS_W
     rows = min(10, max(5, terminal_rows(live) - 20))
     log_tol = np.linspace(-2, 1, 2 * cols)           # one tolerance per braille dot column
-    lines = [ST.paint(ST.bold, "Kolik okamžiků 30 kontrolních výbojů má chybu polohy osy pod danou tolerancí "
+    lines = [ST.paint(ST.bold, "Kolik okamžiků 30 odložených výbojů má chybu polohy osy pod danou tolerancí "
                                "(vyšší je lepší)"),
              ST.paint(ST.grey, "podíl okamžiků (%)  ") + ST.paint(ST.axis_r, "━━ osa R purpurová") + "  "
              + ST.paint(ST.axis_z, "━━ osa Z modrá"),
@@ -655,7 +655,7 @@ class DischargeView:
         self.est_r, self.est_z, self.ms = [], [], []
         self.block = LiveBlock() if live else None
         if not live:
-            print("čas   | osa R skutečná  odhad   chyba | osa Z skutečná  odhad   chyba | doba odhadu")
+            print("čas   | osa R ústav     odhad   chyba | osa Z ústav     odhad   chyba | doba odhadu")
 
     def add(self, est_r, est_z, ms):
         """Record one estimate (mm, mm, ms) and show it."""
@@ -813,7 +813,7 @@ def run_demo(args, live, width):
     # 1. Learning.
     section(1, "Síť se učí", width)
     say(f"Učení: {len(np.unique(groups[~test]))} výbojů ({fmt_int(len(x_tr))} okamžiků). "
-        f"Kontrola: {len(lock)} výbojů, které síť nikdy neuvidí.", width)
+        f"Kontrola: {len(lock)} odložených výbojů, na kterých se síť neučí.", width)
     print()
     started = time.perf_counter()
     view = LearningView(args.epochs, live, width)
@@ -824,7 +824,7 @@ def run_demo(args, live, width):
                                                              f"včetně výpisu na obrazovku)"))
 
     # 2. All outputs on the set-aside discharges.
-    section(2, f"Všech {len(TARGETS)} veličin na {len(lock)} kontrolních výbojích", width)
+    section(2, f"Všech {len(TARGETS)} veličin na {len(lock)} odložených výbojích", width)
     predict = fast_predictor(net, scalers)
     with torch.no_grad():
         mu, sd, ym, ys = scalers
@@ -840,7 +840,7 @@ def run_demo(args, live, width):
 
     # 3. Share of the set-aside instants inside a tolerance.
     section(3, "Úspěšnost: kolik okamžiků je v toleranci", width)
-    say(f"Pro každou toleranci podíl okamžiků {len(lock)} kontrolních výbojů, ve kterých se poloha osy od "
+    say(f"Pro každou toleranci podíl okamžiků {len(lock)} odložených výbojů, ve kterých se poloha osy od "
         f"rekonstrukce ústavu liší méně. Čím dřív křivka dojde ke 100 %, tím lépe.", width)
     print()
     for line in success_lines(torch_pred, y_te, scores, live, width):
@@ -850,8 +850,8 @@ def run_demo(args, live, width):
     # 4. One unseen discharge, instant by instant, each estimate timed as a single-row call.
     disc = int(lock[0])
     rows = np.where(groups == disc)[0]
-    section(4, f"Výboj {disc}, který síť nikdy neviděla, okamžik po okamžiku", width)
-    say(f"Síť dostane výboj {disc}, který nikdy neviděla: {len(rows)} okamžiků, každý jako samostatný odhad z jednoho "
+    section(4, f"Výboj {disc}, na kterém se síť neučila, okamžik po okamžiku", width)
+    say(f"Síť dostane výboj {disc}, na kterém se neučila: {len(rows)} okamžiků, každý jako samostatný odhad z jednoho "
         f"řádku měření. Časy se nejdřív změří v jedné těsné smyčce (kreslení by je zkreslilo), pak se odhady ukážou "
         f"okamžik po okamžiku.", width)
     print()
@@ -881,7 +881,7 @@ def run_demo(args, live, width):
 
     # 5. Full speed: the unseen rows again and again in batches.
     section(5, "Plná rychlost", width)
-    say(f"Všech {len(lock)} kontrolních výbojů ({fmt_int(len(x_te))} okamžiků) se odhaduje znovu a znovu, po dávkách "
+    say(f"Všech {len(lock)} odložených výbojů ({fmt_int(len(x_te))} okamžiků) se odhaduje znovu a znovu, po dávkách "
         f"{args.batch} okamžiků, po dobu {args.seconds:.0f} s. Cíl je {fmt_int(args.target)} odhadů za sekundu.", width)
     print()
     batches = [x_te[i:i + args.batch] for i in range(0, len(x_te), args.batch)]
@@ -932,7 +932,7 @@ def run_demo(args, live, width):
         f"{'jeden odhad':<14}medián " + ST.paint(ST.bold, f"{np.median(single_ms):.4f} ms")
         + f", p99 {np.percentile(single_ms, 99):.4f} ms (99 % odhadů je rychlejších)",
         f"{'chyba osy':<14}R " + ST.paint(ST.bold, f"{err_r:.3f} mm") + ", Z " + ST.paint(ST.bold, f"{err_z:.3f} mm")
-        + f" vůči rekonstrukci ústavu, {len(lock)} kontrolních výbojů",
+        + f" vůči rekonstrukci ústavu, {len(lock)} odložených výbojů",
         f"{'pod 1 mm':<14}R " + ST.paint(ST.bold, f"{under_1mm[0]:.1f} %") + ", Z "
         + ST.paint(ST.bold, f"{under_1mm[1]:.1f} %") + " okamžiků má chybu osy pod 1 mm",
         f"{'konfigurace':<14}limiterová nebo divertorová: shoda s rekonstrukcí ústavu v "
@@ -970,7 +970,7 @@ def dump_rows(df, y, groups, test, predict, batches, args):
     say(f"Každý odhad jednoho průchodu plnou rychlostí: {fmt_int(n_rows)} odhadů za {pass_ms:.2f} ms "
         f"({fmt_int(int(n_rows / pass_ms * 1000))} za sekundu). Vypisují se až po změření; "
         f"µs = mikrosekundy na jeden odhad v dávce.", 99)
-    print("  odhad | výboj   čas  | osa R skutečná  odhad   chyba | osa Z skutečná  odhad   chyba | dávka   µs")
+    print("  odhad | výboj   čas  | osa R ústav     odhad   chyba | osa Z ústav     odhad   chyba | dávka   µs")
     idx = np.where(test)[0]
     n = len(idx) if args.dump_rows < 0 else min(args.dump_rows, len(idx))
     for k in range(n):
