@@ -594,7 +594,7 @@ class LearningView:
         self.block = LiveBlock() if live else None
         self.loss, self.err_r, self.err_z, self.acc, self.elapsed = [], [], [], [], 0.0
         if not live:
-            print(f"{'epocha':^6} | {'ztráta učení':^12} | {'chyba osy R na neviděných výbojích':<51} | {'osa Z':^9} | {'přesnost':>8} | {'čas':>7}")
+            print(f"{'epocha':^6} | {'ztráta učení':^12} | {'chyba osy R na neviděných výbojích':<51} | {'osa Z':^9} | {'shoda':>8} | {'čas':>7}")
 
     def __call__(self, epoch, loss, err_r, err_z, elapsed, acc):
         self.loss.append(loss)
@@ -641,7 +641,7 @@ class LearningView:
             "",
             f"epocha {ST.paint(ST.bold, f'{n:>3}/{self.epochs}')}     chyba osy R {ST.paint(ST.bold, f'{self.err_r[-1]:.3f} mm')}"
             f"     osa Z {ST.paint(ST.bold, f'{self.err_z[-1]:.3f} mm')}"
-            f"     celková přesnost {ST.paint(ST.bold, f'{self.acc[-1]:.2f} %')}",
+            f"     celková shoda {ST.paint(ST.bold, f'{self.acc[-1]:.2f} %')}",
             progress(n / self.epochs, 30) + ST.paint(ST.grey, f"  ztráta {self.loss[-1]:.4f} · {self.elapsed:.1f} s · "
                                                               f"{rate:.1f} epoch za sekundu"),
         ]
@@ -700,7 +700,7 @@ def scores_table(pred, y, agree, width):
             f"odchylka na týchž okamžicích. Bod X a dotykové body existují jen v divertorové konfiguraci "
             f"({fmt_int(rows_of['R_x_point'])} okamžiků), bod u limiteru jen v limiterové "
             f"({fmt_int(rows_of['R_limiter'])}). Model se učí tady v ukázce (síť s rozdíly cívek, ridge pro proud, specialista na limiter); odeslaný "
-            f"model má vlastní výsledky v results/ipp1-final.md.")
+            f"model je stejný recept, jeho výsledky jsou v results/ipp1-ipn.md.")
     lines += [ST.paint(ST.grey, row) for row in textwrap.wrap(note, width)]
     return [fit(line, width) for line in lines]
 
@@ -790,7 +790,7 @@ def success_lines(pred, y, scores, live, width, reveal=1.0, part="all"):
     half = (len(cells) + 1) // 2
     lines += [pad(left, col_w) + "   " + right for left, right in zip(cells[:half], cells[half:] + [""])]
     note = ("Chyba = rozdíl odhadu od rekonstrukce ústavu, tedy shoda s ní, ne s plazmatem samotným. Model je ten z "
-            "této ukázky; odeslaný model má vlastní výsledky v results/ipp1-final.md.")
+            "této ukázky; odeslaný model je stejný recept, jeho výsledky jsou v results/ipp1-ipn.md.")
     lines += [""] + [ST.paint(ST.grey, row) for row in textwrap.wrap(note, width)]
     chosen = {"top": top, "bottom": lines, "all": top + [""] + lines}[part]
     return [fit(line, width) for line in chosen]
@@ -976,7 +976,7 @@ def run_demo(args, live, width):
     x_tr, y_tr, x_te, y_te = x[~test], y[~test], x[test], y[test]
     shape_net = Net(len(add_diffs(x[:1])[0]) + 1, y.shape[1])      # only for the banner
     linears = [m for m in shape_net.f if isinstance(m, torch.nn.Linear)]
-    layer_sizes = [x.shape[1]] + [m.out_features for m in linears]
+    layer_sizes = [linears[0].in_features] + [m.out_features for m in linears]   # 67: the 24 measurements divided by the current, their differences, the current
     params = sum(p.numel() for p in shape_net.parameters()) * args.models
     cpu = cpu_name()
 
@@ -1105,7 +1105,7 @@ def run_demo(args, live, width):
         + f", p99 {np.percentile(single_ms, 99):.4f} ms (99 % odhadů je rychlejších)",
         f"{'chyba osy':<14}R " + ST.paint(ST.bold, f"{err_r:.3f} mm") + ", Z " + ST.paint(ST.bold, f"{err_z:.3f} mm")
         + f" vůči rekonstrukci ústavu, {len(lock)} odložených výbojů",
-        f"{'přesnost':<14}" + ST.paint(ST.bold, f"{overall:.2f} %") + " celkem: 100 % minus průměrná relativní chyba všech 16 veličin",
+        f"{'shoda celkem':<14}" + ST.paint(ST.bold, f"{overall:.2f} %") + " celkem: 100 % minus průměrná relativní chyba všech 16 veličin",
         f"{'pod 1 mm':<14}R " + ST.paint(ST.bold, f"{under_1mm[0]:.1f} %") + ", Z "
         + ST.paint(ST.bold, f"{under_1mm[1]:.1f} %") + " okamžiků má chybu osy pod 1 mm",
         f"{'konfigurace':<14}limiterová nebo divertorová: shoda s rekonstrukcí ústavu v "

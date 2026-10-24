@@ -1,66 +1,65 @@
 # Millimetre benchmark of the shipped model, 30 set-aside discharges
 
-Command: `python analysis/bench_mm.py --model out/model/ipp1-selected.npz --set locked` (Apple M5, Sat 24 Oct 2026). The shipped model is `cand` of `results/ipp1-final.md` plus a separate network for R_mag_axis and Z_mag_axis (512-512-256, 400 epochs, `analysis/export_model.py`); every other quantity is the same as `cand` there. Before the axis network the axis was R 0.133 mm, Z 0.172 mm, 98.23 % / 98.04 % under 1 mm.
+Command: `python analysis/bench_mm.py --model out/model/ipp1-ipn.npz --set locked` (Apple M5, Sat 24 Oct 2026). The shipped model for clean inputs is `analysis/ipn_model.py` (measurements divided by the plasma current, `results/ipp1-ipn.md`), trained on the 119 development discharges. Earlier shipped models on the same discharges: `cand` axis R 0.133 / Z 0.172 mm; `cand` plus a separate axis network 0.063 / 0.091 mm.
 
 ```
 Odchylka od rekonstrukce ústavu (absolutní hodnota |model − rekonstrukce|)
 ====================================================================================================
-model   out/model/ipp1-selected.npz (the 119 development discharges (34211 rows), seed 0, recipe
-        cand of analysis/ipp1_final.py (150 epochs, Huber 0.5))
+model   out/model/ipp1-ipn.npz (119 discharges (34211 rows), seed 0, 150 epochs, Huber 0.2)
 sada    locked: odložené výboje (30 v results/ipp1-locked-test-ids.txt); 30 výbojů, 8761 řádků
 
 Rozdělení odchylky v mm (proud plazmatu v kA), na řádcích, kde rekonstrukce veličinu má
 ----------------------------------------------------------------------------------------------------
 veličina             řádků výb.     MAE  medián    RMSE     p90     p95     p99   p99.9     max
-osa R                 8761   30  0.0628  0.0247   0.195   0.126   0.223   0.603    1.93    9.24
-osa Z                 8761   30  0.0913  0.0307   0.425   0.161   0.272    1.03    4.51      24
-osa 2D vzdálenost     8761   30   0.122  0.0499   0.468   0.214   0.386    1.18    4.93    24.2
-X bod R               5207   30   0.115  0.0558   0.454   0.178   0.277    1.01    9.28    10.1
-X bod Z               5207   30  0.0969  0.0417   0.257   0.222   0.349   0.716    2.91    7.25
-bod dopadu 1 R        5206   30   0.108  0.0546   0.219   0.219    0.39    1.03    1.81    2.77
-bod dopadu 1 Z        5206   30  0.0459  0.0211    0.11  0.0838   0.161   0.461    1.01     2.9
-bod dopadu 2 R        5206   30   0.136  0.0522   0.638   0.202   0.357     1.2    10.8    15.2
-bod dopadu 2 Z        5206   30  0.0264  0.0117     0.1  0.0478  0.0772    0.22    1.63    2.83
-bod limiteru R        3554   30    4.55   0.733    19.4    9.22    17.2    77.5     308     357
-bod limiteru Z        3554   30    8.35    2.96    20.9      19    35.2    92.2     210     485
+osa R                 8761   30  0.0563  0.0314   0.178   0.121   0.166   0.372    0.85    11.2
+osa Z                 8761   30  0.0632  0.0357   0.287   0.125   0.177   0.391    2.17    21.4
+osa 2D vzdálenost     8761   30  0.0956  0.0627   0.338   0.175   0.247    0.56    2.21    24.1
+X bod R               5207   30  0.0479  0.0239   0.137  0.0919   0.133   0.515    2.07     3.3
+X bod Z               5207   30  0.0529  0.0284   0.114   0.112   0.181   0.412    1.29    2.79
+bod dopadu 1 R        5206   30  0.0771  0.0374   0.209   0.134   0.211   0.951    2.59    3.13
+bod dopadu 1 Z        5206   30  0.0275  0.0148  0.0588  0.0558  0.0834   0.247   0.582    1.21
+bod dopadu 2 R        5206   30  0.0523  0.0276   0.169   0.101   0.164   0.377    1.57    7.27
+bod dopadu 2 Z        5206   30  0.0118 0.00675  0.0414  0.0223  0.0342  0.0824   0.274    2.18
+bod limiteru R        3554   30    3.48   0.523    20.8    3.55    7.53    56.8     313     430
+bod limiteru Z        3554   30    3.91    1.16    20.4    5.78    10.2    44.9     361     527
 proud plazmatu kA     8760   30  0.0347  0.0258   0.047  0.0765  0.0982   0.143   0.185   0.398
 
 Podíl řádků s odchylkou pod prahem (%) a 95% interval (bootstrap po výbojích, 1000×)
 ----------------------------------------------------------------------------------------------------
 veličina              <0.1   <0.5     <1     <2     <5  MAE [95% interval]    pod 1 mm % [95% int.]
-osa R                86.59  98.15  99.67  99.91  99.98  0.0628 [0.0469, 0.0837] 99.67 [99.40, 99.86]
-osa Z                82.75  97.18  98.89  99.68  99.92  0.0913 [0.0628, 0.127] 98.89 [97.75, 99.66]
-osa 2D vzdálenost    73.98  96.08  98.44  99.60  99.90  0.122 [0.0871, 0.167] 98.44 [97.22, 99.34]
-X bod R              72.71  97.83  98.96  99.37  99.85  0.115 [0.0756, 0.168] 98.96 [97.62, 99.82]
-X bod Z              77.78  97.23  99.42  99.67  99.96  0.0969 [0.0673, 0.13] 99.42 [98.72, 99.90]
-bod dopadu 1 R       72.13  96.10  98.91  99.96 100.00  0.108 [0.0768, 0.144] 98.91 [97.75, 99.75]
-bod dopadu 1 Z       91.97  99.02  99.88  99.96 100.00  0.0459 [0.0344, 0.0607] 99.88 [99.63, 100.00]
-bod dopadu 2 R       72.76  97.35  98.83  99.23  99.65  0.136 [0.0836, 0.205] 98.83 [97.42, 99.77]
-bod dopadu 2 Z       96.58  99.69  99.79  99.92 100.00  0.0264 [0.019, 0.0358] 99.79 [99.52, 99.96]
-bod limiteru R        8.61  39.20  57.09  71.27  84.95  4.55 [3.3, 6.16]      57.09 [51.21, 62.50]
-bod limiteru Z        2.50  11.51  22.20  39.08  66.01  8.35 [6.81, 10.2]     22.20 [19.06, 25.13]
+osa R                87.14  99.42  99.93  99.97  99.98  0.0563 [0.0476, 0.066] 99.93 [99.87, 99.99]
+osa Z                85.61  99.30  99.74  99.89  99.97  0.0632 [0.053, 0.0753] 99.74 [99.56, 99.87]
+osa 2D vzdálenost    74.64  98.72  99.68  99.89  99.97  0.0956 [0.0818, 0.111] 99.68 [99.49, 99.83]
+X bod R              91.34  98.92  99.79  99.88 100.00  0.0479 [0.0353, 0.0633] 99.79 [99.43, 99.98]
+X bod Z              87.90  99.29  99.83  99.98 100.00  0.0529 [0.0402, 0.0677] 99.83 [99.62, 99.96]
+bod dopadu 1 R       82.89  98.23  99.04  99.71 100.00  0.0771 [0.0556, 0.102] 99.04 [97.96, 99.91]
+bod dopadu 1 Z       96.25  99.75  99.98 100.00 100.00  0.0275 [0.021, 0.0348] 99.98 [99.94, 100.00]
+bod dopadu 2 R       89.82  99.40  99.69  99.92  99.98  0.0523 [0.0394, 0.0679] 99.69 [99.32, 99.90]
+bod dopadu 2 Z       99.25  99.92  99.96  99.98 100.00  0.0118 [0.00974, 0.0145] 99.96 [99.87, 100.00]
+bod limiteru R       21.07  49.35  65.50  81.06  92.54  3.48 [2.17, 5.28]     65.50 [59.75, 70.84]
+bod limiteru Z        7.34  28.93  46.06  64.88  87.51  3.91 [3.11, 4.9]      46.06 [42.70, 49.72]
 proud plazmatu kA        –      –      –      –      –  0.0347 [0.0311, 0.0382] –
 
 Konfigurace limitovaná / divertorová (model: is_limited > 0.5)
 ----------------------------------------------------------------------------------------------------
-shoda s rekonstrukcí 99.16 % z 8761 řádků; výbojů s aspoň jedním rozdílem: 23
+shoda s rekonstrukcí 99.20 % z 8761 řádků; výbojů s aspoň jedním rozdílem: 22
                             model limitovaná  model divertorová
-rekonstrukce limitovaná                 3511                 43
-rekonstrukce divertorová                  31               5176
+rekonstrukce limitovaná                 3512                 42
+rekonstrukce divertorová                  28               5179
 
 10 řádků s největší odchylkou (řádek jednou, podle jeho největší odchylky polohy)
 ----------------------------------------------------------------------------------------------------
   #     výboj  rel. čas  veličina            odchylka mm  osa 2D mm
-  1       104     0.263  bod limiteru Z              485      0.278
-  2       104     0.251  bod limiteru R              357      0.354
-  3       104     0.245  bod limiteru R              355      0.463
-  4       104     0.248  bod limiteru R              352      0.467
-  5       104     0.254  bod limiteru R              322      0.332
-  6       104     0.257  bod limiteru R              295      0.456
-  7        52     0.003  bod limiteru R              251      0.396
-  8       129     0.000  bod limiteru R              247      0.385
-  9         1     0.335  bod limiteru Z              235     0.0146
- 10       104     0.260  bod limiteru Z              234      0.347
+  1       104     0.263  bod limiteru Z              527       1.08
+  2        44     0.205  bod limiteru Z              498      0.181
+  3       104     0.260  bod limiteru Z              495       1.56
+  4       129     0.205  bod limiteru Z              485      0.272
+  5        52     0.003  bod limiteru R              430     0.0761
+  6        21     0.000  bod limiteru R              384       0.26
+  7       129     0.000  bod limiteru R              352      0.285
+  8        88     0.011  bod limiteru R              314      0.171
+  9        88     0.022  bod limiteru R              313      0.244
+ 10        85     0.014  bod limiteru R              296      0.345
 
 Čísla jsou shoda s rekonstrukcí ústavu, ne odchylka od plazmatu samotného.
 ```

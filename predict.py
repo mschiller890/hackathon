@@ -33,7 +33,9 @@ def _default(name):
     return next((p for p in (_ROOT / "model" / name, _ROOT / "out" / "model" / name, _ROOT.parent / "out" / "model" / name) if p.exists()), _ROOT / "model" / name)
 
 
-DEFAULT_MODEL, DEFAULT_NOISY = _default("ipp1-selected.npz"), _default("ipp1-noisy.npz")
+DEFAULT_MODEL, DEFAULT_NOISY = _default("ipp1-ipn.npz"), _default("ipp1-noisy.npz")
+if not DEFAULT_MODEL.exists():            # a package exported before the ipn model: the earlier selected model
+    DEFAULT_MODEL = _default("ipp1-selected.npz")
 DIVERTOR_ONLY = ("R_x_point", "Z_x_point", "R_strike_point_1", "Z_strike_point_1", "R_strike_point_2", "Z_strike_point_2")
 LIMITED_ONLY = ("R_limiter", "Z_limiter")
 

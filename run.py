@@ -86,15 +86,15 @@ def noisy_inputs(home):
     import predict
     df = pd.read_csv(home / NOISY)
     df = df[df["discharge"].isin(locked_ids())]
-    sel, noise = (predict.Model(home / "out" / "model" / f) for f in ("ipp1-selected.npz", "ipp1-noisy.npz"))
+    sel, noise = (predict.Model(home / "out" / "model" / f) for f in ("ipp1-ipn.npz", "ipp1-noisy.npz"))
     x = df[sel.inputs].to_numpy()
-    est = {"selected model (trained on clean inputs)": (sel, sel.estimates(x)),
+    est = {"clean-input model (trained on clean inputs)": (sel, sel.estimates(x)),
            f"noise model (trained with noise, last {noise.window} instants)": (noise, noise.estimates_noisy(x, df["discharge"].to_numpy(), df["time"].to_numpy()))}
     print(f"mean absolute error of the axis position on {len(df):,} rows of {df['discharge'].nunique()} set-aside discharges, noisy inputs:")
     for name, (m, e) in est.items():
         mae = [np.nanmean(np.abs(e[:, m.outputs.index(t)] - df[t].to_numpy() * 1000)) for t in ("R_mag_axis", "Z_mag_axis")]
         print(f"  {name:<52} R axis {mae[0]:7.2f} mm   Z axis {mae[1]:7.2f} mm")
-    print("Why: the selected model learned only clean inputs, so the noise moves it far off; the noise model learned with noise added "
+    print("Why: the clean-input model learned only clean inputs, so the noise moves it far off; the noise model learned with noise added "
           f"and sees the last {noise.window} instants of the discharge, so the noise partly averages out.")
 
 
@@ -122,8 +122,9 @@ def main():
         run([py, "-u", "analysis/ipp1_live_train_fast.py"], env, True)
     else:
         run([py, "-u", "analysis/mini_pipeline.py", "--dump-rows", "0"], env, True)
-    step("4. Train the shipped models and export them (out/model/ipp1-selected.npz, out/model/ipp1-noisy.npz for noisy inputs)")
-    run([py, "analysis/export_model.py"], env, True)
+    step("4. Train the shipped models and export them (out/model/ipp1-ipn.npz for clean inputs, out/model/ipp1-noisy.npz for noisy inputs)")
+    run([py, "analysis/export_model.py", "--no-axis-net"], env, True)
+    run([py, "analysis/ipn_model.py"], env, True)
     step("5. First estimate with the exported model (reference reconstruction against our estimate)")
     # the paths go through argv, not into the source, so a quote in a folder name cannot break the code
     code = (
@@ -135,7 +136,7 @@ def main():
         "ref = df['R_mag_axis'].values[:5] * 1000;"
         "print(f'first 5 rows of development discharge {disc} (the exported model was trained on it, so this only checks the export):');"
         "[print(f'  row {i}: reference R axis {ref[i]:.2f} mm, estimate {e[i, m.outputs.index(\"R_mag_axis\")]:.2f} mm') for i in range(5)] if 'R_mag_axis' in m.outputs else print(e[:2])")
-    model = home / "out" / "model" / "ipp1-selected.npz"
+    model = home / "out" / "model" / "ipp1-ipn.npz"
     run([py, "-c", code, str(home / EQUIL), str(model)], env)
     step("6. Noisy inputs: the provided noisy file on the 30 set-aside discharges")
     noisy_inputs(home)
