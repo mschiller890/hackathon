@@ -571,6 +571,7 @@ def scores_table(pred, y, agree, width):
 
 # ----------------------------------------------------------------------------- 3. share inside a tolerance
 TILE_MM = (0.1, 0.5, 1, 2)          # the tolerances of the tiles; 1 mm is the headline one
+SUCCESS_S = 2.5                     # seconds each part of the success section takes to animate in the live demo
 
 
 def share_under(err_mm, tol_mm):
@@ -578,14 +579,28 @@ def share_under(err_mm, tol_mm):
     return (np.asarray(err_mm)[:, None] < np.asarray(tol_mm, dtype=float)[None, :]).mean(0) * 100
 
 
-def success_lines(pred, y, scores, live, width):
+def phase(t, start, end):
+    """Progress 0..1 of an animation step that runs from `start` to `end` of the overall time t, eased out."""
+    f = min(max((t - start) / (end - start), 0.0), 1.0)
+    return 1 - (1 - f) ** 3
+
+
+def success_lines(pred, y, scores, live, width, reveal=1.0, part="all"):
     """The share of set-aside instants whose axis error is under a tolerance: a chart over 0.01 .. 10 mm (log),
-    tiles at TILE_MM, a bar of the limited/diverted agreement, and the R² of every output; scores from ipp1_common.score."""
+    tiles at TILE_MM, a bar of the limited/diverted agreement, and the R² of every output; scores from ipp1_common.score.
+
+    part "top" is the chart and the tiles, "bottom" the agreement bar and the R² bars, "all" both. reveal 0..1 is the
+    animation time of that part: the curves sweep in from the left, then the tiles, the agreement bar and the R² bars
+    count up to their values; 1 is the finished picture (plain mode prints only that one).
+    """
+    curve_t, tile_t = phase(reveal, 0, 0.6), phase(reveal, 0.45, 1)
+    rest_t = phase(reveal, 0, 1) if part == "bottom" else 1.0
     err = {"R": np.abs(pred[:, R] - y[:, R]) * 1000, "Z": np.abs(pred[:, Z] - y[:, Z]) * 1000}
     colour = {"R": ST.axis_r, "Z": ST.axis_z}
     cols = width - AXIS_W
     rows = min(10, max(5, terminal_rows(live) - 20))
     log_tol = np.linspace(-2, 1, 2 * cols)           # one tolerance per braille dot column
+    log_tol = log_tol[:max(1, int(round(curve_t * len(log_tol))))]
     lines = [ST.paint(ST.bold, "Kolik okamžiků 30 kontrolních výbojů má chybu polohy osy pod danou tolerancí "
                                "(vyšší je lepší)"),
              ST.paint(ST.grey, "podíl okamžiků (%)  ") + ST.paint(ST.axis_r, "━━ osa R purpurová") + "  "
@@ -604,18 +619,19 @@ def success_lines(pred, y, scores, live, width):
         strong = ST.bold if tol == 1 else ""
         body = []
         for a in ("R", "Z"):
-            pct = float(share_under(err[a], [tol])[0])
+            pct = float(share_under(err[a], [tol])[0]) * tile_t
             body.append(ST.paint(colour[a], a + " " + progress(pct / 100, bar_w)) + " "
                         + ST.paint(strong, f"{pct:5.1f} %"))
         tiles.append(box(f"pod {tol:g} mm", body, tile_w, strong or ST.grey))
     lines += [" ".join(parts) for parts in zip(*tiles)]
+    top, lines = lines, []
 
     agree = scores["is_limited"]["accuracy"]
     known = int((~np.isnan(y[:, -1])).sum())
     gauge_w = width - 30
-    lines += ["",
+    lines += [
               ST.paint(ST.bold, "Limiterová nebo divertorová konfigurace: shoda s rekonstrukcí ústavu"),
-              f"{'shoda':<20}{progress(agree, gauge_w)} " + ST.paint(ST.bold, f"{100 * agree:.2f} %"),
+              f"{'shoda':<20}{progress(agree * rest_t, gauge_w)} " + ST.paint(ST.bold, f"{100 * agree * rest_t:.2f} %"),
               ST.paint(ST.grey, f"{'':<20}0 %{'100 %':>{gauge_w - 3}}"),
               ST.paint(ST.grey, f"{'':<20}jinak určená konfigurace v {fmt_int(round((1 - agree) * known))} "
                                 f"z {fmt_int(known)} okamžiků"),
@@ -626,11 +642,12 @@ def success_lines(pred, y, scores, live, width):
     r2_bar = max(4, col_w - 32)
     cells = []
     for name in TARGETS:
-        r2 = scores[name]["r2"]
+        final_r2 = scores[name]["r2"]
+        r2 = final_r2 * rest_t
         if not np.isfinite(r2):
             cells.append(f"{LABELS[name]:<24} {'—':>{r2_bar + 7}}")
             continue
-        tint = ST.green if r2 >= 0.99 else ST.yellow if r2 >= 0.9 else ST.red
+        tint = ST.green if final_r2 >= 0.99 else ST.yellow if final_r2 >= 0.9 else ST.red
         filled = int(round(min(max(r2, 0), 1) * r2_bar))
         cells.append(f"{LABELS[name]:<24} {ST.paint(tint, '█' * filled)}{ST.paint(ST.grey, '·' * (r2_bar - filled))} "
                      f"{r2:6.4f}")
@@ -639,7 +656,27 @@ def success_lines(pred, y, scores, live, width):
     note = ("Chyba = rozdíl odhadu od rekonstrukce ústavu, tedy shoda s ní, ne s plazmatem samotným. Je to základní "
             "síť z této ukázky, ne vybraný model; ten má vlastní výsledky v results/ipp1-final.md.")
     lines += [""] + [ST.paint(ST.grey, row) for row in textwrap.wrap(note, width)]
-    return [fit(line, width) for line in lines]
+    chosen = {"top": top, "bottom": lines, "all": top + [""] + lines}[part]
+    return [fit(line, width) for line in chosen]
+
+
+def show_success(pred, y, scores, live, width):
+    """Section 3 on screen: live, the chart and tiles, then the agreement and R² bars, each animated in place for
+    SUCCESS_S seconds (a part taller than the terminal is printed at once); plain, the finished picture once."""
+    for part in ("top", "bottom"):
+        final = success_lines(pred, y, scores, live, width, part=part)
+        if live and len(final) < shutil.get_terminal_size((100, 40)).lines - 1:   # the redraw needs the whole part on screen
+            block = LiveBlock()
+            started = time.perf_counter()
+            while (t := (time.perf_counter() - started) / SUCCESS_S) < 1:
+                block.draw(success_lines(pred, y, scores, live, width, reveal=t, part=part))
+                time.sleep(1 / 30)
+            block.draw(final)
+        else:
+            for line in final:
+                print(line)
+        if part == "top":
+            print()
 
 
 # ----------------------------------------------------------------------------- 4. one unseen discharge
@@ -843,8 +880,7 @@ def run_demo(args, live, width):
     say(f"Pro každou toleranci podíl okamžiků {len(lock)} kontrolních výbojů, ve kterých se poloha osy od "
         f"rekonstrukce ústavu liší méně. Čím dřív křivka dojde ke 100 %, tím lépe.", width)
     print()
-    for line in success_lines(torch_pred, y_te, scores, live, width):
-        print(line)
+    show_success(torch_pred, y_te, scores, live, width)
     under_1mm = [float(share_under(np.abs(torch_pred[:, j] - y_te[:, j]) * 1000, [1])[0]) for j in (R, Z)]
 
     # 4. One unseen discharge, instant by instant, each estimate timed as a single-row call.
