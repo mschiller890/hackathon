@@ -60,8 +60,9 @@ def ipp_file(noisy):
     name = "equil_data_noisy.csv" if noisy else "equil_data.csv"
     homes = [Path(os.environ["HACKATHON_HOME"])] if os.environ.get("HACKATHON_HOME") else []
     for home in homes + [REPO, Path.cwd()]:
-        if (home / DATA_SUB / name).exists():
-            return home / DATA_SUB / name
+        for sub in (Path("data"), DATA_SUB):             # data/ (the files are in the repository) or the layout of the original archive
+            if (home / sub / name).exists():
+                return home / sub / name
     fail(f"data nenalezena: {name} není v {DATA_SUB} pod HACKATHON_HOME "
          f"({os.environ.get('HACKATHON_HOME', 'nenastaveno')}) ani pod {REPO}. Nastavte HACKATHON_HOME nebo použijte --csv.")
 

@@ -14,8 +14,8 @@ import pandas as pd
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-ROOT = Path(os.environ.get("HACKATHON_HOME", "."))
-D = ROOT / "data/raw/ipp1-magnetic/uloha_1-magneticka_data"
+ROOT = Path(os.environ.get("HACKATHON_HOME") or Path(__file__).resolve().parents[1])
+D = next((d for d in (ROOT / "data", ROOT / "data/raw/ipp1-magnetic/uloha_1-magneticka_data") if (d / "equil_data.csv").exists()), ROOT / "data")
 OUT = ROOT / "out"
 OUT.mkdir(exist_ok=True)
 df = pd.read_csv(D / "equil_data.csv")

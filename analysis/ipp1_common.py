@@ -1,6 +1,6 @@
 """Shared code for the IPP task 1 experiments: data loading, the masked network, scoring.
 
-Everything reads the data from $HACKATHON_HOME/data/raw (never from the repository) and
+Everything reads the data from $HACKATHON_HOME/data (by default the data/ folder of the repository) and
 writes to $HACKATHON_HOME/out. Rows of one discharge are near copies, so every split here
 is by whole discharges.
 """
@@ -14,12 +14,13 @@ import torch.nn as nn
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import GroupKFold
 
-ROOT = Path(os.environ.get("HACKATHON_HOME", "."))
+REPO = Path(__file__).resolve().parents[1]
+ROOT = Path(os.environ.get("HACKATHON_HOME") or REPO)          # without HACKATHON_HOME the repository itself, where data/ is
 OUT = ROOT / "out"
-DATA = ROOT / "data/raw/ipp1-magnetic/uloha_1-magneticka_data"
+DATA = next((d for d in (ROOT / "data", ROOT / "data/raw/ipp1-magnetic/uloha_1-magneticka_data") if (d / "equil_data.csv").exists()), ROOT / "data")
 if not DATA.exists():
-    raise SystemExit(f"Data folder not found: {DATA}\nSet HACKATHON_HOME to the hackathon/ folder that holds "
-                     "data/raw/ipp1-magnetic/uloha_1-magneticka_data/ (HACKATHON_HOME is "
+    raise SystemExit(f"Data folder not found: {DATA}\nPut equil_data.csv and equil_data_noisy.csv in data/ of the repository, or set HACKATHON_HOME to a folder that holds "
+                     "data/ (HACKATHON_HOME is "
                      f"{'unset' if 'HACKATHON_HOME' not in os.environ else 'set to ' + os.environ['HACKATHON_HOME']}).")
 OUT.mkdir(parents=True, exist_ok=True)
 

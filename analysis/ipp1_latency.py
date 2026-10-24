@@ -64,7 +64,7 @@ def shipped():
     Weights do not change the timing; random weights of the trained shapes are timed. Writes out/ipp1-latency-shipped.json and
     results/ipp1-latency-shipped.md.
     """
-    from ipp1_common import ROOT, TARGETS
+    from ipp1_common import REPO, TARGETS
     os.environ["IPP1_FINAL_SMOKE"] = "1"   # ipp1_final trains one epoch per network: only the timing of predict() is wanted
     from ipp1_final import MLP, aligned_data, feats, split, train
     torch.manual_seed(0)
@@ -147,7 +147,7 @@ def shipped():
           "The `torch_*` rows time the networks only. **Included:** everything from the 24 raw numbers to the 16 outputs of the shipped pair, on one CPU core (numpy) or the GPU with its copies. "
           "**Not included:** collecting and integrating the coil signals, the noise-trained model needed for noisy inputs, the camera, and the accuracy of random weights (this is timing only)."]
     text = "\n".join(L) + "\n"
-    target = ROOT / "repo/results/ipp1-latency-shipped.md"
+    target = REPO / "results/ipp1-latency-shipped.md"
     if target.exists() and "\n## Reading" in target.read_text(encoding="utf-8"):   # the hand-written reading is kept
         text += "\n## Reading" + target.read_text(encoding="utf-8").split("\n## Reading", 1)[1]
     target.write_text(text, encoding="utf-8")

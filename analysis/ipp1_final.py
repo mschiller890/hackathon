@@ -37,7 +37,7 @@ import torch.nn.functional as F
 from sklearn.linear_model import Ridge
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script folder
-from ipp1_common import OUT, ROOT, TARGETS, UNIT, fit_mlp, group_folds, load
+from ipp1_common import OUT, REPO, ROOT, TARGETS, UNIT, fit_mlp, group_folds, load
 
 SMOKE = bool(os.environ.get("IPP1_FINAL_SMOKE"))          # one epoch per network: only to test the plumbing
 CACHE = OUT / ("ipp1-final-cache-smoke" if SMOKE else "ipp1-final-cache")
@@ -312,7 +312,7 @@ def report():
     (df, X, Y, G, M), XN = aligned_data()
     times = df.time.to_numpy()
     lock, dev_idx, lock_idx = split(G)
-    ids_txt = ROOT / "repo/results/ipp1-locked-test-ids.txt"
+    ids_txt = REPO / "results/ipp1-locked-test-ids.txt"
     ids_txt.parent.mkdir(parents=True, exist_ok=True)
     dev_ids = np.unique(G[dev_idx])
     ids_txt.write_text(
@@ -389,8 +389,8 @@ def report():
     if notes.exists():
         md = md.replace("\n## Development set", "\n" + notes.read_text().strip() + "\n\n## Development set", 1)
     (OUT / "ipp1-final.md").write_text(md)
-    (ROOT / "repo/results").mkdir(parents=True, exist_ok=True)
-    (ROOT / "repo/results/ipp1-final.md").write_text(md)
+    (REPO / "results").mkdir(parents=True, exist_ok=True)
+    (REPO / "results/ipp1-final.md").write_text(md)
     print(md)
 
 

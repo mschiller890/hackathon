@@ -69,13 +69,10 @@ def main():
     ap.add_argument("--viewer", action="store_true", help="build viewer/dist/index.html afterwards")
     args = ap.parse_args()
 
-    home = os.environ.get("HACKATHON_HOME")
-    if not home:
-        sys.exit("set HACKATHON_HOME to the folder that holds data/raw (see README.md)")
-    home = Path(home).expanduser().resolve()
-    data = home / "data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.csv"
+    home = Path(os.environ.get("HACKATHON_HOME") or REPO).expanduser().resolve()      # by default the repository, where data/ is
+    data = next((d / "equil_data.csv" for d in (home / "data", home / "data/raw/ipp1-magnetic/uloha_1-magneticka_data") if (d / "equil_data.csv").exists()), home / "data/equil_data.csv")
     if not data.exists():
-        sys.exit(f"missing {data}; unzip uloha_1-magneticka_data.zip into {home / 'data/raw/ipp1-magnetic'}")
+        sys.exit(f"missing {data}: put equil_data.csv and equil_data_noisy.csv in data/ of the repository, or set HACKATHON_HOME to a folder that holds data/")
     out = home / "out"
     out.mkdir(exist_ok=True)  # ipp1_inputs.py and ipp1_latency.py write into it without creating it
     env = {**os.environ, "HACKATHON_HOME": str(home)}

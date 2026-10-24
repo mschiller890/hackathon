@@ -6,8 +6,8 @@
     python run.py --check    only check the Python packages and the data
     python run.py --relu-demo   the same, with the second live demo (ReLU network)
 
-The IPP data are confidential and are not in git. Put them in ./data (the layout of data/raw/... is checked below) or set
-HACKATHON_HOME to the folder that holds data/. The live demo prints rows of the data to the terminal: show it in the room, do not record or send it.
+The IPP data are confidential: the repository is private and only the hackathon participants may have access. The files are in ./data; or set
+HACKATHON_HOME to the folder that holds data/ (by default the folder of this file; the two CSV files are in the repository). The live demo prints rows of the data to the terminal: show it in the room, do not record or send it.
 """
 import argparse
 import importlib
@@ -19,8 +19,15 @@ import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-EQUIL = Path("data/raw/ipp1-magnetic/uloha_1-magneticka_data/equil_data.csv")
-NOISY = EQUIL.with_name("equil_data_noisy.csv")  # export_model.py reads it too
+FLAT = Path("data")                                                  # data/equil_data.csv, data/equil_data_noisy.csv (the files are in the repository)
+NESTED = Path("data/raw/ipp1-magnetic/uloha_1-magneticka_data")      # the layout of the original archive, also understood
+EQUIL = FLAT / "equil_data.csv"
+NOISY = FLAT / "equil_data_noisy.csv"   # export_model.py reads it too
+
+
+def data_folder(home):
+    """The folder under `home` that holds both CSV files (data/ or the original nested layout), or None."""
+    return next((home / d for d in (FLAT, NESTED) if all((home / d / n).exists() for n in ("equil_data.csv", "equil_data_noisy.csv"))), None)
 B, G, R, D, X = "\033[1m", "\033[32m", "\033[31m", "\033[2m", "\033[0m"
 
 
@@ -50,14 +57,14 @@ def find_home():
         if not home:
             continue
         home = Path(home).expanduser().resolve()  # the children run with cwd=HERE, so a relative path would point elsewhere
-        missing = [f.name for f in (EQUIL, NOISY) if not (home / f).exists()]
-        if not missing:
-            print(f"{G}data found{X} in {home / EQUIL.parent}")
+        folder = data_folder(home)
+        if folder:
+            print(f"{G}data found{X} in {folder}")
             return home
-        if len(missing) == 1:
-            sys.exit(f"{R}{missing[0]} is missing{X} in {home / EQUIL.parent}: both equil_data.csv and equil_data_noisy.csv are needed.")
-    sys.exit(f"{R}The data were not found.{X}\nThe IPP data are not in git. Copy equil_data.csv and equil_data_noisy.csv to\n"
-             f"  {HERE / EQUIL.parent}\nor set HACKATHON_HOME to a folder that holds {EQUIL.parent}.")
+        if any((home / d / n).exists() for d in (FLAT, NESTED) for n in ("equil_data.csv", "equil_data_noisy.csv")):
+            sys.exit(f"{R}Only one of the two data files is there{X} in {home / FLAT}: both equil_data.csv and equil_data_noisy.csv are needed.")
+    sys.exit(f"{R}The data were not found.{X}\nThey belong in {HERE / FLAT} (equil_data.csv and equil_data_noisy.csv; the repository has them)\n"
+             f"or set HACKATHON_HOME to a folder that holds data/ with these two files.")
 
 
 def run(cmd, env, title=None):
@@ -84,7 +91,7 @@ def noisy_inputs(home):
     import pandas as pd
     sys.path.insert(0, str(HERE / "analysis"))
     import predict
-    df = pd.read_csv(home / NOISY)
+    df = pd.read_csv(data_folder(home) / NOISY.name)
     df = df[df["discharge"].isin(locked_ids())]
     sel, noise = (predict.Model(home / "out" / "model" / f) for f in ("ipp1-ipn.npz", "ipp1-noisy.npz"))
     x = df[sel.inputs].to_numpy()
@@ -137,7 +144,7 @@ def main():
         "print(f'first 5 rows of development discharge {disc} (the exported model was trained on it, so this only checks the export):');"
         "[print(f'  row {i}: reference R axis {ref[i]:.2f} mm, estimate {e[i, m.outputs.index(\"R_mag_axis\")]:.2f} mm') for i in range(5)] if 'R_mag_axis' in m.outputs else print(e[:2])")
     model = home / "out" / "model" / "ipp1-ipn.npz"
-    run([py, "-c", code, str(home / EQUIL), str(model)], env)
+    run([py, "-c", code, str(data_folder(home) / EQUIL.name), str(model)], env)
     step("6. Noisy inputs: the provided noisy file on the 30 set-aside discharges")
     noisy_inputs(home)
     print(f"\n{G}Done.{X} Everything: python run.py --full. Try the model on your own file: python predict.py input.csv --model {shlex.quote(str(model))}"
