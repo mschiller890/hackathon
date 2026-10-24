@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Průzkumná analýza úlohy IPP 1 (magnetická data). Data jen čte, výsledky zapisuje do out/.
 
-    ~/.venvs/hackathon/bin/python -I analysis/ipp1_eda.py
+    ~/.venvs/hackathon/bin/python -I analysis/explore_data.py
 """
 import json
 import os

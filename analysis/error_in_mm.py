@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Odchylky modelu od rekonstrukce ústavu v milimetrech (IPP, úloha 1).
 
-    python analysis/bench_mm.py [--model out/model/ipp1-ipn.npz] [--set locked|dev|all] [--noisy] [--csv SOUBOR] [--json VÝSTUP]
+    python analysis/error_in_mm.py [--model out/model/ipp1-ipn.npz] [--set locked|dev|all] [--noisy] [--csv SOUBOR] [--json VÝSTUP]
 
 Data: ve výchozím stavu equil_data.csv (s --noisy equil_data_noisy.csv) ze složky data/ repozitáře nebo z $HACKATHON_HOME.
 --csv vezme libovolný soubor s 24 vstupy IPR01..IPR16 a FL01..FL08, sloupcem `discharge`, volitelně `time` a libovolnými
@@ -13,7 +13,7 @@ Odhady počítá predict.Model z kořene repozitáře, tedy tentýž numpy kód,
 na řádcích, kde pro ni rekonstrukce hodnotu má (bod X a dotykové body jen na divertorových řádcích, bod limiteru jen
 na limiterových, ať si model o konfiguraci myslí cokoli), stejně jako v results/ipp1-final.md. 95% intervaly jsou
 bootstrap po výbojích: celé výboje se 1000krát losují s vracením (numpy RandomState(20261025), tytéž tahy jako
-ipp1_final.bootstrap). Výstup popisuje řádky jen číslem výboje a relativním časem, žádná vstupní hodnota se nevypisuje.
+final_evaluation.bootstrap). Výstup popisuje řádky jen číslem výboje a relativním časem, žádná vstupní hodnota se nevypisuje.
 """
 import argparse
 import json
@@ -48,7 +48,7 @@ N_BOOTSTRAP, BOOTSTRAP_SEED = 1000, 20261025
 
 
 def fail(message):
-    sys.exit(f"bench_mm: {message}")
+    sys.exit(f"error_in_mm: {message}")
 
 
 # ===================================================================================================================
@@ -131,7 +131,7 @@ def describe(absolute_deviations):
 
 def bootstrap_draws(n_discharges):
     """Kolikrát se každý výboj dostal do každého z N_BOOTSTRAP vzorků. Stejný generátor a pořadí tahů jako
-    ipp1_final.bootstrap, takže na téže sadě sedí intervaly středních chyb s results/ipp1-final.md."""
+    final_evaluation.bootstrap, takže na téže sadě sedí intervaly středních chyb s results/ipp1-final.md."""
     rng = np.random.RandomState(BOOTSTRAP_SEED)
     draws = [np.bincount(rng.randint(0, n_discharges, n_discharges), minlength=n_discharges) for _ in range(N_BOOTSTRAP)]
     return np.stack(draws).astype(np.float64)
@@ -307,13 +307,13 @@ def main():
         fail("--noisy platí jen pro data ústavu; zašuměný soubor předejte přímo přes --csv")
     model_path = Path(args.model) if args.model else default_model()
     if not model_path.exists():
-        fail(f"model nenalezen: {model_path} (vytvoří ho analysis/ipn_model.py nebo run.py; jiný předejte přes --model)")
+        fail(f"model nenalezen: {model_path} (vytvoří ho analysis/clean_model.py nebo run.py; jiný předejte přes --model)")
     try:
         model = Model(model_path)
     except Exception as error:  # špatný nebo useknutý soubor
         fail(f"model {model_path} nelze načíst: {error}")
     if model.inputs != INPUTS or model.outputs != TARGETS:
-        fail(f"model {model_path} nemá očekávané vstupy a výstupy (24 vstupů IPR01..FL08, 16 výstupů v pořadí ipn_model.py)")
+        fail(f"model {model_path} nemá očekávané vstupy a výstupy (24 vstupů IPR01..FL08, 16 výstupů v pořadí clean_model.py)")
     description_path = model_path.with_suffix(".json")
     description = json.loads(description_path.read_text()) if description_path.exists() else {}
 

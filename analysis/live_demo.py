@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Celý nápad projektu živě v terminálu: 24 magnetických měření dovnitř, tvar plazmatu ven.
 
-    HACKATHON_HOME=<složka hackathonu> python analysis/mini_pipeline.py [--epochs 150] [--models 1] [--seconds 10] [--dump-rows N] [--plain]
+    HACKATHON_HOME=<složka hackathonu> python analysis/live_demo.py [--epochs 150] [--models 1] [--seconds 10] [--dump-rows N] [--plain]
 
 Co se vypisuje, popořadě (česky, je to ukázka pro porotu):
   0. úvodní rámeček: vstupy, výstupy, síť, rozdělení dat, stroj;
@@ -20,13 +20,13 @@ Co se vypisuje, popořadě (česky, je to ukázka pro porotu):
 --plain (automaticky, když stdout není terminál) vypisuje totéž bez překreslování a bez barev: tabulky po epochách,
 po okamžicích a po sekundách ze starší verze a každý graf jednou.
 
-Stejná data, síť (ipp1_common.Net) a rozdělení 119/30 jako v projektu (ipp1_final.locked_ids), jedno semínko. Síť je recept
-z analysis/ipn_model.py (měření dělená proudem plazmatu), jen se tu učí živě, takže její čísla jsou blízká, ne totožná
+Stejná data, síť (common.Net) a rozdělení 119/30 jako v projektu (final_evaluation.locked_ids), jedno semínko. Síť je recept
+z analysis/clean_model.py (měření dělená proudem plazmatu), jen se tu učí živě, takže její čísla jsou blízká, ne totožná
 s results/ipp1-ipn.md a results/bench-mm.md. Nic nezapisuje. Jádro projektu pro čtenáře tohoto souboru:
-    ipp1_common.py   načtení dat, síť, učení s maskou, hodnocení
-    ipp1_final.py    nasazený model a odložený test na 30 výbojích
+    common.py   načtení dat, síť, učení s maskou, hodnocení
+    final_evaluation.py    nasazený model a odložený test na 30 výbojích
     noisy_model.py  predict.py   nasazený model jako jediný soubor jen s numpy
-    make_all.py      pouští kroky analýzy ve správném pořadí
+    run_analyses.py      pouští kroky analýzy ve správném pořadí
 """
 import argparse
 import math
@@ -46,8 +46,8 @@ import torch
 from sklearn.linear_model import Ridge
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I zahazuje složku skriptu
-from ipp1_common import TARGETS, UNIT, Net, load, score
-from ipp1_final import locked_ids
+from common import TARGETS, UNIT, Net, load, score
+from final_evaluation import locked_ids
 
 # Sloupce výstupů, které demo potřebuje.
 R_AXIS, Z_AXIS = TARGETS.index("R_mag_axis"), TARGETS.index("Z_mag_axis")
@@ -755,7 +755,7 @@ def ease_out(time_now, start, end):
 
 def success_lines(prediction, truth, scores, live, width, reveal=1.0, part="all"):
     """Podíl odložených okamžiků, jejichž chyba osy je pod tolerancí: graf přes 0,01 .. 10 mm (logaritmicky),
-    dlaždice pro TILE_TOLERANCES_MM, pruh shody limiter / divertor a R² každého výstupu; scores z ipp1_common.score.
+    dlaždice pro TILE_TOLERANCES_MM, pruh shody limiter / divertor a R² každého výstupu; scores z common.score.
 
     part "top" je graf s dlaždicemi, "bottom" pruh shody a pruhy R², "all" obojí. reveal 0..1 je čas animace té části:
     křivky se rozjedou zleva, pak dlaždice, pruh shody a pruhy R² dopočítají své hodnoty; 1 je hotový obraz

@@ -101,10 +101,10 @@ Spread of the truth over the 4000 rows:
 
 ## Method
 
-- Network: the recipe of `analysis/ipp1_common.py` (256-256-128, SiLU, AdamW lr 2e-3 weight decay 1e-4, OneCycle max lr 3e-3,
+- Network: the recipe of `analysis/common.py` (256-256-128, SiLU, AdamW lr 2e-3 weight decay 1e-4, OneCycle max lr 3e-3,
   batch 512, standardised inputs and targets, loss masked to the targets that exist), copied into `analysis/synth_validation.py`.
   Targets: plasma_current, R_mag_axis, Z_mag_axis, elongation, triangularity, R_x_point, Z_x_point, is_limited.
-- Baseline: ridge regression per target on standardised inputs (the same one `ipp1_common.py` uses).
+- Baseline: ridge regression per target on standardised inputs (the same one `common.py` uses).
 - Splits: 5-fold GroupKFold by synthetic discharge; every row is predicted once out of fold and the errors are pooled.
 - Noise: each channel gets white noise of 15 % (coils) or 9 % (flux loops) of that channel's standard deviation over all
   rows, as `ipp1-data-checks.md` measured for the organizers' noisy file. Training noise and test noise are two different draws.

@@ -1,6 +1,6 @@
 Locked test set of IPP 1 (hackathon task 1): 30 of 149 discharges.
 Drawn with numpy.random.RandomState(20261024).choice(sorted unique discharge ids, 30, replace=False), then sorted.
 The other 119 discharges are the development set; every recipe choice uses 5-fold GroupKFold inside it.
-The locked discharges are scored once, by models trained on all development discharges (analysis/ipp1_final.py --report).
+The locked discharges are scored once, by models trained on all development discharges (analysis/final_evaluation.py --report).
 
 locked discharge ids (30): 1 14 15 20 21 24 35 37 38 44 52 59 60 67 73 77 85 88 90 97 98 100 104 108 110 129 138 140 142 147

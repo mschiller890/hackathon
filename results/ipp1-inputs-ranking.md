@@ -1,6 +1,6 @@
 # Which inputs matter: a retraining ranking (REQ-004)
 
-Computed on the 119 development discharges only (34,211 rows); the 30 locked test discharges of `analysis/ipp1_final.py` are removed before anything is fitted. Inside the development set, 5-fold GroupKFold by whole discharge. Summary error = mean relative error (RMSE / spread) over the 13 targets of `ipp1_inputs.SUMMARY` (no limiter point, no is_limited), so it is comparable with `results/ipp1-inputs.md`. All-24 baseline: 0.0741.
+Computed on the 119 development discharges only (34,211 rows); the 30 locked test discharges of `analysis/final_evaluation.py` are removed before anything is fitted. Inside the development set, 5-fold GroupKFold by whole discharge. Summary error = mean relative error (RMSE / spread) over the 13 targets of `input_importance.SUMMARY` (no limiter point, no is_limited), so it is comparable with `results/ipp1-inputs.md`. All-24 baseline: 0.0741.
 
 **Read the noise first.** Refitting the same all-24 baseline with 3 seeds per fold moves the summary error by 4.5% on average (per fold: 7.2%, 2.6%, 4.9%, 4.2%, 3.8%). The review measured 8 to 19 % seed noise and said to treat smaller effects as unresolved. Dropping one of 24 collinear inputs is mostly a smaller effect than that, which is the honest headline of this file: **no single magnetic input is individually necessary.** The ranking below is therefore an order of magnitude statement, not a league table.
 
@@ -39,7 +39,7 @@ Inputs that got worse in all 5 folds AND by more than the 4.5% seed noise: FL01 
 
 ## Backward-elimination order (ridge criterion, deterministic)
 
-Greedy elimination from 24 inputs down to 1, repeated inside each fold on its training rows only, with the ridge criterion of `ipp1_inputs.backward_ridge_subset`. This path has no seed noise, so where it and the network ranking disagree inside the noise, this is the order to quote. Most important (eliminated last) first, with the mean elimination step over the folds:
+Greedy elimination from 24 inputs down to 1, repeated inside each fold on its training rows only, with the ridge criterion of `input_importance.backward_ridge_subset`. This path has no seed noise, so where it and the network ranking disagree inside the noise, this is the order to quote. Most important (eliminated last) first, with the mean elimination step over the folds:
 
 | rank | input | mean elimination step | per fold |
 |---|---|---|---|

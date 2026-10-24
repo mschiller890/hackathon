@@ -1,7 +1,7 @@
 # IPP 1: robustness, amount of data, time context (lane R)
 
 Evidence for REQ-B02, REQ-B04, REQ-B06. Same masked MLP and 5 folds split by whole discharge as the baseline
-(`analysis/ipp1_common.py`). Mean absolute error (MAE) on held-out discharges, mean over 5 folds. Full tables:
+(`analysis/common.py`). Mean absolute error (MAE) on held-out discharges, mean over 5 folds. Full tables:
 `out/ipp1-{robustness,learning_curve,temporal}.{json,md}` (not in git); figures next to this file. Each script is run with
 `HACKATHON_HOME=... ~/.venvs/hackathon/bin/python -I analysis/<name>.py`, about 1 to 2.5 minutes each. Checks of the
 helper logic: `python -I results/ipp1-robustness-checks.py` (4 tests, OK).

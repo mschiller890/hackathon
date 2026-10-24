@@ -1,8 +1,8 @@
 # Error against the uneven distribution of the data (REQ-007)
 
-Pooled over the 42,972 out-of-fold rows of 149 discharges (`out/ipp1-predictions.csv (analysis/ipp1_oof.py, 5 folds by discharge)`); no model is trained here. 44.2% of the rows are limited, 16 of 149 discharges have positive plasma current (7.4% of the rows), 926 rows lie in the first 2 % and 925 in the last 2 % of the relative discharge time.
+Pooled over the 42,972 out-of-fold rows of 149 discharges (`out/ipp1-predictions.csv (analysis/out_of_fold.py, 5 folds by discharge)`); no model is trained here. 44.2% of the rows are limited, 16 of 149 discharges have positive plasma current (7.4% of the rows), 926 rows lie in the first 2 % and 925 in the last 2 % of the relative discharge time.
 
-All errors are absolute errors in the report unit of the target. `rows` is the group's share of the rows of that target and `sq err` its share of that target's total squared error: where `sq err` is far above `rows`, a minority of the data carries the error. Metrics follow `ipp1_common.score_extended` (the script asserts this on the full row set), so they are comparable with the other reports. `n/a` means the group has no row of that target, which is expected: the X-point and the strike points exist only in diverted rows, the limiter point only in limited rows.
+All errors are absolute errors in the report unit of the target. `rows` is the group's share of the rows of that target and `sq err` its share of that target's total squared error: where `sq err` is far above `rows`, a minority of the data carries the error. Metrics follow `common.score_extended` (the script asserts this on the full row set), so they are comparable with the other reports. `n/a` means the group has no row of that target, which is expected: the X-point and the strike points exist only in diverted rows, the limiter point only in limited rows.
 
 ## Overall, for reference
 

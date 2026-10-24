@@ -23,4 +23,4 @@ MAE in the unit shown, mean over folds; nRMSE is the RMSE divided by the spread 
 
 is_limited accuracy: magnetic 0.992, camera 0.976, camera+magnetic 0.987
 
-Channels rgb; 14520 camera frames with interpolated magnetic inputs, 5 folds by discharge. The magnetic MLP is ipp1_common.fit_mlp (60 epochs) on these frames, so it is the like-for-like reference.
+Channels rgb; 14520 camera frames with interpolated magnetic inputs, 5 folds by discharge. The magnetic MLP is common.fit_mlp (60 epochs) on these frames, so it is the like-for-like reference.

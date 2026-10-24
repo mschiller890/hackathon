@@ -20,7 +20,7 @@ Dvě sítě:
 Ztráta: Huberova s delta 0,2 na standardizovaných cílech, počítaná jen tam, kde cíl existuje. AdamW, jeden cyklus
 učicí rychlosti, 150 epoch, dávky po 512 řádcích.
 
-    python analysis/ipn_model.py [--feat diff2] [--epochs 150] [--all] [--live]    uloží out/model/ipp1-ipn.npz a .json
+    python analysis/clean_model.py [--feat diff2] [--epochs 150] [--all] [--live]    uloží out/model/ipp1-ipn.npz a .json
 
 Bez --all (tak to volá run.py) se učí jen na 119 vývojových výbojích: to je soubor, který se nasazuje, a model
 za všemi čísly na 30 odložených výbojích. S --all se učí na všech 149 výbojích (i odložených); do balíčku se nedává.
@@ -39,8 +39,8 @@ import torch.nn as nn
 import torch.nn.functional as functional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import ipp1_final as F
-from ipp1_common import OUT
+import final_evaluation as F
+from common import OUT
 
 MODEL_FOLDER = OUT / "model"
 CURRENT_SCALE = 1e5  # proud se dělí tímto číslem, aby vstup sítě byl řádově jedna (proud je ~2e5 A)
@@ -166,10 +166,10 @@ def train(measurements, targets, feature_mode="diff2", epochs=150, seed=0, on_ep
 # Živý graf učení (stejný jako v demu)
 # ===================================================================================================================
 def live_view(shown_measurements, shown_targets, feature_mode, epochs, started):
-    """Graf učení z mini_pipeline.py pro nasazený model: po každé epoše obecná síť odhadne odložené řádky
+    """Graf učení z live_demo.py pro nasazený model: po každé epoše obecná síť odhadne odložené řádky
     (ty se jen měří, nikdy se na nich neučí) a graf ukáže ztrátu, chybu osy v mm a celkovou přesnost."""
     import shutil
-    import mini_pipeline as demo
+    import live_demo as demo
 
     is_terminal = sys.stdout.isatty()
     demo.ST = demo.Style(is_terminal)

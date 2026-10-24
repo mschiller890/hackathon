@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Které vstupy jsou důležité a kolik jich stačí (REQ-004), měřeno na celých odložených výbojích.
 
-    HACKATHON_HOME=<složka hackathonu> python -I analysis/ipp1_inputs.py [--epochs 60] [--folds 5]
+    HACKATHON_HOME=<složka hackathonu> python -I analysis/input_importance.py [--epochs 60] [--folds 5]
 
 V každém foldu: učí se síť na všech 24 vstupech, vstupy se seřadí podle permutační důležitosti spočítané JEN na učicích
 řádcích (pořadí tak nikdy nevidí testovací výboje), síť se přeučí s nejlepšími k vstupy a také jen s 16 cívkami IPR nebo
@@ -14,8 +14,8 @@ jednoho sloupce vytvoří řádky mimo varietu dat.
 
 Jen kontroly (levnější běh, zapíše out/ipp1-inputs-controls.{json,md} a hlavní soubory nechá být):
 
-    ... ipp1_inputs.py --controls-only --only-folds 0,1 --ks 12 --threads 1      (jeden kus, opakovat pro každý fold a k)
-    ... ipp1_inputs.py --merge                                                   (sesbírá kusy)
+    ... input_importance.py --controls-only --only-folds 0,1 --ks 12 --threads 1      (jeden kus, opakovat pro každý fold a k)
+    ... input_importance.py --merge                                                   (sesbírá kusy)
 
 Kus znovu natrénuje i síť na všech 24 vstupech a permutační top-k téhož foldu, takže se kontroly porovnávají na stejných
 foldech a semínkách.
@@ -34,7 +34,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I zahazuje složku skriptu
-from ipp1_common import OUT, TARGETS, fit_mlp, group_folds, load, score
+from common import OUT, TARGETS, fit_mlp, group_folds, load, score
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=60)

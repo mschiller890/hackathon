@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Predikce mimo učicí sady (out-of-fold) pro úlohu IPP 1: každý řádek odhaduje síť, která jeho výboj nikdy neviděla.
 
-    HACKATHON_HOME=<složka hackathonu> python -I analysis/ipp1_oof.py [--epochs 60] [--folds 5]
+    HACKATHON_HOME=<složka hackathonu> python -I analysis/out_of_fold.py [--epochs 60] [--folds 5]
 
 Zapíše $HACKATHON_HOME/out/ipp1-predictions.csv se sloupci discharge, time, fold a <cíl>_pred.
 Skutečné hodnoty zůstávají v equil_data.csv (spojit podle discharge a time).
@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I zahazuje složku skriptu
-from ipp1_common import OUT, TARGETS, fit_mlp, group_folds, load
+from common import OUT, TARGETS, fit_mlp, group_folds, load
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=60)

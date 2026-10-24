@@ -7,7 +7,7 @@ network is changed.
 
 ## Arms (119 development discharges, 5 group folds, 3 seeds, paired: same folds, same seed = fold + 10 x s for every arm)
 
-- **arm 0, `cand` as is.** Predictions of `cand` (the cached cross-validation of `ipp1_final.py` for seed 0 and of `ipp1_search_dev.py` for seeds 1 and 2).
+- **arm 0, `cand` as is.** Predictions of `cand` (the cached cross-validation of `final_evaluation.py` for seed 0 and of `ipp1_search_dev.py` for seeds 1 and 2).
 - **arm 1, residual limiter network.** `cand` with ONLY the limiter network replaced by the residual network of the best search trial (`resA` of `results/ipp1-search-dev.md`: residual MLP,
   width 192, depth 4, GELU, 100 epochs, loss weight 1.5 on the limiter targets), trained on the limited rows of the training discharges.
 - **arm 2, control.** `cand` with its own limiter network (MLP 256-256-128, 46 inputs) trained with the same loss weight 1.5 on the limiter targets and the same 100 epochs instead of 150.
@@ -50,7 +50,7 @@ and that the measurement under `nice` and load was unfair to the arm with the bi
 **Amended criterion 4:** the latency is judged on the median of at least 5 repeated runs of the same measurement at NORMAL priority (no `nice`), for arm 1 and for `cand` in the same state of the machine (each run
 measures all three arms one after the other); arm 1 passes if the median over the runs of its median latency in the limited path is below 0.1 ms. Everything else of the rule is unchanged (gain, noise,
 nothing else changes, winner choice, the locked set once and only for the winner). If arm 1 passes under the amended criterion it is scored once on the locked 30 discharges, and the script logs that this
-happened on the post hoc pass. If its locked result is worse than `cand` on either limiter target, it is not shipped. Shipping, if any, is a separate decision (a new recipe, not a change of `ipp1_final.py` here).
+happened on the post hoc pass. If its locked result is worse than `cand` on either limiter target, it is not shipped. Shipping, if any, is a separate decision (a new recipe, not a change of `final_evaluation.py` here).
 
 *Times.* The Lead's message gave the time of the decision as about 20:25; the clock of the machine shows this paragraph committed at 20:16:38 (`git log`), before the five latency runs (about 20:17) and before the locked scoring (20:17, logged below). The order is right, the quoted time is only the Lead's estimate.
 

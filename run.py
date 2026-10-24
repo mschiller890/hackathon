@@ -175,17 +175,17 @@ def main():
 
     if args.full:
         print_step("3. Everything: all analysis steps, then all ten notebooks")
-        run_command([python, "analysis/make_all.py", "--quick", "--notebooks"], env, show_command=True)
+        run_command([python, "analysis/run_analyses.py", "--quick", "--notebooks"], env, show_command=True)
         print(f"\n{GREEN}Finished.{RESET} Executed notebooks: {home / 'out' / 'notebooks'}")
         return
 
     print_step("3. Live: the network learns, then estimates a discharge it never saw, then runs at full speed")
-    run_command([python, "-u", "analysis/mini_pipeline.py", "--dump-rows", "0"], env, show_command=True)
+    run_command([python, "-u", "analysis/live_demo.py", "--dump-rows", "0"], env, show_command=True)
 
     print_step("4. Train the shipped models and export them "
                "(out/model/ipp1-ipn.npz for clean inputs, out/model/ipp1-noisy.npz for noisy inputs)")
     run_command([python, "analysis/noisy_model.py"], env, show_command=True)
-    run_command([python, "-u", "analysis/ipn_model.py", "--live"], env, show_command=True)  # nasazený model se učí se stejným živým grafem jako demo
+    run_command([python, "-u", "analysis/clean_model.py", "--live"], env, show_command=True)  # nasazený model se učí se stejným živým grafem jako demo
 
     model_path = home / "out" / "model" / "ipp1-ipn.npz"
     print_step("5. First estimate with the exported model (reference reconstruction against our estimate)")

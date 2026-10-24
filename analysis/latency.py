@@ -2,8 +2,8 @@
 """Latence sítě pro rozhodnutí v reálném čase (REQ-002). Váhy dobu nemění, proto se měří čerstvě inicializovaná síť
 natrénované architektury.
 
-    HACKATHON_HOME=<složka hackathonu> python -I analysis/ipp1_latency.py
-    HACKATHON_HOME=<složka hackathonu> python -I analysis/ipp1_latency.py --shipped    # nasazená dvojice z ipp1_final.py
+    HACKATHON_HOME=<složka hackathonu> python -I analysis/latency.py
+    HACKATHON_HOME=<složka hackathonu> python -I analysis/latency.py --shipped    # nasazená dvojice z final_evaluation.py
 
 Zapíše out/ipp1-latency.{json,md}. Markdown uvádí procesor a zátěž (load average) během běhu: chvost (p99,9, max) naměřený
 na vytíženém stroji nebo v operačním systému bez záruk reálného času není mez. Pro čistý údaj spusťte, když `uptime`
@@ -21,7 +21,7 @@ import numpy as np
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I zahazuje složku skriptu
-from ipp1_common import OUT, Net
+from common import OUT, Net
 
 
 def cpu_name():
@@ -46,7 +46,7 @@ def time_calls(function, n_calls=5000, n_warmup=300):
 
 
 def numpy_forward_pass(network):
-    """Dopředný průchod MLP z ipp1_final.py v čistém numpy (SiLU) pro jeden vzorek."""
+    """Dopředný průchod MLP z final_evaluation.py v čistém numpy (SiLU) pro jeden vzorek."""
     layers = [(layer.weight.detach().numpy().T.copy(), layer.bias.detach().numpy().copy())
               for layer in network.layers if isinstance(layer, torch.nn.Linear)]
 
@@ -60,15 +60,15 @@ def numpy_forward_pass(network):
 
 
 def measure_shipped_pair():
-    """Latence nasazené dvojice modelů z ipp1_final.py (recept `cand`): jeden vzorek od 24 surových vstupů k 16 výstupům.
+    """Latence nasazené dvojice modelů z final_evaluation.py (recept `cand`): jeden vzorek od 24 surových vstupů k 16 výstupům.
 
     Dvojice je obecná síť (24 vstupů + 22 rozdílů sousedních cívek = 46 vstupů), ridge pro plasma_current a síť naučená na
     limiterových řádcích, která odpovídá R_limiter a Z_limiter, když obecná síť předpoví is_limited > 0,5. Váhy dobu nemění,
     měří se náhodné váhy natrénovaných tvarů. Zapíše out/ipp1-latency-shipped.json a results/ipp1-latency-shipped.md.
     """
-    from ipp1_common import REPO, TARGETS
-    os.environ["IPP1_FINAL_SMOKE"] = "1"   # ipp1_final učí každou síť jednu epochu: zajímá nás jen doba predict()
-    from ipp1_final import MLP, add_neighbour_differences, aligned_data, split, train
+    from common import REPO, TARGETS
+    os.environ["IPP1_FINAL_SMOKE"] = "1"   # final_evaluation učí každou síť jednu epochu: zajímá nás jen doba predict()
+    from final_evaluation import MLP, add_neighbour_differences, aligned_data, split, train
     torch.manual_seed(0)
     general_net, limiter_net = MLP(46, 16, (256, 256, 128)).eval(), MLP(46, 16, (256, 256, 128)).eval()
     general_forward, limiter_forward = numpy_forward_pass(general_net), numpy_forward_pass(limiter_net)
@@ -104,7 +104,7 @@ def measure_shipped_pair():
             result[f"torch_{threads}_thread_both_nets"] = time_calls(lambda: (general_net(features), limiter_net(features)))
     result["numpy_end_to_end_diverted"] = time_calls(lambda: end_to_end(raw_sample, False))
     result["numpy_end_to_end_limited"] = time_calls(lambda: end_to_end(raw_sample, True))
-    # Uzávěr predict(), který ipp1_final.py staví pro stejný recept (torch tenzory, alokace při každém volání), jeden vzorek, jedno vlákno.
+    # Uzávěr predict(), který final_evaluation.py staví pro stejný recept (torch tenzory, alokace při každém volání), jeden vzorek, jedno vlákno.
     torch.set_num_threads(1)
     (table, measurements, targets, discharges, exists), _ = aligned_data()
     _, development_rows, _ = split(discharges)
@@ -133,7 +133,7 @@ def measure_shipped_pair():
         json.dump(result, json_file, indent=1, allow_nan=False)
     busy = max(result["load_average_start"][0], result["load_average_end"][0], result["load_average_end"][1]) >= 8
     lines = ["# Latency of the shipped model pair (review finding H1a)", "",
-             f"One sample, clean-input recipe `cand` of `analysis/ipp1_final.py`: the general network ({result['parameters_general']:,} parameters, 46 inputs, 16 outputs), the ridge for plasma_current "
+             f"One sample, clean-input recipe `cand` of `analysis/final_evaluation.py`: the general network ({result['parameters_general']:,} parameters, 46 inputs, 16 outputs), the ridge for plasma_current "
              f"and the limiter network ({result['parameters_limiter']:,} parameters), gated by the predicted `is_limited`. Random weights of the trained shapes (weights do not change the timing). "
              "Same protocol as `results/ipp1-latency.md`: 5000 calls after 300 warm-up calls (2000 and 200 for the GPU row), times in milliseconds.", "",
              f"CPU: {result['cpu']} ({result['cores']} logical cores); the GPU row is the Apple GPU of the same chip through torch MPS. Load average (1, 5, 15 minutes) at the start "
@@ -145,7 +145,7 @@ def measure_shipped_pair():
     for name, timing in result.items():
         if isinstance(timing, dict):
             lines.append(f"| {name} | {timing['median_ms']:.4f} | {timing['p99_ms']:.4f} | {timing['p999_ms']:.4f} | {timing['max_ms']:.3f} |")
-    lines += ["", "`ipp1_final_predict_*` time the `predict()` closure that `analysis/ipp1_final.py` builds for the same recipe (the implementation used in the evaluation scripts: torch "
+    lines += ["", "`ipp1_final_predict_*` time the `predict()` closure that `analysis/final_evaluation.py` builds for the same recipe (the implementation used in the evaluation scripts: torch "
               "tensors and array copies on every call, one thread; one-epoch weights, which do not change the timing; the gate follows the network's own prediction on a real row). "
               "`numpy_end_to_end_*` is the whole per-sample path from the 24 raw inputs: 22 coil differences, standardisation, the general network, the ridge, the gate, "
               "(limited case only) the limiter network and the de-standardisation; `diverted` skips the limiter network, `limited` is the slower case and the one to quote as the bound. "

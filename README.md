@@ -71,7 +71,7 @@ Dělení proudem snížilo chybu přibližně na polovinu u všech veličin naje
 
 Jeden odhad přes `predict.py` (jen numpy, jedno jádro) trvá medián **0,065 ms** na procesoru AMD Ryzen 5 7535HS (kolega naměřil 0,051 ms na Apple M5). V dávkách po 2048 řádcích je to asi 230 tisíc odhadů za sekundu. Zadání chce odezvu v jednotkách až desítkách milisekund, tedy jsme zhruba stokrát pod limitem. Změřený je jen **výpočet sítě**, ne sběr signálů ani skutečný řídicí systém.
 
-Pozor: živé demo (`mini_pipeline.py`) ukazuje kolem 1 milionu odhadů za sekundu, ale měří **svůj vlastní model v torchi na 6 vláknech**, ne exportovaný model v numpy. Čísla spolu nesouvisí.
+Pozor: živé demo (`live_demo.py`) ukazuje kolem 1 milionu odhadů za sekundu, ale měří **svůj vlastní model v torchi na 6 vláknech**, ne exportovaný model v numpy. Čísla spolu nesouvisí.
 
 ---
 
@@ -81,9 +81,9 @@ Pozor: živé demo (`mini_pipeline.py`) ukazuje kolem 1 milionu odhadů za sekun
 
 ### Základní síť
 
-Plně propojená síť 24 → 256 → 256 → 128 → 16 (aktivace SiLU), 107 152 vah. Učí se po 60 epochách (AdamW, jednocyklový plán učení). Některé veličiny existují jen v jedné konfiguraci (bod X a dotykové body jen v divertorové, bod limiteru jen v limiterové), proto je ztráta **maskovaná**: chybějící cíl nepřispívá žádnou chybou. Základ je v `analysis/ipp1_common.py`.
+Plně propojená síť 24 → 256 → 256 → 128 → 16 (aktivace SiLU), 107 152 vah. Učí se po 60 epochách (AdamW, jednocyklový plán učení). Některé veličiny existují jen v jedné konfiguraci (bod X a dotykové body jen v divertorové, bod limiteru jen v limiterové), proto je ztráta **maskovaná**: chybějící cíl nepřispívá žádnou chybou. Základ je v `analysis/common.py`.
 
-### Nasazený model čistých dat (`analysis/ipn_model.py`)
+### Nasazený model čistých dat (`analysis/clean_model.py`)
 
 1. **Dělení proudem plazmatem.** Pole cívek je úměrné proudům, takže tvar plazmatu závisí na **poměrech** měření k proudu, ne na jejich velikosti. Proud známe ze vstupu samotného (lineární ridge ze 24 měření, chyba 0,03 kA). Každé měření se vydělí odhadem proudu (se znaménkem, takže obrácená polarita dopadne stejně) a proud je jeden z dalších vstupů. Konec výboje, kde je proud poloviční, byl dřív nejhorší místo.
 2. **Rozdíly a druhé diference sousedních cívek a smyček** (uvnitř jednoho řádku, ne mezi časy): celkem 67 vstupů.
@@ -121,7 +121,7 @@ Co `python run.py` udělá, krok za krokem:
 | 1. Balíčky | zkontroluje, že jsou nainstalované numpy, pandas, scikit-learn, torch a další |
 | 2. Data | najde CSV soubory |
 | 3. Živé demo | síť se učí epocha po epoše (graf ztráty a chyby osy, přesnost v procentech), pak odhaduje neviděný výboj okamžik po okamžiku a nakonec běží plnou rychlostí. Výpis ukazuje i řádky dat, **nenahrávat a neposílat** |
-| 4. Export | `noisy_model.py` natrénuje zašuměný model (`ipp1-noisy.npz`), `ipn_model.py --live` natrénuje nasazený čistý model (`ipp1-ipn.npz`) se živým grafem. Vše do `out/model/` |
+| 4. Export | `noisy_model.py` natrénuje zašuměný model (`ipp1-noisy.npz`), `clean_model.py --live` natrénuje nasazený čistý model (`ipp1-ipn.npz`) se živým grafem. Vše do `out/model/` |
 | 5. První odhad | odhadne prvních 5 řádků jednoho vývojového výboje s exportovaným modelem |
 | 6. Šum | změří osu obou modelů na zašuměném souboru, 30 odložených výbojů |
 
@@ -148,10 +148,10 @@ python predict.py vstup.csv --out odhady.csv --all
 
 | Příkaz | K čemu |
 |---|---|
-| `python analysis/bench_mm.py --model out/model/ipp1-ipn.npz --set locked` | odchylky v mm po veličinách (průměr, medián, p99, nejhorší řádek, podíl pod prahem, intervaly) |
+| `python analysis/error_in_mm.py --model out/model/ipp1-ipn.npz --set locked` | odchylky v mm po veličinách (průměr, medián, p99, nejhorší řádek, podíl pod prahem, intervaly) |
 | `python analysis/plot_accuracy.py --lang cs` | grafy přesnosti v procentech (česky nebo anglicky) |
-| `python analysis/ipn_model.py [--all]` | natrénuje nasazený model; `--all` na všech 149 výbojích |
-| `python analysis/make_all.py [--notebooks]` | všechny analýzy v pořadí závislostí |
+| `python analysis/clean_model.py [--all]` | natrénuje nasazený model; `--all` na všech 149 výbojích |
+| `python analysis/run_analyses.py [--notebooks]` | všechny analýzy v pořadí závislostí |
 
 ---
 
@@ -161,7 +161,7 @@ python predict.py vstup.csv --out odhady.csv --all
 |---|---|
 | `run.py` | **jediný soubor, který spustí všechno** (kapitola 3) |
 | `predict.py` | použití modelu na vlastním CSV (kapitola 4) |
-| `analysis/` | skripty: `ipp1_common.py` (načtení dat, síť, skórování), `ipp1_final.py` (receptury a odložené výboje), `ipn_model.py` (nasazený model), `noisy_model.py` (zašuměný model), `mini_pipeline.py` (živé demo), `bench_mm.py`, `plot_accuracy.py`, `make_all.py`, analýzy (`ipp1_eda.py`, `ipp1_baseline.py`, `ipp1_oof*.py`, `ipp1_time.py`, `ipp1_inputs.py`, `ipp1_latency.py`, `ipp1_data_checks.py`) a syntetický test (`synth_equilibrium.py`, `synth_validation.py`) |
+| `analysis/` | skripty: `common.py` (načtení dat, síť, skórování), `final_evaluation.py` (receptury a odložené výboje), `clean_model.py` (nasazený model), `noisy_model.py` (zašuměný model), `live_demo.py` (živé demo), `error_in_mm.py`, `plot_accuracy.py`, `run_analyses.py`, analýzy (`explore_data.py`, `baseline_models.py`, `out_of_fold*.py`, `stability_over_time.py`, `input_importance.py`, `latency.py`, `data_checks.py`) a syntetický test (`synth_equilibrium.py`, `synth_validation.py`) |
 | `notebooks/01 … 10` | **všechny závěry**, s uloženými výstupy (jdou číst bez spuštění): 01 data, 02 základní modely, 03 vstupy a důležitost, 04 stabilita v čase, 05 odezva, 06 kamera, 07 nerovnoměrné rozdělení a neobvyklé tvary, 08 šum, drift a množství dat, 09 nasazený model na odložených výbojích, 10 syntetický test se známou pravdou |
 | `data/` | **důvěrná data ÚFP** (`equil_data.csv`, `equil_data_noisy.csv`, 42 972 řádků každý). Repozitář je soukromý, kapitola 9 |
 | `results/` | agregované výsledky a grafy, které notebooky čtou (žádná surová data) |

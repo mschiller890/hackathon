@@ -1,6 +1,6 @@
 # Millimetre benchmark of the shipped model, 30 set-aside discharges
 
-Command: `python analysis/bench_mm.py --model out/model/ipp1-ipn.npz --set locked` (AMD Ryzen 5 7535HS, Sat 24 Oct 2026, after the limiter point became the mean of the side network and the general network). The shipped model for clean inputs is `analysis/ipn_model.py` (measurements divided by the plasma current, `results/ipp1-ipn.md`), trained on the 119 development discharges. Earlier shipped models on the same discharges: `cand` axis R 0.133 / Z 0.172 mm; `cand` plus a separate axis network 0.063 / 0.091 mm.
+Command: `python analysis/error_in_mm.py --model out/model/ipp1-ipn.npz --set locked` (AMD Ryzen 5 7535HS, Sat 24 Oct 2026, after the limiter point became the mean of the side network and the general network). The shipped model for clean inputs is `analysis/clean_model.py` (measurements divided by the plasma current, `results/ipp1-ipn.md`), trained on the 119 development discharges. Earlier shipped models on the same discharges: `cand` axis R 0.133 / Z 0.172 mm; `cand` plus a separate axis network 0.063 / 0.091 mm.
 
 ```
 Odchylka od rekonstrukce ústavu (absolutní hodnota |model − rekonstrukce|)

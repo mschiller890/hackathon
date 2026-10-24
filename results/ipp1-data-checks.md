@@ -1,6 +1,6 @@
 # Data checks quoted on the slides
 
-Measured with `analysis/ipp1_data_checks.py` (aggregate numbers only).
+Measured with `analysis/data_checks.py` (aggregate numbers only).
 
 ## Spread of the targets (standard deviation, and the width of the band holding 98 percent of the values)
 

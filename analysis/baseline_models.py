@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Základní model úlohy IPP 1: ridge a malá vícevýstupová síť s maskou, data dělená podle výbojů.
 
-    HACKATHON_HOME=<složka hackathonu> python -I analysis/ipp1_baseline.py [--epochs 60] [--folds 5]
+    HACKATHON_HOME=<složka hackathonu> python -I analysis/baseline_models.py [--epochs 60] [--folds 5]
 
 Zapíše $HACKATHON_HOME/out/ipp1-baseline.json a .md.
 """
@@ -15,7 +15,7 @@ import numpy as np
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I zahazuje složku skriptu
-from ipp1_common import OUT, TARGETS, fit_mlp, fit_ridge, group_folds, load, score
+from common import OUT, TARGETS, fit_mlp, fit_ridge, group_folds, load, score
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=60)

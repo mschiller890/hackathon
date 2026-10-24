@@ -2,13 +2,13 @@
 
     python -I analysis/synth_validation.py [--discharges 40] [--epochs 150] [--seeds 3] [--threads 2]
 
-Vygeneruje syntetické výboje (analysis/synth_equilibrium.py), natrénuje týž recept sítě jako analysis/ipp1_common.py
+Vygeneruje syntetické výboje (analysis/synth_equilibrium.py), natrénuje týž recept sítě jako analysis/common.py
 (256-256-128, SiLU, AdamW, OneCycle, standardizované vstupy i cíle, ztráta maskovaná na cíle, které existují)
 s GroupKFold po celých syntetických výbojích a hodnotí proti ZNÁMÉ pravdě.
 Zapíše results/synthetic-validation.json; zpráva results/synthetic-validation.md vzniká ve write_report() z tohoto
 JSONu a pevného textu, takže čísla a text se nemohou rozejít.
 
-Recept je zkopírovaný, ne importovaný, protože ipp1_common při importu skončí, když chybí složka s daty ÚFP.
+Recept je zkopírovaný, ne importovaný, protože common při importu skončí, když chybí složka s daty ÚFP.
 """
 import argparse
 import json
@@ -34,7 +34,7 @@ RESULTS = Path(__file__).resolve().parent.parent / "results"
 
 
 # ===================================================================================================================
-# Recept z analysis/ipp1_common.py
+# Recept z analysis/common.py
 # ===================================================================================================================
 class Net(nn.Module):
     """Plně propojená síť 256-256-128 se SiLU."""
@@ -340,10 +340,10 @@ Spread of the truth over the {meta['rows']} rows:
 
 ## Method
 
-- Network: the recipe of `analysis/ipp1_common.py` (256-256-128, SiLU, AdamW lr 2e-3 weight decay 1e-4, OneCycle max lr 3e-3,
+- Network: the recipe of `analysis/common.py` (256-256-128, SiLU, AdamW lr 2e-3 weight decay 1e-4, OneCycle max lr 3e-3,
   batch 512, standardised inputs and targets, loss masked to the targets that exist), copied into `analysis/synth_validation.py`.
   Targets: {", ".join(TARGETS)}.
-- Baseline: ridge regression per target on standardised inputs (the same one `ipp1_common.py` uses).
+- Baseline: ridge regression per target on standardised inputs (the same one `common.py` uses).
 - Splits: 5-fold GroupKFold by synthetic discharge; every row is predicted once out of fold and the errors are pooled.
 - Noise: each channel gets white noise of 15 % (coils) or 9 % (flux loops) of that channel's standard deviation over all
   rows, as `ipp1-data-checks.md` measured for the organizers' noisy file. Training noise and test noise are two different draws.

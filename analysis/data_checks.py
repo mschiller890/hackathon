@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Kontroly dat citované na slajdech: rozptyl cílů, struktura dodaného šumu a model z pěti hlavních komponent.
 
-    HACKATHON_HOME=<složka hackathonu> python -I analysis/ipp1_data_checks.py
+    HACKATHON_HOME=<složka hackathonu> python -I analysis/data_checks.py
 
 Zapíše results/ipp1-data-checks.md v repozitáři (jen souhrnná čísla).
 """
@@ -12,13 +12,13 @@ import numpy as np
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I zahazuje složku skriptu
-from ipp1_common import TARGETS, UNIT, fit_mlp, group_folds, load, score
+from common import TARGETS, UNIT, fit_mlp, group_folds, load, score
 
 torch.set_num_threads(2)
 table, measurements, targets, discharges, exists = load()
 noisy_measurements = load(noisy=True)[1]
 relative_time = table["time"].values
-lines = ["# Data checks quoted on the slides", "", "Measured with `analysis/ipp1_data_checks.py` (aggregate numbers only).", "",
+lines = ["# Data checks quoted on the slides", "", "Measured with `analysis/data_checks.py` (aggregate numbers only).", "",
          "## Spread of the targets (standard deviation, and the width of the band holding 98 percent of the values)", "",
          "| target | unit | standard deviation | 98 percent band width |", "|---|---|---:|---:|"]
 for column, target in enumerate(TARGETS[:-1]):

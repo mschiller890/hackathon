@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """Natrénuje a uloží zašuměný model: model pro zašuměná měření, který predict.py spustí jen s numpy.
-(Model pro čistá měření vyrábí ipn_model.py.)
+(Model pro čistá měření vyrábí clean_model.py.)
 
 Zašuměný model se učí jako závěrečná fáze experimentu ipp1_noise_window.py (čísla jsou v results/ipp1-noise-window.md):
-základní síť z ipp1_common.fit_mlp (60 epoch, semínko 0) na všech 119 vývojových výbojích. Každý řádek tam je dvakrát:
-čistý a poškozený šumem a driftem (ipp1_final.corrupt, šum 0,15 a drift 0,15 směrodatné odchylky vstupu). Vstupem sítě
+základní síť z common.fit_mlp (60 epoch, semínko 0) na všech 119 vývojových výbojích. Každý řádek tam je dvakrát:
+čistý a poškozený šumem a driftem (final_evaluation.corrupt, šum 0,15 a drift 0,15 směrodatné odchylky vstupu). Vstupem sítě
 nejsou jen měření v daném okamžiku, ale měření z posledních 5 okamžiků téhož výboje (aktuální a čtyři předchozí),
 což šum částečně zprůměruje. Poškozuje se PŘED sestavením oken, ať mají okna šum konzistentní.
 
@@ -23,8 +23,8 @@ import torch.nn as nn
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # predict.py v kořeni repozitáře
-import ipp1_final as F
-from ipp1_common import OUT, fit_mlp
+import final_evaluation as F
+from common import OUT, fit_mlp
 from predict import Model, window_rows
 
 MODEL_FOLDER = OUT / "model"
@@ -104,8 +104,8 @@ def train_and_export(table, X, noisy_X, Y, discharges, exists, development_rows,
         "features": "the stacked raw inputs only (no neighbouring-coil differences, no ridge, no limiter network): one network answers all 16 outputs",
         "activation": "SiLU", "hidden_layers": [256, 256, 128],
         "trained_on": f"the {len(np.unique(discharges[development_rows]))} development discharges ({len(development_rows)} rows) twice: clean, and one copy corrupted per row with "
-                      f"noise {F.NOISE} and drift {F.DRIFT} of each input's SD (ipp1_final.corrupt, seed {F.AUG_SEED + 50}) before windowing; "
-                      "baseline network of ipp1_common.fit_mlp, 60 epochs, MSE, seed 0 (config base_aug_stack5 of ipp1_noise_window.py, locked stage)",
+                      f"noise {F.NOISE} and drift {F.DRIFT} of each input's SD (final_evaluation.corrupt, seed {F.AUG_SEED + 50}) before windowing; "
+                      "baseline network of common.fit_mlp, 60 epochs, MSE, seed 0 (config base_aug_stack5 of ipp1_noise_window.py, locked stage)",
         "evidence": "results/ipp1-noise-window.md: on the 30 locked discharges with the provided noisy inputs, axis MAE R 1.85 mm and Z 1.25 mm",
         "numpy_check": f"median relative difference numpy vs torch on 2000 locked noisy rows, max over outputs: {worst_median_difference:.1e}",
         "confidential": "weights are derived from the confidential IPP data: for the submission package, never for git",

@@ -8,7 +8,7 @@ The aggregate `all16` improves by +33%, but that number is dominated by the heav
 
 The locked 30 is the closest thing here to a real-world estimate, because its 2 reversed discharges are a realistic share: there the whole change is worth almost nothing in aggregate and several individual targets are worse. That is the same trade seen at a realistic mixture, not a contradiction of the development result.
 
-Tested recipe: `cand` ("candidate, plain") of `analysis/ipp1_final.py`, which is imported and not modified. 5-fold GroupKFold inside the 119 development discharges (34,211 rows), 3 seeds, paired: each canonicalised run shares the fold, the seed and the held-out discharges with the plain run it is compared against. Runtime 8.2 min, 2 torch threads.
+Tested recipe: `cand` ("candidate, plain") of `analysis/final_evaluation.py`, which is imported and not modified. 5-fold GroupKFold inside the 119 development discharges (34,211 rows), 3 seeds, paired: each canonicalised run shares the fold, the seed and the held-out discharges with the plain run it is compared against. Runtime 8.2 min, 2 torch threads.
 
 ## The indicator
 
@@ -27,7 +27,7 @@ Physics sanity check: the mean gap between the two polarity groups across the 24
 
 ## Development result
 
-Mean relative error over the 16 targets (`ipp1_final.all16`), per seed group:
+Mean relative error over the 16 targets (`final_evaluation.all16`), per seed group:
 
 | variant | seeds 0 | seeds 1 | seeds 2 | mean |
 |---|---|---|---|---|

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """Stabilita výstupu v čase výboje (REQ-003) z predikcí mimo učicí sady.
 
-    HACKATHON_HOME=<složka hackathonu> python -I analysis/ipp1_time.py
+    HACKATHON_HOME=<složka hackathonu> python -I analysis/stability_over_time.py
 
-Potřebuje out/ipp1-predictions.csv (analysis/ipp1_oof.py). Když existuje out/ipp1-predictions-noise.csv (analysis/ipp1_oof_noise.py,
+Potřebuje out/ipp1-predictions.csv (analysis/out_of_fold.py). Když existuje out/ipp1-predictions-noise.csv (analysis/out_of_fold_noisy.py,
 sloupce <cíl>_clean_on_noisy a <cíl>_hardened_on_noisy), spočítají se stejná čísla i pro zašuměné vstupy.
 Zapíše out/ipp1-time.{json,md,png}. Pokryty jsou všech 16 cílů.
 
@@ -26,7 +26,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I zahazuje složku skriptu
-from ipp1_common import OUT, TARGETS, UNIT, load
+from common import OUT, TARGETS, UNIT, load
 
 table, measurements, targets, discharges, exists = load()
 relative_time = table.time.values

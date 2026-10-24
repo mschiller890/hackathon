@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Predikce mimo učicí sady na dodaných zašuměných vstupech: síť naučená na čistých datech proti síti zocelené šumem.
 
-    HACKATHON_HOME=<složka hackathonu> python -I analysis/ipp1_oof_noise.py [--epochs 60] [--folds 5]
+    HACKATHON_HOME=<složka hackathonu> python -I analysis/out_of_fold_noisy.py [--epochs 60] [--folds 5]
 
 V každém foldu se obě sítě učí jen na učicích výbojích a odhadují odložené výboje ze souboru equil_data_noisy.csv.
 „Zocelená“ znamená, že učicí sada obsahuje čisté řádky plus jednu poškozenou kopii (gaussovský šum a lineární drift
@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I zahazuje složku skriptu
-from ipp1_common import OUT, TARGETS, fit_mlp, group_folds, load, score
+from common import OUT, TARGETS, fit_mlp, group_folds, load, score
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=60)

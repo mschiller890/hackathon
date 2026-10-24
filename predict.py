@@ -82,7 +82,7 @@ def window_rows(discharge, time, size):
 class Model:
     """Natrénovaný model načtený ze souboru .npz.
 
-    Buď model čistých měření (ipp1-ipn.npz, vyrábí ho analysis/ipn_model.py): obecná síť, síť pro bod limiteru a ridge
+    Buď model čistých měření (ipp1-ipn.npz, vyrábí ho analysis/clean_model.py): obecná síť, síť pro bod limiteru a ridge
     pro proud plazmatem; řádky jsou nezávislé. Nebo zašuměný model (ipp1-noisy.npz, vyrábí ho analysis/noisy_model.py):
     jedna síť, která vidí měření z posledních `window` řádků výboje, viz estimates_noisy.
     """
@@ -98,7 +98,7 @@ class Model:
         self.is_limited_column = int(self.arrays["is_limited_column"])
         self.window = int(self.arrays["window_rows"]) if "window_rows" in self.arrays else 1  # okno má jen zašuměný model
         self.depth = {tag: sum(name.startswith(f"{tag}_W") for name in self.arrays) for tag in ("gen", "spec")}
-        self.divides_by_current = "ipn" in self.arrays  # model z ipn_model.py: měření dělená proudem plazmatem
+        self.divides_by_current = "ipn" in self.arrays  # model z clean_model.py: měření dělená proudem plazmatem
         self.feature_mode = str(self.arrays["feature_mode"]) if self.divides_by_current else None
         if not self.divides_by_current and self.window == 1:
             sys.exit(f"{path}: not a model of this package (the clean-input model is ipp1-ipn.npz, "
@@ -110,7 +110,7 @@ class Model:
 
     def build_features(self, measurements):
         """Vstup sítí modelu čistých měření: měření vydělená odhadem proudu (se znaménkem), jejich rozdíly uvnitř řádku
-        (u diff2 i druhé diference) a samotný proud / ip_scale. Stejně je skládá analysis/ipn_model.build_features."""
+        (u diff2 i druhé diference) a samotný proud / ip_scale. Stejně je skládá analysis/clean_model.build_features."""
         scale = float(self.arrays["ip_scale"])
         current = self.plasma_current(measurements)
         too_small = np.abs(current) < MIN_CURRENT

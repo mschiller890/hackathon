@@ -1,6 +1,6 @@
 # IPP 1: seed noise of the final comparison (locked test set)
 
-Baseline MLP against the plain candidate (differences, Huber, 150 epochs, ridge for plasma current, gated limiter network), clean inputs, 5 seeds each (0, 1, 2, 3, 4; seed 0 is the model of `results/ipp1-final.md`). Recipes, split and metrics are those of `analysis/ipp1_final.py` unchanged; every model is trained on the 119 development discharges and scored on the 30 locked discharges, nothing was tuned after seeing them. Pooled MAE over the locked rows (mm, plasma current in kA); mean and standard deviation (n-1) over seeds. Aggregate numbers only.
+Baseline MLP against the plain candidate (differences, Huber, 150 epochs, ridge for plasma current, gated limiter network), clean inputs, 5 seeds each (0, 1, 2, 3, 4; seed 0 is the model of `results/ipp1-final.md`). Recipes, split and metrics are those of `analysis/final_evaluation.py` unchanged; every model is trained on the 119 development discharges and scored on the 30 locked discharges, nothing was tuned after seeing them. Pooled MAE over the locked rows (mm, plasma current in kA); mean and standard deviation (n-1) over seeds. Aggregate numbers only.
 
 | target | baseline mean (SD) | candidate mean (SD) | ratio of means | paired ratio per seed, min to max | candidate better in | worst candidate seed against best baseline seed |
 |---|---:|---:|---:|---:|---:|---:|

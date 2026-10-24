@@ -6,7 +6,7 @@ Postup
     Zbývajících 119 výbojů je vývojová sada. Výběr receptur se dělá jen pětinásobnou křížovou validací UVNITŘ
     vývojové sady; odložené výboje se hodnotí jednou, příkazem --report, s modely natrénovanými na celé vývojové sadě.
   * Receptury (všechny se učí po celých výbojích, s maskovanou ztrátou a jedním semínkem):
-      base      základní síť z ipp1_common.fit_mlp (60 epoch) na čistých řádcích
+      base      základní síť z common.fit_mlp (60 epoch) na čistých řádcích
       base_aug  totéž na čistých řádcích plus jedné poškozené kopii (poctivá základna pro zašuměné vstupy)
       cand      obecná síť na 24 vstupech + 22 rozdílech sousedních cívek (Huberova ztráta 0,5, 150 epoch)
                 + ridge pro proud plazmatem + síť učená jen na limiterových řádcích (150 epoch), která odpovídá
@@ -17,10 +17,10 @@ Postup
   * Metriky se počítají přes všechny testovací řádky najednou (ne jako průměr přes díly).
 
 Úlohy (každá natrénuje jeden model a jeho odhady uloží do out/ipp1-final-cache/, nikdy ne do repozitáře):
-    python analysis/ipp1_final.py --job cv:cand:0        # díl 0 vývojové sady, receptura cand
-    python analysis/ipp1_final.py --job locked:cand      # celá vývojová sada -> odložené výboje
-    python analysis/ipp1_final.py --job blocked:cand     # spodní polovina čísel výbojů -> horní polovina
-    python analysis/ipp1_final.py --report               # složí out/ipp1-final.json/.md a results/ipp1-final.md
+    python analysis/final_evaluation.py --job cv:cand:0        # díl 0 vývojové sady, receptura cand
+    python analysis/final_evaluation.py --job locked:cand      # celá vývojová sada -> odložené výboje
+    python analysis/final_evaluation.py --job blocked:cand     # spodní polovina čísel výbojů -> horní polovina
+    python analysis/final_evaluation.py --report               # složí out/ipp1-final.json/.md a results/ipp1-final.md
 """
 import argparse
 import json
@@ -37,7 +37,7 @@ import torch.nn.functional as functional
 from sklearn.linear_model import Ridge
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from ipp1_common import OUT, REPO, TARGETS, UNIT, fit_mlp, group_folds, load
+from common import OUT, REPO, TARGETS, UNIT, fit_mlp, group_folds, load
 
 # S IPP1_FINAL_SMOKE se každá síť učí jen jednu epochu: slouží to jen k otestování, že všechno spolu funguje.
 SMOKE = bool(os.environ.get("IPP1_FINAL_SMOKE"))
@@ -412,7 +412,7 @@ def report():
         f"Locked test set of IPP 1 (hackathon task 1): {N_LOCK} of {len(np.unique(discharges))} discharges.\n"
         f"Drawn with numpy.random.RandomState({LOCK_SEED}).choice(sorted unique discharge ids, {N_LOCK}, replace=False), then sorted.\n"
         f"The other {len(development_ids)} discharges are the development set; every recipe choice uses 5-fold GroupKFold inside it.\n"
-        f"The locked discharges are scored once, by models trained on all development discharges (analysis/ipp1_final.py --report).\n\n"
+        f"The locked discharges are scored once, by models trained on all development discharges (analysis/final_evaluation.py --report).\n\n"
         f"locked discharge ids ({len(locked)}): {' '.join(str(i) for i in locked)}\n")
 
     results = {"protocol": {
@@ -523,7 +523,7 @@ def render(results, names):
               "development set only; the locked set was scored once, with models trained on all development discharges. All metrics are pooled over "
               "the rows of the test set (not means of folds). Every model is one seed (seed noise of earlier runs: 8 to 19 %), so read differences "
               "below about 20 % between recipes as unresolved unless the bootstrap interval excludes 1.", "",
-              "Recipes: `baseline MLP` = ipp1_common.fit_mlp, 60 epochs. `candidate` = network on 24 inputs + 22 neighbouring-coil differences "
+              "Recipes: `baseline MLP` = common.fit_mlp, 60 epochs. `candidate` = network on 24 inputs + 22 neighbouring-coil differences "
               "(Huber 0.5, 150 epochs) + ridge for plasma_current + a limited-rows network for R_limiter and Z_limiter gated by the predicted is_limited. "
               "`augmented` = trained on the clean rows plus one copy with noise 0.15 and drift 0.15 of each input's SD (candidate: 75 epochs on twice the rows; "
               "baseline: 60 epochs on twice the rows, an extra control). `clean` = clean inputs, `noisy` = the provided noisy file (same rows).", ""]

@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 """Vytvoří všechny soubory, které čtou notebooky, v pořadí podle závislostí, a volitelně pak spustí notebooky.
 
-    HACKATHON_HOME=<složka hackathonu> ~/.venvs/hackathon/bin/python analysis/make_all.py [--quick] [--missing] [--notebooks]
+    HACKATHON_HOME=<složka hackathonu> ~/.venvs/hackathon/bin/python analysis/run_analyses.py [--quick] [--missing] [--notebooks]
         [--viewer]
 
 Spouští stávající analytické skripty beze změny tímto interpreterem a zapisuje do $HACKATHON_HOME/out. Zastaví se u prvního
 kroku, který selže.
 --quick    u kroku, který trvá déle než 10 minut, zkopíruje jeho uložený souhrn z results/ do out/ místo nového výpočtu
-           (dnes jen ipp1_inputs.py, asi hodina, protože učí kontrolní podmnožiny).
+           (dnes jen input_importance.py, asi hodina, protože učí kontrolní podmnožiny).
 --missing  přeskočí krok, jehož výstupy všechny existují.
 --notebooks pak spustí notebooks/*.ipynb do out/notebooks/, takže se uložené notebooky nepřepisují.
 --viewer   pak postaví prohlížeč tvaru plazmatu: základní predikce všech 31 cílů, viewer/data.js a jediný soubor
-           viewer/dist/index.html. Výchozí režim „shipped“ prohlížeče čte cache z ipp1_final.py, kterou zapíšou kroky výše.
+           viewer/dist/index.html. Výchozí režim „shipped“ prohlížeče čte cache z final_evaluation.py, kterou zapíšou kroky výše.
            Oba soubory prohlížeče obsahují data ÚFP a jsou v .gitignore (CON-001).
 """
 import argparse
@@ -25,26 +25,26 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 
 # (skript, výstupy, které čtou další kroky nebo notebooky, doba na noteboocích s Ryzen 5 7535HS, pá 23. října).
-# ipp1_time.py potřebuje predikce z ipp1_oof.py a řádky se zašuměnými vstupy do results/ipp1-time.md přidá,
-# jen když předtím proběhl ipp1_oof_noise.py.
+# stability_over_time.py potřebuje predikce z out_of_fold.py a řádky se zašuměnými vstupy do results/ipp1-time.md přidá,
+# jen když předtím proběhl out_of_fold_noisy.py.
 STEPS = [
-    ("ipp1_eda.py", ["ipp1-eda.json"], "2 s"),
-    ("ipp1_baseline.py", ["ipp1-baseline.json"], "1 min"),
-    ("ipp1_oof.py", ["ipp1-predictions.csv"], "45 s"),
-    ("ipp1_oof_noise.py", ["ipp1-predictions-noise.csv"], "1.5 min"),
-    ("ipp1_time.py", ["ipp1-time.json"], "3 s"),
-    ("ipp1_inputs.py", ["ipp1-inputs.json"], "about 1 h"),
-    ("ipp1_latency.py", ["ipp1-latency.json"], "10 s"),
+    ("explore_data.py", ["ipp1-eda.json"], "2 s"),
+    ("baseline_models.py", ["ipp1-baseline.json"], "1 min"),
+    ("out_of_fold.py", ["ipp1-predictions.csv"], "45 s"),
+    ("out_of_fold_noisy.py", ["ipp1-predictions-noise.csv"], "1.5 min"),
+    ("stability_over_time.py", ["ipp1-time.json"], "3 s"),
+    ("input_importance.py", ["ipp1-inputs.json"], "about 1 h"),
+    ("latency.py", ["ipp1-latency.json"], "10 s"),
 ]
-# Notebook 09 čte predikce, které ipp1_final.py ukládá do out/ipp1-final-cache/: recepty `base`, `cand` a `base_aug` (model pro zašuměné
+# Notebook 09 čte predikce, které final_evaluation.py ukládá do out/ipp1-final-cache/: recepty `base`, `cand` a `base_aug` (model pro zašuměné
 # vstupy) na 30 odložených výbojích, na blokovém dělení a na 5 vývojových foldech, dohromady 21 sítí. Každá je jedna úloha (celkem 295 s na Apple M5, nejdelší 32 s);
 # `--report` se tu nespouští, protože přepisuje uložený results/ipp1-final.md.
 FINAL_JOBS = ([f"locked:{r}" for r in ("base", "cand", "base_aug")] + [f"blocked:{r}" for r in ("base", "cand", "base_aug")]
               + [f"cv:{r}:{k}" for r in ("base", "cand", "base_aug") for k in range(5)])
-STEPS += [(f"ipp1_final.py --job {j}", [f"ipp1-final-cache/{j.replace(':', '_')}.npz"], "5 min in total") for j in FINAL_JOBS]
+STEPS += [(f"final_evaluation.py --job {j}", [f"ipp1-final-cache/{j.replace(':', '_')}.npz"], "5 min in total") for j in FINAL_JOBS]
 STEPS.append(("noisy_model.py", ["model/ipp1-noisy.npz"], "20 s"))   # zašuměný model pro predict.py; učí se na 119 vývojových výbojích
-STEPS.append(("ipn_model.py", ["model/ipp1-ipn.npz"], "40 s"))   # nasazený model pro čistá měření (čte ho notebook 09)
-SLOW = {"ipp1_inputs.py"}  # přes 10 minut: --quick místo toho zkopíruje results/<výstup>
+STEPS.append(("clean_model.py", ["model/ipp1-ipn.npz"], "40 s"))   # nasazený model pro čistá měření (čte ho notebook 09)
+SLOW = {"input_importance.py"}  # přes 10 minut: --quick místo toho zkopíruje results/<výstup>
 # Spuštění notebooků po tom trvá asi 2 minuty.
 VIEWER_STEPS = [
     ("analysis/ipp1_oof_full.py", ["ipp1-predictions-full.csv"]),  # potřebuje ipp1-predictions-noise.csv z STEPS
@@ -77,11 +77,11 @@ def main():
     if not data.exists():
         sys.exit(f"missing {data}: put equil_data.csv and equil_data_noisy.csv in data/ of the repository, or set HACKATHON_HOME to a folder that holds data/")
     out = home / "out"
-    out.mkdir(exist_ok=True)  # ipp1_inputs.py a ipp1_latency.py do ní zapisují a sami ji nevytvoří
+    out.mkdir(exist_ok=True)  # input_importance.py a latency.py do ní zapisují a sami ji nevytvoří
     env = {**os.environ, "HACKATHON_HOME": str(home)}
 
     for step, outputs, _ in STEPS:
-        script, *extra = step.split()  # krok může mít argumenty: "ipp1_final.py --job cv:cand:0"
+        script, *extra = step.split()  # krok může mít argumenty: "final_evaluation.py --job cv:cand:0"
         if args.missing and all((out / name).exists() for name in outputs):
             print(f"skip {step}: {', '.join(outputs)} present")
             continue

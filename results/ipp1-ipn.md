@@ -1,8 +1,8 @@
-# IPP 1: measurements divided by the plasma current (`analysis/ipn_model.py`)
+# IPP 1: measurements divided by the plasma current (`analysis/clean_model.py`)
 
 The field of the coils is proportional to the currents, so the plasma shape depends on the ratios of the measurements to the plasma current, not on their size. The plasma current
 is known from the inputs alone (ridge on the 24 measurements, 0.03 kA), so each measurement is divided by it (signed) and the current is one more input. Everything else is the
-`cand` recipe of `ipp1_final.py`; the limiter point is the mean of two answers: the general network's own, and a network that first decides the side of the vessel (up or down), then the position on that side.
+`cand` recipe of `final_evaluation.py`; the limiter point is the mean of two answers: the general network's own, and a network that first decides the side of the vessel (up or down), then the position on that side.
 
 ## Development set (119 discharges, 5-fold GroupKFold, one seed, general network alone, all 16 outputs)
 
@@ -28,7 +28,7 @@ Limiter by side on its own (previous model): Z limiter MAE 11.6 -> 6.2 mm, rows 
 
 Accuracy = 100 x (1 - nRMSE). The side network alone was the worst of the four in the total; the mean of the two is the best. Chosen on the development set.
 
-## Locked test (30 discharges, 8,761 rows), model trained on the 119 development discharges, `python analysis/bench_mm.py --model out/model/ipp1-ipn.npz --set locked`
+## Locked test (30 discharges, 8,761 rows), model trained on the 119 development discharges, `python analysis/error_in_mm.py --model out/model/ipp1-ipn.npz --set locked`
 
 Scored once for this recipe, after the recipe was fixed on the development set. These discharges had already been scored for earlier recipes (`ipp1-final.md`), so this is not a fresh test set.
 

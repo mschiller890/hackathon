@@ -3,13 +3,13 @@
 
 Přesnost = 100 x (1 - nRMSE), kde nRMSE je střední kvadratická chyba veličiny dělená směrodatnou odchylkou
 rekonstrukce ústavu na týchž řádcích. 100 % by byla přesná kopie rekonstrukce. Celková přesnost je průměr přes
-16 veličin, stejně jako v demu (mini_pipeline.overall_accuracy). Je to shoda s rekonstrukcí ústavu, ne s plazmatem.
+16 veličin, stejně jako v demu (live_demo.overall_accuracy). Je to shoda s rekonstrukcí ústavu, ne s plazmatem.
 
     python analysis/plot_accuracy.py [--model out/model/ipp1-ipn.npz] [--lang en|cs]
 
 Uloží results/ipp1-accuracy-overall-<jazyk>.png, results/ipp1-accuracy-outputs-<jazyk>.png a
 results/ipp1-accuracy-ladder-<jazyk>.png: jen souhrnná čísla, žádné řádky dat.
-Pro základní síť a `cand` potřebuje uložené odhady z ipp1_final.py (out/ipp1-final-cache), nasazený model čte
+Pro základní síť a `cand` potřebuje uložené odhady z final_evaluation.py (out/ipp1-final-cache), nasazený model čte
 z exportovaného souboru. Žebříček zlepšení čte tabulku vývojové sady z results/ipp1-ipn.md.
 """
 import argparse
@@ -25,8 +25,8 @@ import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # predict.py v kořeni repozitáře
-import ipp1_common as C
-import ipp1_final as F
+import common as C
+import final_evaluation as F
 from predict import Model
 
 RESULTS_FOLDER = Path(__file__).resolve().parents[1] / "results"
@@ -103,7 +103,7 @@ def style_axes(axes):
 
 
 def accuracy(stats):
-    """Přesnost v procentech pro každou veličinu z výstupu ipp1_final.pooled_stats."""
+    """Přesnost v procentech pro každou veličinu z výstupu final_evaluation.pooled_stats."""
     return {name: 100 * (1 - stats[name]["nrmse"]) for name in C.TARGETS}
 
 
@@ -112,7 +112,7 @@ def collect(model_path):
     (_, X, Y, discharges, exists), _ = F.aligned_data()
     _, _, locked_rows = F.split(discharges)
     locked_targets, locked_exists = Y[locked_rows], exists[locked_rows]
-    cached = F.assemble("locked", ["base", "cand"])  # odhady základní sítě a cand uložené z ipp1_final.py
+    cached = F.assemble("locked", ["base", "cand"])  # odhady základní sítě a cand uložené z final_evaluation.py
     result = {name: accuracy(F.pooled_stats(cached[name]["clean"], locked_targets, locked_exists)) for name in ("base", "cand")}
     result["ipn"] = accuracy(F.pooled_stats(Model(model_path).predict(X[locked_rows]), locked_targets, locked_exists))
     return result
