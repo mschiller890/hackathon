@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Regenerate every file the notebooks read, in dependency order, then optionally execute the notebooks.
 
-    HACKATHON_HOME=<hackathon folder> ~/.venvs/hackathon/bin/python -I analysis/make_all.py [--quick] [--missing] [--notebooks]
+    HACKATHON_HOME=<hackathon folder> ~/.venvs/hackathon/bin/python analysis/make_all.py [--quick] [--missing] [--notebooks]
         [--viewer]
 
 Runs the existing analysis scripts unchanged with this interpreter and writes to $HACKATHON_HOME/out. Stops at the first
@@ -90,14 +90,14 @@ def main():
                 shutil.copyfile(REPO / "results" / o, out / o)
             print(f"quick: copied results/{', results/'.join(outputs)} instead of running {script}")
             continue
-        run([sys.executable, "-I", f"analysis/{script}", *extra], env)
+        run([sys.executable, f"analysis/{script}", *extra], env)
 
     if args.viewer:
         for script, outputs in VIEWER_STEPS:
             if args.missing and outputs and all((out / o).exists() for o in outputs):
                 print(f"skip {script}: {', '.join(outputs)} present")
                 continue
-            run([sys.executable, "-I", script], env)
+            run([sys.executable, script], env)
 
     if args.notebooks:
         nb_out = out / "notebooks"
