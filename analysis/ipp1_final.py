@@ -1,26 +1,26 @@
 #!/usr/bin/env python
-"""IPP task 1: the honest final evaluation of the shape model.
+"""IPP 1: poctivé závěrečné vyhodnocení modelu tvaru plazmatu.
 
-Protocol
-  * Locked test: 30 discharges drawn with numpy seed 20261024 (ids in results/ipp1-locked-test-ids.txt). The other 119
-    discharges are the development set. Recipe choices use 5-fold GroupKFold INSIDE the development set only; the locked
-    set is scored once, by --report, with models trained on all development discharges.
-  * Recipes (all trained on whole discharges, masked loss, one seed):
-      base      the baseline MLP of ipp1_common.fit_mlp (60 epochs), trained on clean rows
-      base_aug  the same trained on clean rows plus one corrupted copy (extra: the fair baseline for noisy inputs)
-      cand      final candidate = general network on 24 inputs + 22 neighbouring-coil differences (Huber 0.5, 150 epochs)
-                + ridge for plasma_current + a network trained only on limited rows (150 epochs) that answers R_limiter and
-                Z_limiter when the general network predicts is_limited > 0.5 (recipe "combo_long" of ipp1_improve.py)
-      cand_aug  the same, trained on clean rows plus one corrupted copy (noise 0.15, drift 0.15 of each input's SD),
-                75 epochs on twice the rows
-  * Every recipe is tested on the clean inputs and on the provided noisy inputs (same rows of equil_data_noisy.csv).
-  * Metrics are pooled over all test rows (not means of folds): MAE, median, RMSE, p95, p99, max, nRMSE, R2.
+Postup
+  * Odložených 30 výbojů: vylosované s numpy seedem 20261024 (seznam v results/ipp1-locked-test-ids.txt).
+    Zbývajících 119 výbojů je vývojová sada. Výběr receptur se dělá jen pětinásobnou křížovou validací UVNITŘ
+    vývojové sady; odložené výboje se hodnotí jednou, příkazem --report, s modely natrénovanými na celé vývojové sadě.
+  * Receptury (všechny se učí po celých výbojích, s maskovanou ztrátou a jedním semínkem):
+      base      základní síť z ipp1_common.fit_mlp (60 epoch) na čistých řádcích
+      base_aug  totéž na čistých řádcích plus jedné poškozené kopii (poctivá základna pro zašuměné vstupy)
+      cand      obecná síť na 24 vstupech + 22 rozdílech sousedních cívek (Huberova ztráta 0,5, 150 epoch)
+                + ridge pro proud plazmatem + síť učená jen na limiterových řádcích (150 epoch), která odpovídá
+                za R_limiter a Z_limiter, když obecná síť předpoví is_limited > 0,5
+      cand_aug  totéž na čistých řádcích plus jedné poškozené kopii (šum 0,15 a drift 0,15 směrodatné odchylky vstupu),
+                75 epoch na dvojnásobném počtu řádků
+  * Každá receptura se zkouší na čistých vstupech i na zadaném zašuměném souboru (tytéž řádky z equil_data_noisy.csv).
+  * Metriky se počítají přes všechny testovací řádky najednou (ne jako průměr přes díly).
 
-Jobs (each trains one model and caches its predictions in out/ipp1-final-cache/, never in the repository):
-    python -I analysis/ipp1_final.py --job cv:cand:0        # development fold 0 of recipe cand
-    python -I analysis/ipp1_final.py --job locked:cand      # all development discharges -> locked discharges
-    python -I analysis/ipp1_final.py --job blocked:cand     # lower half of the development ids -> upper half
-    python -I analysis/ipp1_final.py --report               # assemble out/ipp1-final.json/.md and results/ipp1-final.md
+Úlohy (každá natrénuje jeden model a jeho odhady uloží do out/ipp1-final-cache/, nikdy ne do repozitáře):
+    python analysis/ipp1_final.py --job cv:cand:0        # díl 0 vývojové sady, receptura cand
+    python analysis/ipp1_final.py --job locked:cand      # celá vývojová sada -> odložené výboje
+    python analysis/ipp1_final.py --job blocked:cand     # spodní polovina čísel výbojů -> horní polovina
+    python analysis/ipp1_final.py --report               # složí out/ipp1-final.json/.md a results/ipp1-final.md
 """
 import argparse
 import json
@@ -33,468 +33,611 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as functional
 from sklearn.linear_model import Ridge
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script folder
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from ipp1_common import OUT, REPO, TARGETS, UNIT, fit_mlp, group_folds, load
 
-SMOKE = bool(os.environ.get("IPP1_FINAL_SMOKE"))          # one epoch per network: only to test the plumbing
+# S IPP1_FINAL_SMOKE se každá síť učí jen jednu epochu: slouží to jen k otestování, že všechno spolu funguje.
+SMOKE = bool(os.environ.get("IPP1_FINAL_SMOKE"))
 CACHE = OUT / ("ipp1-final-cache-smoke" if SMOKE else "ipp1-final-cache")
-J = {t: i for i, t in enumerate(TARGETS)}
-LIMITER = [J["R_limiter"], J["Z_limiter"]]
-NOISE, DRIFT, AUG_SEED = 0.15, 0.15, 20261023             # as ipp1_robustness.py and ipp1_improve.py
-LOCK_SEED, N_LOCK, N_BOOT = 20261024, 30, 1000
+
+TARGET_COLUMN = {name: column for column, name in enumerate(TARGETS)}  # název veličiny -> číslo sloupce
+LIMITER = [TARGET_COLUMN["R_limiter"], TARGET_COLUMN["Z_limiter"]]
+
+NOISE, DRIFT, AUG_SEED = 0.15, 0.15, 20261023  # síla šumu a driftu při poškozování vstupů a základ jejich semínka
+LOCK_SEED, N_LOCK, N_BOOT = 20261024, 30, 1000  # semínko odložených výbojů, jejich počet, počet bootstrapových vzorků
 RECIPES = ["base", "base_aug", "cand", "cand_aug"]
 HEADLINE = ["plasma_current", "R_mag_axis", "Z_mag_axis", "R_x_point", "Z_x_point", "R_strike_point_1", "Z_strike_point_1",
             "R_strike_point_2", "Z_strike_point_2", "R_limiter", "Z_limiter"]
 
 
-# ----------------------------------------------------------------------------- data and split
+# ===================================================================================================================
+# Data a rozdělení na vývojovou a odloženou část
+# ===================================================================================================================
 def aligned_data():
+    """Načte čistá i zašuměná data a ověří, že jde o tytéž řádky se stejnými cíli.
+
+    Vrací (čistá data jako n-tice z load, zašuměné vstupy).
+    """
     clean, noisy = load(), load(noisy=True)
-    if not (np.array_equal(clean[0].discharge, noisy[0].discharge) and np.allclose(clean[0].time, noisy[0].time, rtol=0, atol=1e-9)):
-        raise ValueError("clean and noisy rows are not aligned")
+    clean_table, noisy_table = clean[0], noisy[0]
+    same_rows = (np.array_equal(clean_table.discharge, noisy_table.discharge)
+                 and np.allclose(clean_table.time, noisy_table.time, rtol=0, atol=1e-9))
+    if not same_rows:
+        raise ValueError("čisté a zašuměné řádky si neodpovídají")
     if not np.array_equal(clean[2], noisy[2], equal_nan=True):
-        raise ValueError("clean and noisy targets differ")
+        raise ValueError("čisté a zašuměné cíle se liší")
     return clean, noisy[1]
 
 
-def locked_ids(groups):
-    ids = np.unique(groups)
-    return np.sort(np.random.RandomState(LOCK_SEED).choice(ids, N_LOCK, replace=False))
+def locked_ids(discharges):
+    """Čísla 30 odložených výbojů, vylosovaná vždy stejně ze semínka LOCK_SEED."""
+    all_ids = np.unique(discharges)
+    return np.sort(np.random.RandomState(LOCK_SEED).choice(all_ids, N_LOCK, replace=False))
 
 
-def split(G):
-    lock = locked_ids(G)
-    is_lock = np.isin(G, lock)
-    dev_idx, lock_idx = np.where(~is_lock)[0], np.where(is_lock)[0]
-    return lock, dev_idx, lock_idx
+def split(discharges):
+    """Vrátí (čísla odložených výbojů, řádky vývojové sady, řádky odložených výbojů)."""
+    locked = locked_ids(discharges)
+    is_locked = np.isin(discharges, locked)
+    development_rows, locked_rows = np.where(~is_locked)[0], np.where(is_locked)[0]
+    return locked, development_rows, locked_rows
 
 
-# ----------------------------------------------------------------------------- network code (copied from ipp1_improve.py)
-def corrupt(x, groups, times, scale, noise, drift, seed):
-    """Row noise plus an independent Gaussian slope per discharge and coil (as ipp1_robustness.corrupt)."""
+# ===================================================================================================================
+# Sítě
+# ===================================================================================================================
+def corrupt(inputs, discharges, relative_time, input_std, noise_level, drift_level, seed):
+    """Poškodí vstupy šumem a driftem: šum je u každého řádku jiný, drift roste lineárně s časem výboje.
+
+    Sklon driftu je pro každý výboj a každou cívku jiný (náhodný), vynásobený relativním časem 0 až 1.
+    """
     rng = np.random.default_rng(seed)
-    _, inverse = np.unique(groups, return_inverse=True)
-    slopes = rng.normal(size=(inverse.max() + 1, x.shape[1])) * drift * scale
-    return (x + rng.normal(size=x.shape) * noise * scale + slopes[inverse] * times[:, None]).astype(np.float32)
+    _, discharge_index = np.unique(discharges, return_inverse=True)
+    slopes = rng.normal(size=(discharge_index.max() + 1, inputs.shape[1])) * drift_level * input_std
+    noise = rng.normal(size=inputs.shape) * noise_level * input_std
+    return (inputs + noise + slopes[discharge_index] * relative_time[:, None]).astype(np.float32)
 
 
-def feats(x):
-    """The 24 inputs plus differences of neighbouring coils IPR01..16 (15) and loops FL01..08 (7)."""
-    return np.concatenate([x, np.diff(x[:, :16], axis=1), np.diff(x[:, 16:24], axis=1)], 1).astype(np.float32)
+def add_neighbour_differences(inputs):
+    """K 24 vstupům přidá rozdíly sousedních cívek IPR01..16 (15 čísel) a smyček FL01..08 (7 čísel)."""
+    coil_differences = np.diff(inputs[:, :16], axis=1)
+    loop_differences = np.diff(inputs[:, 16:24], axis=1)
+    return np.concatenate([inputs, coil_differences, loop_differences], 1).astype(np.float32)
 
 
 class MLP(nn.Module):
-    def __init__(self, n_in, n_out, widths):
+    """Plně propojená síť s libovolnými šířkami skrytých vrstev a aktivací SiLU."""
+
+    def __init__(self, n_inputs, n_outputs, widths):
         super().__init__()
-        layers, d = [], n_in
-        for w in widths:
-            layers += [nn.Linear(d, w), nn.SiLU()]
-            d = w
-        layers.append(nn.Linear(d, n_out))
-        self.f = nn.Sequential(*layers)
+        modules, previous_width = [], n_inputs
+        for width in widths:
+            modules += [nn.Linear(previous_width, width), nn.SiLU()]
+            previous_width = width
+        modules.append(nn.Linear(previous_width, n_outputs))
+        self.layers = nn.Sequential(*modules)
 
     def forward(self, x):
-        return self.f(x)
+        return self.layers(x)
 
 
-def fit_net(xtr, ytr, mtr, seed, epochs, rows=None, arch=(256, 256, 128), wd=1e-4, delta=0.5, lr=2e-3, max_lr=3e-3, batch=512):
-    """Standardised inputs and targets, Huber loss masked to the targets that exist, AdamW, OneCycle."""
+def fit_net(x_train, y_train, exists_train, seed, epochs, rows=None, arch=(256, 256, 128),
+            weight_decay=1e-4, huber_delta=0.5, learning_rate=2e-3, max_learning_rate=3e-3, batch_size=512):
+    """Natrénuje síť na standardizovaných vstupech a cílech (Huberova ztráta, AdamW, plán učení OneCycle).
+
+    Chyba se počítá jen u cílů, které existují. Pokud je zadané `rows`, učí se jen na těchto řádcích.
+    Vrací funkci predict(surové vstupy) -> surové cíle.
+    """
     if rows is not None:
-        xtr, ytr, mtr = xtr[rows], ytr[rows], mtr[rows]
+        x_train, y_train, exists_train = x_train[rows], y_train[rows], exists_train[rows]
     epochs = 1 if SMOKE else epochs
     torch.manual_seed(seed)
-    ftr = feats(xtr)
-    mu, sd = ftr.mean(0), ftr.std(0) + 1e-9
-    with warnings.catch_warnings():  # an all-NaN column (divertor targets on limited rows) gives NaN, masked out of the loss
+
+    features = add_neighbour_differences(x_train)
+    feature_mean, feature_std = features.mean(0), features.std(0) + 1e-9
+    with warnings.catch_warnings():
+        # Sloupec bez jediné známé hodnoty (např. bod X na limiterových řádcích) dá NaN; maska ho z ztráty vyřadí.
         warnings.filterwarnings("ignore", "Mean of empty slice|Degrees of freedom", RuntimeWarning)
-        ym, ys = np.nanmean(ytr, 0), np.nanstd(ytr, 0) + 1e-9
-    xt = torch.tensor((ftr - mu) / sd)
-    yt = torch.tensor(np.nan_to_num((ytr - ym) / ys))
-    mt = torch.tensor(mtr.astype(np.float32))
-    net = MLP(xt.shape[1], yt.shape[1], arch)
-    opt = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=wd)
-    sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=max_lr, total_steps=epochs * ((len(xt) + batch - 1) // batch))
+        target_mean, target_std = np.nanmean(y_train, 0), np.nanstd(y_train, 0) + 1e-9
+    x_tensor = torch.tensor((features - feature_mean) / feature_std)
+    y_tensor = torch.tensor(np.nan_to_num((y_train - target_mean) / target_std))
+    exists_tensor = torch.tensor(exists_train.astype(np.float32))
+
+    network = MLP(x_tensor.shape[1], y_tensor.shape[1], arch)
+    optimizer = torch.optim.AdamW(network.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    steps = epochs * ((len(x_tensor) + batch_size - 1) // batch_size)
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=max_learning_rate, total_steps=steps)
+
     for _ in range(epochs):
-        perm = torch.randperm(len(xt))
-        for i in range(0, len(xt), batch):
-            b = perm[i:i + batch]
-            e = 2 * F.huber_loss(net(xt[b]), yt[b], reduction="none", delta=delta)
-            loss = (e * mt[b]).sum() / mt[b].sum()
-            opt.zero_grad()
+        shuffled = torch.randperm(len(x_tensor))
+        for start in range(0, len(x_tensor), batch_size):
+            batch = shuffled[start:start + batch_size]
+            error = 2 * functional.huber_loss(network(x_tensor[batch]), y_tensor[batch], reduction="none", delta=huber_delta)
+            loss = (error * exists_tensor[batch]).sum() / exists_tensor[batch].sum()
+            optimizer.zero_grad()
             loss.backward()
-            opt.step()
-            sched.step()
-    net.eval()
-    mu32, sd32 = mu.astype(np.float32), sd.astype(np.float32)
+            optimizer.step()
+            scheduler.step()
+    network.eval()
+    feature_mean32, feature_std32 = feature_mean.astype(np.float32), feature_std.astype(np.float32)
 
     def predict(x):
         with torch.inference_mode():
-            return net(torch.from_numpy((feats(x) - mu32) / sd32)).numpy() * ys + ym
+            standardized = (add_neighbour_differences(x) - feature_mean32) / feature_std32
+            return network(torch.from_numpy(standardized)).numpy() * target_std + target_mean
+
     return predict
 
 
+def fit_ridge_coefficients(x_train, y_train, exists_train, column, alpha=1.0):
+    """Ridge regrese pro jedinou veličinu (sloupec `column`) na standardizovaných surových vstupech.
 
-def fit_ridge_col(xtr, ytr, mtr, j, alpha=1.0):
-    """Ridge for ONE target on standardised raw inputs (the ridge of ipp1_common.fit_ridge), folded into raw coefficients."""
-    mu, sd = xtr.mean(0), xtr.std(0) + 1e-9
-    m = Ridge(alpha=alpha).fit((xtr[mtr[:, j]] - mu) / sd, ytr[mtr[:, j], j])
-    w = (m.coef_ / sd).astype(np.float64)
-    b = float(m.intercept_ - (mu * w).sum())
-    return lambda x: x.astype(np.float64) @ w + b
+    Vrací (váhy, posun) přepočtené tak, aby šly použít přímo na surové vstupy: odhad = vstupy @ váhy + posun.
+    """
+    x_mean, x_std = x_train.mean(0), x_train.std(0) + 1e-9
+    rows = exists_train[:, column]
+    model = Ridge(alpha=alpha).fit((x_train[rows] - x_mean) / x_std, y_train[rows, column])
+    weights = (model.coef_ / x_std).astype(np.float64)
+    offset = float(model.intercept_ - (x_mean * weights).sum())
+    return weights, offset
 
 
-def override(pred, col, fn):
+def fit_ridge_col(x_train, y_train, exists_train, column, alpha=1.0):
+    """Jako fit_ridge_coefficients, ale vrátí rovnou funkci: surové vstupy -> odhad veličiny."""
+    weights, offset = fit_ridge_coefficients(x_train, y_train, exists_train, column, alpha)
+    return lambda x: x.astype(np.float64) @ weights + offset
+
+
+def replace_column(predict, column, replacement):
+    """Z funkce predict udělá novou, která ve sloupci `column` vrací odhad funkce `replacement`."""
+    def predict_with_replacement(x):
+        prediction = predict(x).copy()
+        prediction[:, column] = replacement(x)
+        return prediction
+    return predict_with_replacement
+
+
+def answer_limiter_with_specialist(general, specialist, columns):
+    """Sloupce `columns` (bod limiteru) předpoví specialista, ale jen na řádcích, které obecná síť označila
+    za limiterové (is_limited > 0,5). Všude jinde odpovídá obecná síť."""
+    columns = list(columns)
+
     def predict(x):
-        p = pred(x).copy()
-        p[:, col] = fn(x)
-        return p
+        prediction = general(x).copy()
+        limited = prediction[:, TARGET_COLUMN["is_limited"]] > 0.5
+        if limited.any():
+            prediction[np.ix_(limited, columns)] = specialist(x[limited])[:, columns]
+        return prediction
+
     return predict
 
 
-def gate(general, special, cols):
-    """The specialist answers `cols` on rows where the general net predicts is_limited > 0.5; the general net answers elsewhere."""
-    cols = list(cols)
-
-    def predict(x):
-        p = general(x).copy()
-        g = p[:, J["is_limited"]] > 0.5
-        if g.any():
-            p[np.ix_(g, cols)] = special(x[g])[:, cols]
-        return p
-    return predict
-
-
-def train(recipe, xt, yt, mt, g, times, seed, aug_seed):
-    """Train one recipe on the given rows (clean); the *_aug recipes add one corrupted copy of the rows."""
-    aug = recipe.endswith("_aug")
-    if aug:
-        xa = corrupt(xt, g, times, xt.std(axis=0), NOISE, DRIFT, aug_seed)
-        xt, yt, mt = np.concatenate([xt, xa]), np.tile(yt, (2, 1)), np.tile(mt, (2, 1))
+def train(recipe, x, y, exists, discharges, relative_time, seed, augmentation_seed):
+    """Natrénuje jednu recepturu na zadaných (čistých) řádcích. Receptury *_aug přidají jednu poškozenou kopii řádků."""
+    augmented = recipe.endswith("_aug")
+    if augmented:
+        corrupted = corrupt(x, discharges, relative_time, x.std(axis=0), NOISE, DRIFT, augmentation_seed)
+        x, y, exists = np.concatenate([x, corrupted]), np.tile(y, (2, 1)), np.tile(exists, (2, 1))
     if recipe.startswith("base"):
-        return fit_mlp(xt, yt, mt, 1 if SMOKE else 60, seed=seed)[0]
-    epochs = 75 if aug else 150
-    gen = fit_net(xt, yt, mt, seed, epochs)
-    spec = fit_net(xt, yt, mt, seed, epochs, rows=yt[:, J["is_limited"]] > 0.5)
-    gen_ip = override(gen, J["plasma_current"], fit_ridge_col(xt, yt, mt, J["plasma_current"]))
-    return gate(gen_ip, spec, LIMITER)
+        return fit_mlp(x, y, exists, 1 if SMOKE else 60, seed=seed)[0]
+
+    epochs = 75 if augmented else 150
+    general = fit_net(x, y, exists, seed, epochs)
+    limiter_specialist = fit_net(x, y, exists, seed, epochs, rows=y[:, TARGET_COLUMN["is_limited"]] > 0.5)
+    current_column = TARGET_COLUMN["plasma_current"]
+    general_with_ridge_current = replace_column(general, current_column, fit_ridge_col(x, y, exists, current_column))
+    return answer_limiter_with_specialist(general_with_ridge_current, limiter_specialist, LIMITER)
 
 
-# ----------------------------------------------------------------------------- jobs
+# ===================================================================================================================
+# Úlohy: natrénuje jeden model a uloží jeho odhady
+# ===================================================================================================================
 def job(spec, threads):
+    """Spustí jednu úlohu zadanou jako 'cv:receptura:díl', 'locked:receptura' nebo 'blocked:receptura'."""
     torch.set_num_threads(threads)
-    (df, X, Y, G, M), XN = aligned_data()
-    times = df.time.to_numpy()
-    lock, dev_idx, lock_idx = split(G)
+    (table, X, Y, discharges, exists), noisy_X = aligned_data()
+    relative_time = table.time.to_numpy()
+    locked, development_rows, locked_rows = split(discharges)
     kind, recipe, *rest = spec.split(":")
     assert recipe in RECIPES
-    if kind == "cv":                    # fold k of 5-fold GroupKFold inside the development set
-        k = int(rest[0])
-        tr_l, te_l = group_folds(X[dev_idx], Y[dev_idx], G[dev_idx], 5)[k]
-        tr, te, seed, aug_seed, name = dev_idx[tr_l], dev_idx[te_l], k, AUG_SEED + k, f"cv_{recipe}_{k}"
-    elif kind == "locked":              # all development discharges -> the locked discharges (scored only by --report)
-        tr, te, seed, aug_seed, name = dev_idx, lock_idx, 0, AUG_SEED + 50, f"locked_{recipe}"
-    elif kind == "blocked":             # lower half of the development ids -> upper half
-        ids = np.unique(G[dev_idx])
-        low = ids[:len(ids) - len(ids) // 2]
-        tr, te = dev_idx[np.isin(G[dev_idx], low)], dev_idx[~np.isin(G[dev_idx], low)]
-        seed, aug_seed, name = 0, AUG_SEED + 60, f"blocked_{recipe}"
+
+    if kind == "cv":
+        # díl k pětinásobné křížové validace uvnitř vývojové sady
+        fold = int(rest[0])
+        train_pos, test_pos = group_folds(X[development_rows], Y[development_rows], discharges[development_rows], 5)[fold]
+        train_rows, test_rows = development_rows[train_pos], development_rows[test_pos]
+        seed, augmentation_seed, name = fold, AUG_SEED + fold, f"cv_{recipe}_{fold}"
+    elif kind == "locked":
+        # celá vývojová sada -> odložené výboje (ty hodnotí až --report)
+        train_rows, test_rows = development_rows, locked_rows
+        seed, augmentation_seed, name = 0, AUG_SEED + 50, f"locked_{recipe}"
+    elif kind == "blocked":
+        # spodní polovina čísel výbojů -> horní polovina (čísla jdou chronologicky)
+        ids = np.unique(discharges[development_rows])
+        lower_ids = ids[:len(ids) - len(ids) // 2]
+        in_lower = np.isin(discharges[development_rows], lower_ids)
+        train_rows, test_rows = development_rows[in_lower], development_rows[~in_lower]
+        seed, augmentation_seed, name = 0, AUG_SEED + 60, f"blocked_{recipe}"
     else:
         raise ValueError(spec)
-    assert not set(G[tr]) & set(G[te])
+
+    assert not set(discharges[train_rows]) & set(discharges[test_rows])
     if kind != "locked":
-        assert not set(G[te]) & set(lock)
+        assert not set(discharges[test_rows]) & set(locked)  # odložené výboje se mimo --report nesmí dotknout
+
     CACHE.mkdir(parents=True, exist_ok=True)
-    t0 = time.time()
-    pred = train(recipe, X[tr], Y[tr], M[tr], G[tr], times[tr], seed, aug_seed)
-    np.savez(CACHE / f"{name}.npz", idx=te, clean=pred(X[te]).astype(np.float32), noisy=pred(XN[te]).astype(np.float32))
-    print(f"{name}: train {len(tr)} rows / {len(np.unique(G[tr]))} discharges, test {len(te)} rows / {len(np.unique(G[te]))} discharges, "
-          f"{time.time() - t0:.0f} s", flush=True)
+    started = time.time()
+    predict = train(recipe, X[train_rows], Y[train_rows], exists[train_rows], discharges[train_rows],
+                    relative_time[train_rows], seed, augmentation_seed)
+    np.savez(CACHE / f"{name}.npz", idx=test_rows,
+             clean=predict(X[test_rows]).astype(np.float32), noisy=predict(noisy_X[test_rows]).astype(np.float32))
+    print(f"{name}: train {len(train_rows)} rows / {len(np.unique(discharges[train_rows]))} discharges, "
+          f"test {len(test_rows)} rows / {len(np.unique(discharges[test_rows]))} discharges, "
+          f"{time.time() - started:.0f} s", flush=True)
 
 
-# ----------------------------------------------------------------------------- metrics
-def tstats(p, y, m):
-    """Pooled per-target statistics in report units over the rows of p/y/m."""
-    out = {}
-    for j, t in enumerate(TARGETS):
-        k = m[:, j]
-        if k.sum() < 2:
-            out[t] = None
+# ===================================================================================================================
+# Metriky
+# ===================================================================================================================
+def pooled_stats(prediction, targets, exists):
+    """Statistiky po veličinách přes všechny dané řádky najednou, v jednotkách z tabulek (mm, kA)."""
+    stats = {}
+    for column, name in enumerate(TARGETS):
+        rows = exists[:, column]
+        if rows.sum() < 2:
+            stats[name] = None
             continue
-        scale, unit = UNIT[t]
-        e = (p[k, j] - y[k, j]).astype(np.float64)
-        a = np.abs(e) * scale
-        sd = y[k, j].astype(np.float64).std()
-        sst = ((y[k, j] - y[k, j].mean()) ** 2).sum()
-        d = {"n": int(k.sum()), "unit": unit, "mae": a.mean(), "median": np.median(a), "rmse": np.sqrt((e ** 2).mean()) * scale,
-             "p95": np.percentile(a, 95), "p99": np.percentile(a, 99), "max": a.max(),
-             "nrmse": np.sqrt((e ** 2).mean()) / sd if sd > 0 else None, "r2": 1 - (e ** 2).sum() / sst if sst > 0 else None}
-        if t == "is_limited":
-            d["accuracy"] = float(((p[k, j] > 0.5) == (y[k, j] > 0.5)).mean())
-        out[t] = {kk: (float(v) if isinstance(v, (float, np.floating)) else v) for kk, v in d.items()}
-    return out
+        scale, unit = UNIT[name]
+        error = (prediction[rows, column] - targets[rows, column]).astype(np.float64)
+        absolute = np.abs(error) * scale
+        spread = targets[rows, column].astype(np.float64).std()
+        sum_of_squares = ((targets[rows, column] - targets[rows, column].mean()) ** 2).sum()
+        values = {
+            "n": int(rows.sum()), "unit": unit,
+            "mae": absolute.mean(), "median": np.median(absolute), "rmse": np.sqrt((error ** 2).mean()) * scale,
+            "p95": np.percentile(absolute, 95), "p99": np.percentile(absolute, 99), "max": absolute.max(),
+            "nrmse": np.sqrt((error ** 2).mean()) / spread if spread > 0 else None,
+            "r2": 1 - (error ** 2).sum() / sum_of_squares if sum_of_squares > 0 else None,
+        }
+        if name == "is_limited":
+            values["accuracy"] = float(((prediction[rows, column] > 0.5) == (targets[rows, column] > 0.5)).mean())
+        stats[name] = {key: (float(v) if isinstance(v, (float, np.floating)) else v) for key, v in values.items()}
+    return stats
 
 
-def all16(stats):
-    """Mean pooled nRMSE over the 16 targets: the ranking number used for recipe choices."""
-    return float(np.mean([stats[t]["nrmse"] for t in TARGETS]))
+def mean_nrmse(stats):
+    """Průměr relativní chyby (nRMSE) přes všech 16 veličin: číslo, podle kterého se vybírají receptury."""
+    return float(np.mean([stats[name]["nrmse"] for name in TARGETS]))
 
 
-def bootstrap(P, Y, M, disc, targets, seed=LOCK_SEED + 1):
-    """Cluster bootstrap by discharge. P: {name: predictions}. Returns per recipe and target the pooled MAE and RMSE
-    with 95 % percentile intervals, and for every recipe but the first the MAE ratio against the first (paired)."""
-    ids = np.unique(disc)
-    inv = np.searchsorted(ids, disc)
+def bootstrap(predictions, targets, exists, discharges, target_names, seed=LOCK_SEED + 1):
+    """Bootstrap po výbojích (náhodně se losují celé výboje) s 95% intervaly.
+
+    predictions: {název receptury: odhady}. Pro každou recepturu a veličinu vrátí střední chybu a RMSE s intervaly
+    a pro všechny receptury kromě první i poměr střední chyby k první receptuře (párově, na týchž vzorcích).
+    """
+    discharge_ids = np.unique(discharges)
+    discharge_index = np.searchsorted(discharge_ids, discharges)
     rng = np.random.RandomState(seed)
-    counts = np.stack([np.bincount(rng.randint(0, len(ids), len(ids)), minlength=len(ids)) for _ in range(N_BOOT)]).astype(np.float64)
-    names = list(P)
-    res = {n: {} for n in names}
-    sums = {}
-    for n in names:
-        for t in targets:
-            j = J[t]
-            k = M[:, j]
-            e = (P[n][:, j] - Y[:, j]).astype(np.float64)
-            e = np.where(k, e, 0.0)
-            sa = np.bincount(inv, weights=np.abs(e), minlength=len(ids))
-            sq = np.bincount(inv, weights=e ** 2, minlength=len(ids))
-            ct = np.bincount(inv, weights=k.astype(float), minlength=len(ids))
-            sums[(n, t)] = (sa, sq, ct)
-    ci = lambda v: [float(np.nanpercentile(v, 2.5)), float(np.nanpercentile(v, 97.5))]
-    for n in names:
-        for t in targets:
-            sa, sq, ct = sums[(n, t)]
-            scale = UNIT[t][0]
-            c = counts @ ct
+    # counts[i, d] = kolikrát se výboj d dostal do i-tého bootstrapového vzorku
+    counts = np.stack([np.bincount(rng.randint(0, len(discharge_ids), len(discharge_ids)), minlength=len(discharge_ids))
+                       for _ in range(N_BOOT)]).astype(np.float64)
+    recipe_names = list(predictions)
+
+    # Pro každý výboj zvlášť: součet absolutních chyb, součet čtverců chyb a počet řádků.
+    per_discharge = {}
+    for recipe in recipe_names:
+        for target in target_names:
+            column = TARGET_COLUMN[target]
+            rows = exists[:, column]
+            error = np.where(rows, (predictions[recipe][:, column] - targets[:, column]).astype(np.float64), 0.0)
+            sum_abs = np.bincount(discharge_index, weights=np.abs(error), minlength=len(discharge_ids))
+            sum_sq = np.bincount(discharge_index, weights=error ** 2, minlength=len(discharge_ids))
+            n_rows = np.bincount(discharge_index, weights=rows.astype(float), minlength=len(discharge_ids))
+            per_discharge[(recipe, target)] = (sum_abs, sum_sq, n_rows)
+
+    def interval(values):
+        return [float(np.nanpercentile(values, 2.5)), float(np.nanpercentile(values, 97.5))]
+
+    result = {recipe: {} for recipe in recipe_names}
+    for recipe in recipe_names:
+        for target in target_names:
+            sum_abs, sum_sq, n_rows = per_discharge[(recipe, target)]
+            scale = UNIT[target][0]
+            rows_in_sample = counts @ n_rows
             with np.errstate(invalid="ignore", divide="ignore"):
-                mae = (counts @ sa) / c * scale
-                rmse = np.sqrt((counts @ sq) / c) * scale
-            res[n][t] = {"mae": float(sa.sum() / ct.sum() * scale), "mae_ci": ci(mae),
-                         "rmse": float(np.sqrt(sq.sum() / ct.sum()) * scale), "rmse_ci": ci(rmse)}
-    for n in names[1:]:
-        for t in targets:
-            a, b = sums[(n, t)], sums[(names[0], t)]
+                mae = (counts @ sum_abs) / rows_in_sample * scale
+                rmse = np.sqrt((counts @ sum_sq) / rows_in_sample) * scale
+            result[recipe][target] = {
+                "mae": float(sum_abs.sum() / n_rows.sum() * scale), "mae_ci": interval(mae),
+                "rmse": float(np.sqrt(sum_sq.sum() / n_rows.sum()) * scale), "rmse_ci": interval(rmse),
+            }
+    first = recipe_names[0]
+    for recipe in recipe_names[1:]:
+        for target in target_names:
+            this, reference = per_discharge[(recipe, target)], per_discharge[(first, target)]
             with np.errstate(invalid="ignore", divide="ignore"):
-                r = ((counts @ a[0]) / (counts @ a[2])) / ((counts @ b[0]) / (counts @ b[2]))
-            res[n][t]["mae_ratio_vs_" + names[0]] = float(a[0].sum() / a[2].sum() / (b[0].sum() / b[2].sum()))
-            res[n][t]["mae_ratio_ci"] = ci(r)
-    return res
+                ratio = ((counts @ this[0]) / (counts @ this[2])) / ((counts @ reference[0]) / (counts @ reference[2]))
+            result[recipe][target]["mae_ratio_vs_" + first] = float(this[0].sum() / this[2].sum() / (reference[0].sum() / reference[2].sum()))
+            result[recipe][target]["mae_ratio_ci"] = interval(ratio)
+    return result
 
 
-# ----------------------------------------------------------------------------- report
-def assemble(prefix, n_rows, recipes, n_folds=None):
-    """Load the cached predictions of one stage into arrays aligned on the rows stored in the cache (clean, noisy, idx)."""
-    out = {}
-    for r in recipes:
-        files = [CACHE / f"{prefix}_{r}.npz"] if n_folds is None else [CACHE / f"{prefix}_{r}_{k}.npz" for k in range(n_folds)]
-        if not all(f.exists() for f in files):
+# ===================================================================================================================
+# Zpráva: složí uložené odhady do out/ipp1-final.json a results/ipp1-final.md
+# ===================================================================================================================
+def assemble(prefix, recipes, n_folds=None):
+    """Načte uložené odhady jedné fáze (cv / locked / blocked) a seřadí je podle čísel řádků.
+
+    Pro každou recepturu vrátí {"idx": řádky, "clean": odhady na čistých vstupech, "noisy": odhady na zašuměných}.
+    Receptury, jejichž soubory ještě nejsou, se přeskočí.
+    """
+    assembled = {}
+    for recipe in recipes:
+        if n_folds is None:
+            files = [CACHE / f"{prefix}_{recipe}.npz"]
+        else:
+            files = [CACHE / f"{prefix}_{recipe}_{fold}.npz" for fold in range(n_folds)]
+        if not all(file.exists() for file in files):
             continue
-        parts = [np.load(f) for f in files]
-        idx = np.concatenate([p["idx"] for p in parts])
-        o = np.argsort(idx)
-        out[r] = {"idx": idx[o], "clean": np.concatenate([p["clean"] for p in parts])[o], "noisy": np.concatenate([p["noisy"] for p in parts])[o]}
-    return out
+        parts = [np.load(file) for file in files]
+        rows = np.concatenate([part["idx"] for part in parts])
+        order = np.argsort(rows)
+        assembled[recipe] = {
+            "idx": rows[order],
+            "clean": np.concatenate([part["clean"] for part in parts])[order],
+            "noisy": np.concatenate([part["noisy"] for part in parts])[order],
+        }
+    return assembled
 
 
-def fmt(v, d=3):
-    return "n/a" if v is None else f"{v:.{d}g}"
+def fmt(value, digits=3):
+    """Číslo na tři platné číslice, nebo n/a, když chybí."""
+    return "n/a" if value is None else f"{value:.{digits}g}"
 
 
 def report():
-    (df, X, Y, G, M), XN = aligned_data()
-    times = df.time.to_numpy()
-    lock, dev_idx, lock_idx = split(G)
-    ids_txt = REPO / "results/ipp1-locked-test-ids.txt"
-    ids_txt.parent.mkdir(parents=True, exist_ok=True)
-    dev_ids = np.unique(G[dev_idx])
-    ids_txt.write_text(
-        f"Locked test set of IPP 1 (hackathon task 1): {N_LOCK} of {len(np.unique(G))} discharges.\n"
+    (table, X, Y, discharges, exists), noisy_X = aligned_data()
+    relative_time = table.time.to_numpy()
+    locked, development_rows, locked_rows = split(discharges)
+
+    # Soubor se seznamem odložených výbojů (je v repozitáři, ať je vidět, které to jsou).
+    ids_file = REPO / "results/ipp1-locked-test-ids.txt"
+    ids_file.parent.mkdir(parents=True, exist_ok=True)
+    development_ids = np.unique(discharges[development_rows])
+    ids_file.write_text(
+        f"Locked test set of IPP 1 (hackathon task 1): {N_LOCK} of {len(np.unique(discharges))} discharges.\n"
         f"Drawn with numpy.random.RandomState({LOCK_SEED}).choice(sorted unique discharge ids, {N_LOCK}, replace=False), then sorted.\n"
-        f"The other {len(dev_ids)} discharges are the development set; every recipe choice uses 5-fold GroupKFold inside it.\n"
+        f"The other {len(development_ids)} discharges are the development set; every recipe choice uses 5-fold GroupKFold inside it.\n"
         f"The locked discharges are scored once, by models trained on all development discharges (analysis/ipp1_final.py --report).\n\n"
-        f"locked discharge ids ({len(lock)}): {' '.join(str(i) for i in lock)}\n")
-    R = {"protocol": {"locked_seed": LOCK_SEED, "locked_ids": [int(i) for i in lock], "n_dev_discharges": int(len(dev_ids)),
-                      "n_dev_rows": int(len(dev_idx)), "n_locked_rows": int(len(lock_idx)), "bootstrap": N_BOOT, "seed": "one per model"}}
+        f"locked discharge ids ({len(locked)}): {' '.join(str(i) for i in locked)}\n")
 
-    # ---- development: pooled out-of-fold scores, the basis of every recipe choice
-    cv = assemble("cv", None, RECIPES, 5)
-    dev = {}
-    for r, d in cv.items():
-        if len(d["idx"]) != len(dev_idx):
-            continue
-        dev[r] = {c: tstats(d[c], Y[d["idx"]], M[d["idx"]]) for c in ("clean", "noisy")}
-        dev[r]["all16_clean"], dev[r]["all16_noisy"] = all16(dev[r]["clean"]), all16(dev[r]["noisy"])
-    R["development_cv"] = dev
+    results = {"protocol": {
+        "locked_seed": LOCK_SEED, "locked_ids": [int(i) for i in locked], "n_dev_discharges": int(len(development_ids)),
+        "n_dev_rows": int(len(development_rows)), "n_locked_rows": int(len(locked_rows)), "bootstrap": N_BOOT,
+        "seed": "one per model"}}
+
+    # --- vývojová sada: odhady z křížové validace, podle nich se vybírají receptury
+    cross_validation = assemble("cv", RECIPES, 5)
+    development = {}
+    for recipe, predictions in cross_validation.items():
+        if len(predictions["idx"]) != len(development_rows):
+            continue  # ještě nejsou hotové všechny díly
+        development[recipe] = {kind: pooled_stats(predictions[kind], Y[predictions["idx"]], exists[predictions["idx"]])
+                               for kind in ("clean", "noisy")}
+        development[recipe]["all16_clean"] = mean_nrmse(development[recipe]["clean"])
+        development[recipe]["all16_noisy"] = mean_nrmse(development[recipe]["noisy"])
+    results["development_cv"] = development
     choice = {}
-    for c in ("clean", "noisy"):
-        if dev:
-            choice[c] = min(dev, key=lambda r: dev[r]["all16_" + c])
-    R["choice"] = choice
+    for kind in ("clean", "noisy"):
+        if development:
+            choice[kind] = min(development, key=lambda recipe: development[recipe]["all16_" + kind])
+    results["choice"] = choice
 
-    # ---- locked test
-    lk = assemble("locked", None, RECIPES)
-    lk = {r: d for r, d in lk.items() if np.array_equal(d["idx"], lock_idx)}
-    names = [r for r in RECIPES if r in lk]
-    yl, ml, gl = Y[lock_idx], M[lock_idx], G[lock_idx]
-    locked = {r: {c: tstats(lk[r][c], yl, ml) for c in ("clean", "noisy")} for r in names}
-    for r in names:
-        locked[r]["all16_clean"], locked[r]["all16_noisy"] = all16(locked[r]["clean"]), all16(locked[r]["noisy"])
-    R["locked"] = locked
-    boot = {c: bootstrap({r: lk[r][c] for r in names}, yl, ml, gl, HEADLINE) for c in ("clean", "noisy")} if names else {}
-    R["bootstrap"] = boot
+    # --- odložené výboje
+    locked_predictions = assemble("locked", RECIPES)
+    locked_predictions = {recipe: p for recipe, p in locked_predictions.items() if np.array_equal(p["idx"], locked_rows)}
+    names = [recipe for recipe in RECIPES if recipe in locked_predictions]
+    locked_y, locked_exists, locked_discharges = Y[locked_rows], exists[locked_rows], discharges[locked_rows]
+    locked_stats = {recipe: {kind: pooled_stats(locked_predictions[recipe][kind], locked_y, locked_exists)
+                             for kind in ("clean", "noisy")} for recipe in names}
+    for recipe in names:
+        locked_stats[recipe]["all16_clean"] = mean_nrmse(locked_stats[recipe]["clean"])
+        locked_stats[recipe]["all16_noisy"] = mean_nrmse(locked_stats[recipe]["noisy"])
+    results["locked"] = locked_stats
+    if names:
+        bootstraps = {kind: bootstrap({recipe: locked_predictions[recipe][kind] for recipe in names},
+                                      locked_y, locked_exists, locked_discharges, HEADLINE) for kind in ("clean", "noisy")}
+    else:
+        bootstraps = {}
+    results["bootstrap"] = bootstraps
 
-    # ---- breakdowns of the locked set
-    sign = np.sign(np.array([np.nanmedian(Y[lock_idx][gl == g, 0]) for g in gl]))
-    rel = times[lock_idx]
-    conf = Y[lock_idx][:, J["is_limited"]] > 0.5
-    groups = {"polarity": {"negative plasma current": sign < 0, "positive plasma current": sign > 0},
-              "relative time": {"first 2 %": rel <= 0.02, "middle": (rel > 0.02) & (rel < 0.98), "last 2 %": rel >= 0.98},
-              "configuration": {"divertor": ~conf, "limited": conf}}
-    R["polarity_discharges"] = {"positive": int(len(np.unique(gl[sign > 0]))), "negative": int(len(np.unique(gl[sign < 0])))}
-    brk = {}
-    for gname, cells in groups.items():
-        for cname, sel in cells.items():
-            brk[f"{gname}: {cname}"] = {"rows": int(sel.sum()), "discharges": int(len(np.unique(gl[sel]))),
-                                        **{r: {c: tstats(lk[r][c][sel], yl[sel], ml[sel]) for c in ("clean", "noisy")} for r in names}}
-    R["breakdown"] = brk
+    # --- rozpad odložených výbojů podle polarity, času ve výboji a konfigurace
+    polarity = np.sign(np.array([np.nanmedian(Y[locked_rows][locked_discharges == d, 0]) for d in locked_discharges]))
+    time_in_discharge = relative_time[locked_rows]
+    is_limited = Y[locked_rows][:, TARGET_COLUMN["is_limited"]] > 0.5
+    groups = {
+        "polarity": {"negative plasma current": polarity < 0, "positive plasma current": polarity > 0},
+        "relative time": {"first 2 %": time_in_discharge <= 0.02,
+                          "middle": (time_in_discharge > 0.02) & (time_in_discharge < 0.98),
+                          "last 2 %": time_in_discharge >= 0.98},
+        "configuration": {"divertor": ~is_limited, "limited": is_limited},
+    }
+    results["polarity_discharges"] = {"positive": int(len(np.unique(locked_discharges[polarity > 0]))),
+                                      "negative": int(len(np.unique(locked_discharges[polarity < 0])))}
+    breakdown = {}
+    for group_name, cells in groups.items():
+        for cell_name, selected in cells.items():
+            breakdown[f"{group_name}: {cell_name}"] = {
+                "rows": int(selected.sum()), "discharges": int(len(np.unique(locked_discharges[selected]))),
+                **{recipe: {kind: pooled_stats(locked_predictions[recipe][kind][selected], locked_y[selected], locked_exists[selected])
+                            for kind in ("clean", "noisy")} for recipe in names}}
+    results["breakdown"] = breakdown
 
-    # ---- blocked by id (development set only) against the random group folds
-    bl = assemble("blocked", None, RECIPES)
+    # --- dělení podle čísel výbojů (blokové) proti náhodným dílům, jen ve vývojové sadě
+    blocked_predictions = assemble("blocked", RECIPES)
     blocked = {}
-    if bl:
-        ids = np.unique(G[dev_idx])
-        upper = ids[len(ids) - len(ids) // 2:]
-        for r, d in bl.items():
-            up_idx = d["idx"]
-            row = {"train_discharges": int(len(ids) - len(upper)), "test_discharges": int(len(upper)), "test_rows": int(len(up_idx))}
-            row["blocked"] = {c: tstats(d[c], Y[up_idx], M[up_idx]) for c in ("clean", "noisy")}
-            if r in cv and len(cv[r]["idx"]) == len(dev_idx):
-                sel = np.isin(cv[r]["idx"], up_idx)
-                row["random_folds_same_discharges"] = {c: tstats(cv[r][c][sel], Y[cv[r]["idx"][sel]], M[cv[r]["idx"][sel]]) for c in ("clean", "noisy")}
-                row["random_folds_all_dev"] = dev[r]
-            blocked[r] = row
-    R["blocked"] = blocked
+    if blocked_predictions:
+        ids = np.unique(discharges[development_rows])
+        upper_ids = ids[len(ids) - len(ids) // 2:]
+        for recipe, predictions in blocked_predictions.items():
+            upper_rows = predictions["idx"]
+            row = {"train_discharges": int(len(ids) - len(upper_ids)), "test_discharges": int(len(upper_ids)),
+                   "test_rows": int(len(upper_rows))}
+            row["blocked"] = {kind: pooled_stats(predictions[kind], Y[upper_rows], exists[upper_rows]) for kind in ("clean", "noisy")}
+            if recipe in cross_validation and len(cross_validation[recipe]["idx"]) == len(development_rows):
+                same_discharges = np.isin(cross_validation[recipe]["idx"], upper_rows)
+                rows_of_cv = cross_validation[recipe]["idx"][same_discharges]
+                row["random_folds_same_discharges"] = {
+                    kind: pooled_stats(cross_validation[recipe][kind][same_discharges], Y[rows_of_cv], exists[rows_of_cv])
+                    for kind in ("clean", "noisy")}
+                row["random_folds_all_dev"] = development[recipe]
+            blocked[recipe] = row
+    results["blocked"] = blocked
 
-    (OUT / "ipp1-final.json").write_text(json.dumps(R, indent=1))
-    md = render(R, names)
+    (OUT / "ipp1-final.json").write_text(json.dumps(results, indent=1))
+    markdown = render(results, names)
     notes = OUT / "ipp1-final-notes.md"
     if notes.exists():
-        md = md.replace("\n## Development set", "\n" + notes.read_text().strip() + "\n\n## Development set", 1)
-    (OUT / "ipp1-final.md").write_text(md)
+        markdown = markdown.replace("\n## Development set", "\n" + notes.read_text().strip() + "\n\n## Development set", 1)
+    (OUT / "ipp1-final.md").write_text(markdown)
     (REPO / "results").mkdir(parents=True, exist_ok=True)
-    (REPO / "results/ipp1-final.md").write_text(md)
-    print(md)
+    (REPO / "results/ipp1-final.md").write_text(markdown)
+    print(markdown)
 
 
-LABEL = {"base": "baseline MLP", "base_aug": "baseline MLP, augmented (extra)", "cand": "candidate, plain", "cand_aug": "candidate, augmented"}
+RECIPE_LABEL = {"base": "baseline MLP", "base_aug": "baseline MLP, augmented (extra)",
+                "cand": "candidate, plain", "cand_aug": "candidate, augmented"}
 
 
-def render(R, names):
-    L = []
-    P = R["protocol"]
-    L += ["# IPP 1: final evaluation on a locked test set", "",
-          f"Locked test set: {N_LOCK} discharges ({P['n_locked_rows']} rows) drawn with numpy seed {LOCK_SEED}; ids in `results/ipp1-locked-test-ids.txt`. "
-          f"Development set: the other {P['n_dev_discharges']} discharges ({P['n_dev_rows']} rows). Recipe choices use 5-fold GroupKFold inside the "
-          "development set only; the locked set was scored once, with models trained on all development discharges. All metrics are pooled over "
-          "the rows of the test set (not means of folds). Every model is one seed (seed noise of earlier runs: 8 to 19 %), so read differences "
-          "below about 20 % between recipes as unresolved unless the bootstrap interval excludes 1.", "",
-          "Recipes: `baseline MLP` = ipp1_common.fit_mlp, 60 epochs. `candidate` = network on 24 inputs + 22 neighbouring-coil differences "
-          "(Huber 0.5, 150 epochs) + ridge for plasma_current + a limited-rows network for R_limiter and Z_limiter gated by the predicted is_limited. "
-          "`augmented` = trained on the clean rows plus one copy with noise 0.15 and drift 0.15 of each input's SD (candidate: 75 epochs on twice the rows; "
-          "baseline: 60 epochs on twice the rows, an extra control). `clean` = clean inputs, `noisy` = the provided noisy file (same rows).", ""]
-    if R["choice"]:
-        L += ["## Which recipe to ship", ""]
-        d = R["development_cv"]
-        for c in ("clean", "noisy"):
-            r = R["choice"][c]
-            parts = ", ".join(f"{LABEL[x]} {d[x]['all16_' + c]:.4f}" for x in d)
-            L.append(f"- **{c} inputs: {LABEL[r]}** (`{r}`): lowest mean nRMSE over the 16 targets in the development cross-validation "
-                     f"({parts}).")
+def render(results, names):
+    """Složí výsledky do markdownu results/ipp1-final.md (text je anglicky, protože ho čtou i organizátoři)."""
+    lines = []
+    protocol = results["protocol"]
+    lines += ["# IPP 1: final evaluation on a locked test set", "",
+              f"Locked test set: {N_LOCK} discharges ({protocol['n_locked_rows']} rows) drawn with numpy seed {LOCK_SEED}; ids in `results/ipp1-locked-test-ids.txt`. "
+              f"Development set: the other {protocol['n_dev_discharges']} discharges ({protocol['n_dev_rows']} rows). Recipe choices use 5-fold GroupKFold inside the "
+              "development set only; the locked set was scored once, with models trained on all development discharges. All metrics are pooled over "
+              "the rows of the test set (not means of folds). Every model is one seed (seed noise of earlier runs: 8 to 19 %), so read differences "
+              "below about 20 % between recipes as unresolved unless the bootstrap interval excludes 1.", "",
+              "Recipes: `baseline MLP` = ipp1_common.fit_mlp, 60 epochs. `candidate` = network on 24 inputs + 22 neighbouring-coil differences "
+              "(Huber 0.5, 150 epochs) + ridge for plasma_current + a limited-rows network for R_limiter and Z_limiter gated by the predicted is_limited. "
+              "`augmented` = trained on the clean rows plus one copy with noise 0.15 and drift 0.15 of each input's SD (candidate: 75 epochs on twice the rows; "
+              "baseline: 60 epochs on twice the rows, an extra control). `clean` = clean inputs, `noisy` = the provided noisy file (same rows).", ""]
+
+    if results["choice"]:
+        lines += ["## Which recipe to ship", ""]
+        development = results["development_cv"]
+        for kind in ("clean", "noisy"):
+            chosen = results["choice"][kind]
+            all_recipes = ", ".join(f"{RECIPE_LABEL[r]} {development[r]['all16_' + kind]:.4f}" for r in development)
+            lines.append(f"- **{kind} inputs: {RECIPE_LABEL[chosen]}** (`{chosen}`): lowest mean nRMSE over the 16 targets in the development cross-validation "
+                         f"({all_recipes}).")
         if names:
-            L.append("- Locked-set check of that choice: mean nRMSE over 16 targets, " + "; ".join(
-                f"{c}: " + ", ".join(f"{LABEL[r]} {R['locked'][r]['all16_' + c]:.4f}" for r in names) for c in ("clean", "noisy")) + ".")
-        L.append("")
-    L += ["## Development set: pooled out-of-fold scores (5 group folds inside the 119 development discharges)", ""]
-    d = R["development_cv"]
-    if d:
-        L += ["| recipe | inputs | mean nRMSE (16) | " + " | ".join(f"{t} MAE" for t in HEADLINE) + " |", "|---|---|---:|" + "---:|" * len(HEADLINE)]
-        for r in d:
-            for c in ("clean", "noisy"):
-                L.append(f"| {LABEL[r]} | {c} | {d[r]['all16_' + c]:.4f} | " + " | ".join(fmt(d[r][c][t]["mae"]) for t in HEADLINE) + " |")
-        L.append("")
-        L.append("Units: mm for R and Z targets, kA for plasma_current.")
-        L.append("")
+            lines.append("- Locked-set check of that choice: mean nRMSE over 16 targets, " + "; ".join(
+                f"{kind}: " + ", ".join(f"{RECIPE_LABEL[r]} {results['locked'][r]['all16_' + kind]:.4f}" for r in names)
+                for kind in ("clean", "noisy")) + ".")
+        lines.append("")
+
+    lines += ["## Development set: pooled out-of-fold scores (5 group folds inside the 119 development discharges)", ""]
+    development = results["development_cv"]
+    if development:
+        lines += ["| recipe | inputs | mean nRMSE (16) | " + " | ".join(f"{t} MAE" for t in HEADLINE) + " |",
+                  "|---|---|---:|" + "---:|" * len(HEADLINE)]
+        for recipe in development:
+            for kind in ("clean", "noisy"):
+                lines.append(f"| {RECIPE_LABEL[recipe]} | {kind} | {development[recipe]['all16_' + kind]:.4f} | "
+                             + " | ".join(fmt(development[recipe][kind][t]["mae"]) for t in HEADLINE) + " |")
+        lines.append("")
+        lines.append("Units: mm for R and Z targets, kA for plasma_current.")
+        lines.append("")
     if not names:
-        L += ["## Locked test", "", "No locked predictions cached yet.", ""]
-        return "\n".join(L) + "\n"
-    for c in ("clean", "noisy"):
-        L += [f"## Locked test, {c} inputs: all metrics per target, pooled over {P['n_locked_rows']} rows", ""]
-        for r in names:
-            s = R["locked"][r][c]
-            L += [f"### {LABEL[r]}, {c} inputs (mean nRMSE over 16 targets {R['locked'][r]['all16_' + c]:.4f})", "",
-                  "| target | unit | n | MAE | median | RMSE | p95 | p99 | max | nRMSE | R2 |", "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
-            for t in TARGETS:
-                x = s[t]
-                L.append(f"| {t} | {x['unit']} | {x['n']} | " + " | ".join(fmt(x[k]) for k in ("mae", "median", "rmse", "p95", "p99", "max", "nrmse", "r2")) + " |")
-            L += ["", f"is_limited accuracy: {s['is_limited']['accuracy']:.4f}", ""]
-    for c in ("clean", "noisy"):
-        L += [f"## Locked test, {c} inputs: cluster bootstrap by discharge ({N_BOOT} resamples, 95 % intervals)", "",
-              "MAE and RMSE with intervals; ratio = MAE of the recipe over MAE of the baseline MLP on the same resamples (below 1 means better).", ""]
-        b = R["bootstrap"][c]
-        L += ["| target | unit | " + " | ".join(f"{LABEL[r]} MAE [95 %]" for r in names) + " | " + " | ".join(f"MAE ratio {r}/{names[0]} [95 %]" for r in names[1:]) + " |",
-              "|---|---|" + "---:|" * (2 * len(names) - 1)]
-        for t in HEADLINE:
-            cells = [f"{fmt(b[r][t]['mae'])} [{fmt(b[r][t]['mae_ci'][0])}, {fmt(b[r][t]['mae_ci'][1])}]" for r in names]
-            ratios = [f"{b[r][t]['mae_ratio_vs_' + names[0]]:.2f} [{b[r][t]['mae_ratio_ci'][0]:.2f}, {b[r][t]['mae_ratio_ci'][1]:.2f}]" for r in names[1:]]
-            L.append(f"| {t} | {UNIT[t][1]} | " + " | ".join(cells) + " | " + " | ".join(ratios) + " |")
-        L += ["", "RMSE with intervals:", "", "| target | unit | " + " | ".join(f"{LABEL[r]} RMSE [95 %]" for r in names) + " |", "|---|---|" + "---:|" * len(names)]
-        for t in HEADLINE:
-            L.append(f"| {t} | {UNIT[t][1]} | " + " | ".join(f"{fmt(b[r][t]['rmse'])} [{fmt(b[r][t]['rmse_ci'][0])}, {fmt(b[r][t]['rmse_ci'][1])}]" for r in names) + " |")
-        L.append("")
-    pol = R["polarity_discharges"]
-    L += ["## Locked test: breakdowns (MAE per headline target; p95 is in the json)", "",
-          f"Polarity is the sign of the plasma current of the discharge: {pol['negative']} negative and {pol['positive']} positive locked discharges. "
-          "Relative time is the row's time scaled to 0..1 within its discharge. Configuration is the true is_limited. n = rows.", ""]
-    for key, cell in R["breakdown"].items():
-        L += [f"### {key} ({cell['rows']} rows, {cell['discharges']} discharges)", "",
-              "| target | unit | " + " | ".join(f"{LABEL[r]} {c}" for c in ("clean", "noisy") for r in names) + " |", "|---|---|" + "---:|" * (2 * len(names))]
-        for t in HEADLINE:
-            vals = []
-            for c in ("clean", "noisy"):
-                for r in names:
-                    x = cell[r][c][t]
-                    vals.append("n/a" if x is None else fmt(x["mae"]) + (f" (n={x['n']})" if x["n"] < 100 else ""))
-            L.append(f"| {t} | {UNIT[t][1]} | " + " | ".join(vals) + " |")
-        L.append("")
-    if R["blocked"]:
-        L += ["## Blocked-by-id split against random group folds (development set only)", "",
-              "Train on the lower half of the development discharge ids, test on the upper half. Discharge ids are chronological, so this is a test on later "
-              "campaigns. The random-fold numbers are the pooled out-of-fold errors of the SAME recipe on the SAME upper-half discharges, and on all "
-              "development discharges. Caveat: the blocked model trains on about 60 discharges, the random folds on about 95, so part of the gap is the "
-              "smaller training set, not only the drift between campaigns.", ""]
-        for r, row in R["blocked"].items():
-            L += [f"### {LABEL[r]} ({row['train_discharges']} training, {row['test_discharges']} test discharges, {row['test_rows']} test rows)", "",
-                  "| target | unit | inputs | blocked MAE | random folds, same discharges MAE | ratio | random folds, all development MAE |", "|---|---|---|---:|---:|---:|---:|"]
-            for t in HEADLINE:
-                for c in ("clean", "noisy"):
-                    a = row["blocked"][c][t]["mae"]
-                    b = row.get("random_folds_same_discharges", {}).get(c, {}).get(t)
-                    e = row.get("random_folds_all_dev", {}).get(c, {}).get(t)
-                    L.append(f"| {t} | {UNIT[t][1]} | {c} | {fmt(a)} | {fmt(b['mae']) if b else 'n/a'} | {a / b['mae']:.2f} | {fmt(e['mae']) if e else 'n/a'} |"
-                             if b else f"| {t} | {UNIT[t][1]} | {c} | {fmt(a)} | n/a | n/a | n/a |")
-            L.append("")
-    return "\n".join(L) + "\n"
+        lines += ["## Locked test", "", "No locked predictions cached yet.", ""]
+        return "\n".join(lines) + "\n"
+
+    for kind in ("clean", "noisy"):
+        lines += [f"## Locked test, {kind} inputs: all metrics per target, pooled over {protocol['n_locked_rows']} rows", ""]
+        for recipe in names:
+            stats = results["locked"][recipe][kind]
+            lines += [f"### {RECIPE_LABEL[recipe]}, {kind} inputs (mean nRMSE over 16 targets {results['locked'][recipe]['all16_' + kind]:.4f})", "",
+                      "| target | unit | n | MAE | median | RMSE | p95 | p99 | max | nRMSE | R2 |",
+                      "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
+            for target in TARGETS:
+                row = stats[target]
+                lines.append(f"| {target} | {row['unit']} | {row['n']} | "
+                             + " | ".join(fmt(row[key]) for key in ("mae", "median", "rmse", "p95", "p99", "max", "nrmse", "r2")) + " |")
+            lines += ["", f"is_limited accuracy: {stats['is_limited']['accuracy']:.4f}", ""]
+
+    for kind in ("clean", "noisy"):
+        lines += [f"## Locked test, {kind} inputs: cluster bootstrap by discharge ({N_BOOT} resamples, 95 % intervals)", "",
+                  "MAE and RMSE with intervals; ratio = MAE of the recipe over MAE of the baseline MLP on the same resamples (below 1 means better).", ""]
+        boot = results["bootstrap"][kind]
+        lines += ["| target | unit | " + " | ".join(f"{RECIPE_LABEL[r]} MAE [95 %]" for r in names) + " | "
+                  + " | ".join(f"MAE ratio {r}/{names[0]} [95 %]" for r in names[1:]) + " |",
+                  "|---|---|" + "---:|" * (2 * len(names) - 1)]
+        for target in HEADLINE:
+            mae_cells = [f"{fmt(boot[r][target]['mae'])} [{fmt(boot[r][target]['mae_ci'][0])}, {fmt(boot[r][target]['mae_ci'][1])}]" for r in names]
+            ratio_cells = [f"{boot[r][target]['mae_ratio_vs_' + names[0]]:.2f} "
+                           f"[{boot[r][target]['mae_ratio_ci'][0]:.2f}, {boot[r][target]['mae_ratio_ci'][1]:.2f}]" for r in names[1:]]
+            lines.append(f"| {target} | {UNIT[target][1]} | " + " | ".join(mae_cells) + " | " + " | ".join(ratio_cells) + " |")
+        lines += ["", "RMSE with intervals:", "",
+                  "| target | unit | " + " | ".join(f"{RECIPE_LABEL[r]} RMSE [95 %]" for r in names) + " |", "|---|---|" + "---:|" * len(names)]
+        for target in HEADLINE:
+            lines.append(f"| {target} | {UNIT[target][1]} | " + " | ".join(
+                f"{fmt(boot[r][target]['rmse'])} [{fmt(boot[r][target]['rmse_ci'][0])}, {fmt(boot[r][target]['rmse_ci'][1])}]" for r in names) + " |")
+        lines.append("")
+
+    polarity = results["polarity_discharges"]
+    lines += ["## Locked test: breakdowns (MAE per headline target; p95 is in the json)", "",
+              f"Polarity is the sign of the plasma current of the discharge: {polarity['negative']} negative and {polarity['positive']} positive locked discharges. "
+              "Relative time is the row's time scaled to 0..1 within its discharge. Configuration is the true is_limited. n = rows.", ""]
+    for key, cell in results["breakdown"].items():
+        lines += [f"### {key} ({cell['rows']} rows, {cell['discharges']} discharges)", "",
+                  "| target | unit | " + " | ".join(f"{RECIPE_LABEL[r]} {kind}" for kind in ("clean", "noisy") for r in names) + " |",
+                  "|---|---|" + "---:|" * (2 * len(names))]
+        for target in HEADLINE:
+            values = []
+            for kind in ("clean", "noisy"):
+                for recipe in names:
+                    stats = cell[recipe][kind][target]
+                    values.append("n/a" if stats is None else fmt(stats["mae"]) + (f" (n={stats['n']})" if stats["n"] < 100 else ""))
+            lines.append(f"| {target} | {UNIT[target][1]} | " + " | ".join(values) + " |")
+        lines.append("")
+
+    if results["blocked"]:
+        lines += ["## Blocked-by-id split against random group folds (development set only)", "",
+                  "Train on the lower half of the development discharge ids, test on the upper half. Discharge ids are chronological, so this is a test on later "
+                  "campaigns. The random-fold numbers are the pooled out-of-fold errors of the SAME recipe on the SAME upper-half discharges, and on all "
+                  "development discharges. Caveat: the blocked model trains on about 60 discharges, the random folds on about 95, so part of the gap is the "
+                  "smaller training set, not only the drift between campaigns.", ""]
+        for recipe, row in results["blocked"].items():
+            lines += [f"### {RECIPE_LABEL[recipe]} ({row['train_discharges']} training, {row['test_discharges']} test discharges, {row['test_rows']} test rows)", "",
+                      "| target | unit | inputs | blocked MAE | random folds, same discharges MAE | ratio | random folds, all development MAE |",
+                      "|---|---|---|---:|---:|---:|---:|"]
+            for target in HEADLINE:
+                for kind in ("clean", "noisy"):
+                    blocked_mae = row["blocked"][kind][target]["mae"]
+                    same = row.get("random_folds_same_discharges", {}).get(kind, {}).get(target)
+                    all_dev = row.get("random_folds_all_dev", {}).get(kind, {}).get(target)
+                    if same:
+                        lines.append(f"| {target} | {UNIT[target][1]} | {kind} | {fmt(blocked_mae)} | {fmt(same['mae'])} | "
+                                     f"{blocked_mae / same['mae']:.2f} | {fmt(all_dev['mae']) if all_dev else 'n/a'} |")
+                    else:
+                        lines.append(f"| {target} | {UNIT[target][1]} | {kind} | {fmt(blocked_mae)} | n/a | n/a | n/a |")
+            lines.append("")
+    return "\n".join(lines) + "\n"
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--job", default="", help="cv:<recipe>:<fold>, locked:<recipe> or blocked:<recipe>")
-    ap.add_argument("--threads", type=int, default=2)
-    ap.add_argument("--report", action="store_true")
-    a = ap.parse_args()
-    if a.job:
-        job(a.job, a.threads)
-    if a.report:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--job", default="", help="cv:<receptura>:<díl>, locked:<receptura> nebo blocked:<receptura>")
+    parser.add_argument("--threads", type=int, default=2)
+    parser.add_argument("--report", action="store_true")
+    args = parser.parse_args()
+    if args.job:
+        job(args.job, args.threads)
+    if args.report:
         report()

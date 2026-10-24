@@ -1,23 +1,28 @@
 #!/usr/bin/env python
-"""Estimate the plasma shape from the 24 magnetic measurements with the shipped model. Numpy only: no torch, no scikit-learn, no pandas.
+"""Odhad tvaru plazmatu z 24 magnetických měření nasazeným modelem. Jen numpy: žádný torch, scikit-learn ani pandas.
 
-    python predict.py input.csv [--model out/model/ipp1-ipn.npz] [--out estimates.csv] [--all]
-    python predict.py input.csv --noisy [--out estimates.csv] [--all]        noisy measurements: the noise-trained model ipp1-noisy.npz
+    python predict.py vstup.csv [--model out/model/ipp1-ipn.npz] [--out odhady.csv] [--all]
+    python predict.py vstup.csv --noisy [--out odhady.csv] [--all]     zašuměná měření: model ipp1-noisy.npz
 
-input.csv: a header row and one row per time instant, with the columns IPR01 .. IPR16 (coils) and FL01 .. FL08 (flux loops) in any order, in the units of the data file
-(extra columns such as `discharge` and `time` are passed through to the output). Default model: rows are independent: the neighbouring-coil differences that the model
-uses are differences between ADJACENT COILS inside a row (IPR02-IPR01 ... FL08-FL07), not between time steps, so the order of the rows does not matter and the first row is not special.
+Vstup: CSV se záhlavím a jedním řádkem na časový okamžik, se sloupci IPR01..IPR16 (cívky) a FL01..FL08 (smyčky)
+v libovolném pořadí a v jednotkách datového souboru. Další sloupce (např. `discharge` a `time`) se předají do výstupu.
 
---noisy uses the second model, trained on clean rows plus a copy with noise and drift added (analysis/export_model.py, results/ipp1-noise-window.md). It is NOT row by row:
-each estimate sees the measurements of the last 5 instants of the same discharge (rows t, t-1, .. t-4 in `time` order; the first rows of a discharge repeat its first row; never
-a later row), so the file needs the columns `discharge` and `time`. Rows may come in any order; the output keeps the input order. The window counts rows, so the file must have
-the sampling interval of the training data.
+Výchozí model (čistá měření) počítá každý řádek zvlášť, na pořadí řádků tedy nezáleží. Rozdíly, které používá,
+jsou rozdíly SOUSEDNÍCH CÍVEK uvnitř jednoho řádku (IPR02-IPR01 ... FL08-FL07), ne rozdíly mezi časy.
 
-Output, one row per input row: the 16 estimated values in mm and kA (shape numbers and the limited probability dimensionless) and `is_limited_flag` (1 = limited plasma).
-The X point and strike points exist only in the divertor configuration and the limiter point only in the limited one, so by default the cells that do not apply to the row are left
-empty; `--all` writes all 16 numbers for every row. The values are estimates of the institute's reference reconstruction (`results/ipp1-final.md`), not measurements of the plasma.
+--noisy použije druhý model, učený na čistých řádcích plus kopii s přidaným šumem a driftem (analysis/noisy_model.py,
+results/ipp1-noise-window.md). Ten NEPOČÍTÁ po řádcích: každý odhad vidí měření z posledních 5 okamžiků téhož výboje
+(řádky t, t-1 ... t-4 podle `time`; u prvních řádků výboje se opakuje první řádek; nikdy se nepoužije pozdější řádek).
+Soubor proto musí mít sloupce `discharge` a `time`. Řádky smějí přijít v libovolném pořadí, výstup zachová pořadí vstupu.
+Okno počítá řádky, takže soubor musí mít stejný krok vzorkování jako trénovací data.
 
-Also printed: the time per row, for the whole file at once and row by row (the median of single-row calls, one CPU core).
+Výstup, jeden řádek na řádek vstupu: 16 odhadnutých hodnot v mm a kA (tvarová čísla a pravděpodobnost limiterové
+konfigurace bez jednotky) a `is_limited_flag` (1 = limiterové plazma). Bod X a dotykové body existují jen v divertorové
+konfiguraci a bod limiteru jen v limiterové, proto se buňky, které se na daný řádek nevztahují, nechávají prázdné;
+s `--all` se vypíše všech 16 čísel u každého řádku. Hodnoty jsou odhady rekonstrukce ústavu (`results/ipp1-final.md`),
+ne měření plazmatu.
+
+Na konci se vypíše doba na jeden řádek: pro celý soubor najednou a po jednom řádku (medián, jedno jádro procesoru).
 """
 import argparse
 import csv
@@ -27,206 +32,280 @@ from pathlib import Path
 
 import numpy as np
 
-_ROOT = Path(__file__).resolve().parent
-# in the submission package the model sits in model/ next to analysis/, or in out/model/ where run.py exports it; in the repository it is hackathon/out/model next to the repository folder
-def _default(name):
-    return next((p for p in (_ROOT / "model" / name, _ROOT / "out" / "model" / name, _ROOT.parent / "out" / "model" / name) if p.exists()), _ROOT / "model" / name)
+REPO_ROOT = Path(__file__).resolve().parent
 
 
-DEFAULT_MODEL, DEFAULT_NOISY = _default("ipp1-ipn.npz"), _default("ipp1-noisy.npz")
+def find_model_file(name):
+    """Najde soubor modelu: v balíčku pro organizátory je v model/, po `python run.py` v out/model/,
+    v repozitáři vedle složky repozitáře. Když nikde není, vrátí cestu v model/ (a pozdější chyba řekne, co chybí)."""
+    candidates = (REPO_ROOT / "model" / name, REPO_ROOT / "out" / "model" / name, REPO_ROOT.parent / "out" / "model" / name)
+    return next((path for path in candidates if path.exists()), REPO_ROOT / "model" / name)
+
+
+DEFAULT_MODEL = find_model_file("ipp1-ipn.npz")
+DEFAULT_NOISY = find_model_file("ipp1-noisy.npz")
+
+# Veličiny, které existují jen v jedné konfiguraci: v druhé se v souboru s odhady nechávají prázdné.
 DIVERTOR_ONLY = ("R_x_point", "Z_x_point", "R_strike_point_1", "Z_strike_point_1", "R_strike_point_2", "Z_strike_point_2")
 LIMITED_ONLY = ("R_limiter", "Z_limiter")
 
-
-def silu(h):
-    with np.errstate(over="ignore"):          # exp(-h) may overflow to inf for a large negative h; 1/inf is 0 and the result is the correct limit
-        return h * (1.0 / (1.0 + np.exp(-h)))
+MIN_CURRENT = 1e4  # pod 10 kA už model nikdy neviděl data: dělení proudem tam nemá smysl a odhady nejsou spolehlivé
 
 
-def window_rows(discharge, time, k):
-    """(n, k) row indices of the causal window: column j is the row j instants earlier in the same discharge by `time` (clipped at the
-    discharge's first row), never a later row. Rows may come in any order. The training of the noise model uses this same function."""
-    _, g = np.unique(np.asarray(discharge), return_inverse=True)
-    n = len(g)
-    order = np.lexsort((np.asarray(time, dtype=np.float64), g))
-    gs = g[order]
-    start = np.r_[0, np.flatnonzero(gs[1:] != gs[:-1]) + 1]
-    first = np.repeat(start, np.diff(np.r_[start, n]))
-    rank = np.arange(n) - first
-    w = np.stack([order[first + np.maximum(rank - j, 0)] for j in range(k)], 1)
-    out = np.empty_like(w)
-    out[order] = w
-    return out
+def silu(values):
+    """Aktivační funkce SiLU: x / (1 + exp(-x))."""
+    with np.errstate(over="ignore"):  # exp(-x) může pro velké záporné x přetéct na inf; 1/inf je 0, což je správná limita
+        return values * (1.0 / (1.0 + np.exp(-values)))
+
+
+def window_rows(discharge, time, size):
+    """Pro každý řádek čísla řádků jeho okna: matice (počet řádků, size).
+
+    Sloupec j je řádek, který je v témž výboji o j okamžiků dřív podle `time` (u začátku výboje se opakuje první řádek),
+    nikdy ne pozdější. Řádky smějí přijít v libovolném pořadí. Stejnou funkci používá i učení zašuměného modelu.
+    """
+    _, discharge_index = np.unique(np.asarray(discharge), return_inverse=True)
+    n_rows = len(discharge_index)
+    # Řádky seřazené podle výboje a uvnitř výboje podle času.
+    order = np.lexsort((np.asarray(time, dtype=np.float64), discharge_index))
+    sorted_discharge = discharge_index[order]
+    first_of_discharge = np.r_[0, np.flatnonzero(sorted_discharge[1:] != sorted_discharge[:-1]) + 1]
+    first_of_each_row = np.repeat(first_of_discharge, np.diff(np.r_[first_of_discharge, n_rows]))
+    position_in_discharge = np.arange(n_rows) - first_of_each_row
+    window_in_sorted_order = np.stack(
+        [order[first_of_each_row + np.maximum(position_in_discharge - back, 0)] for back in range(size)], 1)
+    window = np.empty_like(window_in_sorted_order)
+    window[order] = window_in_sorted_order  # zpátky do původního pořadí řádků
+    return window
 
 
 class Model:
-    """The clean-input model (ipp1-ipn.npz, made by analysis/ipn_model.py): a general network, a network for the limiter point and a ridge for the plasma current;
-    rows are independent. Or the noise model (ipp1-noisy.npz, made by analysis/export_model.py): one network on the inputs of the last `window` rows of the
-    discharge, see estimates_noisy."""
+    """Natrénovaný model načtený ze souboru .npz.
+
+    Buď model čistých měření (ipp1-ipn.npz, vyrábí ho analysis/ipn_model.py): obecná síť, síť pro bod limiteru a ridge
+    pro proud plazmatem; řádky jsou nezávislé. Nebo zašuměný model (ipp1-noisy.npz, vyrábí ho analysis/noisy_model.py):
+    jedna síť, která vidí měření z posledních `window` řádků výboje, viz estimates_noisy.
+    """
 
     def __init__(self, path):
-        z = np.load(path, allow_pickle=False)
-        self.z = {k: z[k] for k in z.files}
-        self.inputs = [str(v) for v in self.z["input_names"]]
-        self.outputs = [str(v) for v in self.z["output_names"]]
-        self.scales = self.z["output_scales"]
-        self.lim_cols = [int(v) for v in self.z["limiter_columns"]]
-        self.ip_col, self.cls_col = int(self.z["plasma_current_column"]), int(self.z["is_limited_column"])
-        self.window = int(self.z["window_rows"]) if "window_rows" in self.z else 1   # only the noise model has a window
-        self.depth = {tag: sum(k.startswith(f"{tag}_W") for k in self.z) for tag in ("gen", "spec")}
-        self.ipn = "ipn" in self.z        # the model of analysis/ipn_model.py: measurements divided by the plasma current
-        self.feature_mode = str(self.z["feature_mode"]) if self.ipn else None
-        if not self.ipn and self.window == 1:
-            sys.exit(f"{path}: not a model of this package (the clean-input model is ipp1-ipn.npz, the noise model ipp1-noisy.npz; make them with python run.py)")
+        stored = np.load(path, allow_pickle=False)
+        self.arrays = {name: stored[name] for name in stored.files}
+        self.inputs = [str(name) for name in self.arrays["input_names"]]
+        self.outputs = [str(name) for name in self.arrays["output_names"]]
+        self.scales = self.arrays["output_scales"]  # násobky, které převedou výstupy na mm a kA
+        self.limiter_columns = [int(column) for column in self.arrays["limiter_columns"]]
+        self.current_column = int(self.arrays["plasma_current_column"])
+        self.is_limited_column = int(self.arrays["is_limited_column"])
+        self.window = int(self.arrays["window_rows"]) if "window_rows" in self.arrays else 1  # okno má jen zašuměný model
+        self.depth = {tag: sum(name.startswith(f"{tag}_W") for name in self.arrays) for tag in ("gen", "spec")}
+        self.divides_by_current = "ipn" in self.arrays  # model z ipn_model.py: měření dělená proudem plazmatem
+        self.feature_mode = str(self.arrays["feature_mode"]) if self.divides_by_current else None
+        if not self.divides_by_current and self.window == 1:
+            sys.exit(f"{path}: not a model of this package (the clean-input model is ipp1-ipn.npz, "
+                     "the noise model ipp1-noisy.npz; make them with python run.py)")
 
-    def ipn_features(self, x):
-        """ipn model: the measurements divided by the plasma current (the ridge on the 24 inputs, signed), their differences inside the row
-        (diff2 adds the second differences) and the current / ip_scale. Made by analysis/ipn_model.features."""
-        scale = float(self.z["ip_scale"])
-        cur = x.astype(np.float64) @ self.z["ridge_w"] + float(self.z["ridge_b"])
-        low = np.abs(cur) < 1e4          # the training data never go below 10.1 kA; the division is not trusted there
-        if low.any() and not getattr(self, "_warned", False):
+    def plasma_current(self, measurements):
+        """Proud plazmatem odhadnutý ridge regresí ze 24 měření (v ampérech, se znaménkem)."""
+        return measurements.astype(np.float64) @ self.arrays["ridge_w"] + float(self.arrays["ridge_b"])
+
+    def build_features(self, measurements):
+        """Vstup sítí modelu čistých měření: měření vydělená odhadem proudu (se znaménkem), jejich rozdíly uvnitř řádku
+        (u diff2 i druhé diference) a samotný proud / ip_scale. Stejně je skládá analysis/ipn_model.build_features."""
+        scale = float(self.arrays["ip_scale"])
+        current = self.plasma_current(measurements)
+        too_small = np.abs(current) < MIN_CURRENT
+        if too_small.any() and not getattr(self, "_warned", False):
             self._warned = True
-            print(f"warning: {int(low.sum())} rows with an estimated plasma current under 10 kA, outside the training range; their estimates are not reliable", file=sys.stderr)
-        xs = x * (scale / cur)[:, None]
-        parts = [xs, np.diff(xs[:, :16], axis=1), np.diff(xs[:, 16:24], axis=1)]
+            print(f"warning: {int(too_small.sum())} rows with an estimated plasma current under 10 kA, outside the training range; "
+                  "their estimates are not reliable", file=sys.stderr)
+        divided = measurements * (scale / current)[:, None]
+        parts = [divided, np.diff(divided[:, :16], axis=1), np.diff(divided[:, 16:24], axis=1)]
         if self.feature_mode == "diff2":
-            parts += [np.diff(xs[:, :16], 2, axis=1), np.diff(xs[:, 16:24], 2, axis=1)]
-        return np.concatenate(parts + [(cur / scale)[:, None]], axis=1).astype(np.float32)
+            parts += [np.diff(divided[:, :16], 2, axis=1), np.diff(divided[:, 16:24], 2, axis=1)]
+        return np.concatenate(parts + [(current / scale)[:, None]], axis=1).astype(np.float32)
 
-    def _net(self, tag, f):
-        z = self.z
-        h = (f - z[f"{tag}_mu"]) / z[f"{tag}_sd"]
-        n = self.depth[tag]
-        for i in range(n):
-            h = h @ z[f"{tag}_W{i}"] + z[f"{tag}_b{i}"]
-            if i < n - 1:
-                h = silu(h)
-        return h * z[f"{tag}_ys"] + z[f"{tag}_ym"]
+    def run_network(self, tag, features):
+        """Spočítá jednu uloženou síť ("gen" = obecná, "spec" = limiterová): standardizace, vrstvy se SiLU, zpět do jednotek dat."""
+        arrays = self.arrays
+        activations = (features - arrays[f"{tag}_mu"]) / arrays[f"{tag}_sd"]
+        n_layers = self.depth[tag]
+        for i in range(n_layers):
+            activations = activations @ arrays[f"{tag}_W{i}"] + arrays[f"{tag}_b{i}"]
+            if i < n_layers - 1:  # za poslední vrstvou se aktivace nepoužívá
+                activations = silu(activations)
+        return activations * arrays[f"{tag}_ys"] + arrays[f"{tag}_ym"]
 
-    def predict(self, x):
-        """(n, 24) raw inputs -> (n, 16) outputs in raw units (m, A, dimensionless), in the order of `self.outputs`.
-        Noise model: (n, 24 * window) stacked rows t, t-1, ... (see estimates_noisy), one network for all 16 outputs."""
-        x = np.asarray(x, dtype=np.float32)
+    def predict(self, measurements):
+        """(n, 24) surových měření -> (n, 16) výstupů v jednotkách dat (m, A, bez jednotky) v pořadí `self.outputs`.
+
+        U zašuměného modelu je vstup (n, 24 * window): naskládané řádky t, t-1, ... (viz estimates_noisy).
+        """
+        measurements = np.asarray(measurements, dtype=np.float32)
         if self.window > 1:
-            return self._net("gen", x)
-        f = self.ipn_features(x)
-        out = self._net("gen", f)
-        out[:, self.ip_col] = x.astype(np.float64) @ self.z["ridge_w"] + self.z["ridge_b"]
-        gate = np.flatnonzero(out[:, self.cls_col] > 0.5)
-        if len(gate):
-            sp = self._net("spec", f[gate])        # side (+up / -down), then R, Z when up and R, Z when down; averaged with the general network's answer
-            side = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
-            out[np.ix_(gate, self.lim_cols)] = 0.5 * (side + out[np.ix_(gate, self.lim_cols)])
-        return out
+            return self.run_network("gen", measurements)
 
-    def estimates(self, x):
-        """Like predict, in the report units (mm, kA, dimensionless)."""
-        return self.predict(x) * self.scales
+        features = self.build_features(measurements)
+        output = self.run_network("gen", features)
+        output[:, self.current_column] = self.plasma_current(measurements)  # proud je přímo ridge, ne síť
 
-    def stack(self, x, discharge, time):
-        """(n, 24) rows of whole discharges in any order -> (n, 24 * window): each row's inputs followed by those of the rows before it."""
-        x = np.asarray(x, dtype=np.float32)
-        return x[window_rows(discharge, time, self.window)].reshape(len(x), -1)
+        # Bod limiteru: jen u řádků, které obecná síť označila za limiterové (is_limited > 0,5).
+        limited = np.flatnonzero(output[:, self.is_limited_column] > 0.5)
+        if len(limited):
+            # Limiterová síť odpoví: strana (+ nahoře, - dole), pak R a Z pro stranu nahoře a R a Z pro stranu dole.
+            specialist = self.run_network("spec", features[limited])
+            answer_for_chosen_side = np.where((specialist[:, 0] > 0)[:, None], specialist[:, 1:3], specialist[:, 3:5])
+            general_answer = output[np.ix_(limited, self.limiter_columns)]
+            output[np.ix_(limited, self.limiter_columns)] = 0.5 * (answer_for_chosen_side + general_answer)
+        return output
 
-    def estimates_noisy(self, x, discharge, time):
-        """The noise model on (n, 24) rows with their discharge and time; report units, rows in the input order."""
-        return self.estimates(self.stack(x, discharge, time))
+    def estimates(self, measurements):
+        """Totéž co predict, ale v jednotkách pro lidi (mm, kA, bez jednotky)."""
+        return self.predict(measurements) * self.scales
+
+    def stack(self, measurements, discharge, time):
+        """(n, 24) řádků celých výbojů (v libovolném pořadí) -> (n, 24 * window): vstupy každého řádku následují vstupy řádků před ním."""
+        measurements = np.asarray(measurements, dtype=np.float32)
+        return measurements[window_rows(discharge, time, self.window)].reshape(len(measurements), -1)
+
+    def estimates_noisy(self, measurements, discharge, time):
+        """Zašuměný model na (n, 24) řádcích s číslem výboje a časem; v jednotkách pro lidi, pořadí řádků jako ve vstupu."""
+        return self.estimates(self.stack(measurements, discharge, time))
 
 
-def read_csv(path, inputs):
-    """Bad input stops with one line naming the row as a spreadsheet numbers it (the header is row 1), exit code 1."""
-    with open(path, newline="", encoding="utf-8-sig") as fh:  # utf-8-sig: Excel's "CSV UTF-8" starts with a byte order mark
-        reader = csv.reader(fh)
+def read_csv(path, input_names):
+    """Přečte vstupní CSV. Při chybě skončí jedním řádkem, který pojmenuje řádek tak, jak ho číslují tabulkové
+    procesory (záhlaví je řádek 1), s kódem 1. Vrací (matice měření, [(název sloupce, hodnoty)] pro discharge a time)."""
+    with open(path, newline="", encoding="utf-8-sig") as file:  # utf-8-sig: "CSV UTF-8" z Excelu začíná znakem BOM
+        reader = csv.reader(file)
         header = next(reader, None)
-        rows = [(reader.line_num, r) for r in reader if any(v.strip() for v in r)]
+        rows = [(reader.line_num, row) for row in reader if any(value.strip() for value in row)]
     if header is None:
         sys.exit(f"{path}: empty file")
-    header = [h.strip() for h in header]
-    missing = [c for c in inputs if c not in header]
+    header = [name.strip() for name in header]
+    missing = [name for name in input_names if name not in header]
     if missing:
         sys.exit(f"missing columns in {path}: {', '.join(missing)}")
     if not rows:
         sys.exit(f"{path}: no data rows after the header")
-    idx = [header.index(c) for c in inputs]
-    x = np.empty((len(rows), len(idx)))
-    for k, (line, r) in enumerate(rows):
-        if len(r) < len(header):
-            sys.exit(f"{path}: row {line}: {len(r)} values, the header has {len(header)} columns")
-        for j, i in enumerate(idx):
+
+    column_of_input = [header.index(name) for name in input_names]
+    measurements = np.empty((len(rows), len(column_of_input)))
+    for i, (line_number, row) in enumerate(rows):
+        if len(row) < len(header):
+            sys.exit(f"{path}: row {line_number}: {len(row)} values, the header has {len(header)} columns")
+        for j, column in enumerate(column_of_input):
             try:
-                x[k, j] = float(r[i])
+                measurements[i, j] = float(row[column])
             except ValueError:
-                x[k, j] = np.nan
-            if not np.isfinite(x[k, j]):
-                sys.exit(f"{path}: row {line}: column {inputs[j]} is empty or not a number ({r[i]!r})")
-    extra = [(c, [r[header.index(c)] for _, r in rows]) for c in ("discharge", "time") if c in header]
-    return x, extra
+                measurements[i, j] = np.nan
+            if not np.isfinite(measurements[i, j]):
+                sys.exit(f"{path}: row {line_number}: column {input_names[j]} is empty or not a number ({row[column]!r})")
+    extra_columns = [(name, [row[header.index(name)] for _, row in rows]) for name in ("discharge", "time") if name in header]
+    return measurements, extra_columns
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("input", help="CSV with the columns IPR01..IPR16 and FL01..FL08")
+    parser.add_argument("--model", default=None, help="the exported model (default: ipp1-ipn.npz in model/ or out/model/ next to this file; "
+                                                      "with --noisy ipp1-noisy.npz in the same places)")
+    parser.add_argument("--noisy", action="store_true", help="noisy measurements: the noise-trained model on the last 5 instants of each "
+                                                             "discharge (needs the columns discharge and time)")
+    parser.add_argument("--out", help="write the estimates to this CSV instead of printing the first rows")
+    parser.add_argument("--all", action="store_true", help="write all 16 numbers for every row "
+                                                           "(default: leave the cells that do not apply to the configuration empty)")
+    return parser.parse_args()
+
+
+def discharge_and_time_columns(extra_columns, model, input_path):
+    """Pro --noisy: vrátí (čísla výbojů, časy). Skončí chybou, když sloupce chybí nebo čas není číslo."""
+    columns = dict(extra_columns)
+    missing = [name for name in ("discharge", "time") if name not in columns]
+    if missing:
+        sys.exit(f"--noisy needs the columns discharge and time (each estimate uses the last {model.window} instants of the same discharge); "
+                 f"missing in {input_path}: {', '.join(missing)}")
+    try:
+        times = np.array([float(value) for value in columns["time"]])
+    except ValueError:
+        times = np.array([np.nan])
+    if not np.isfinite(times).all():
+        sys.exit(f"{input_path}: column time must be a number in every row")
+    return columns["discharge"], times
+
+
+def column_names_with_units(model):
+    """Názvy sloupců výstupu: u poloh s příponou _mm, u proudu _kA, ostatní beze změny."""
+    names = []
+    for name in model.outputs:
+        if name.startswith(("R_", "Z_")):
+            names.append(f"{name}_mm")
+        elif name == "plasma_current":
+            names.append(f"{name}_kA")
+        else:
+            names.append(name)
+    return names
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("input", help="CSV with the columns IPR01..IPR16 and FL01..FL08")
-    ap.add_argument("--model", default=None, help="the exported model (default: ipp1-ipn.npz in model/ or out/model/ next to this file; with --noisy ipp1-noisy.npz in the same places)")
-    ap.add_argument("--noisy", action="store_true", help="noisy measurements: the noise-trained model on the last 5 instants of each discharge (needs the columns discharge and time)")
-    ap.add_argument("--out", help="write the estimates to this CSV instead of printing the first rows")
-    ap.add_argument("--all", action="store_true", help="write all 16 numbers for every row (default: leave the cells that do not apply to the configuration empty)")
-    args = ap.parse_args()
+    args = parse_arguments()
     args.model = args.model or str(DEFAULT_NOISY if args.noisy else DEFAULT_MODEL)
     if not Path(args.model).exists():
-        sys.exit(f"model not found: {args.model} (make it with analysis/export_model.py)")
+        sys.exit(f"model not found: {args.model} (make it with analysis/noisy_model.py)")
     if not Path(args.input).is_file():
         sys.exit(f"input file not found: {args.input}")
+
     model = Model(args.model)
-    print(f"model: {args.model}", file=sys.stderr)   # which file was loaded (the default falls back to ipp1-selected.npz when ipp1-ipn.npz is missing)
+    print(f"model: {args.model}", file=sys.stderr)  # který soubor se načetl
     if args.noisy != (model.window > 1):
-        sys.exit(f"{args.model} is {'not ' if args.noisy else ''}the noise model: " + ("use ipp1-noisy.npz with --noisy" if args.noisy else "run it with --noisy"))
-    x, extra = read_csv(args.input, model.inputs)
-    rows = x
+        sys.exit(f"{args.model} is {'not ' if args.noisy else ''}the noise model: "
+                 + ("use ipp1-noisy.npz with --noisy" if args.noisy else "run it with --noisy"))
+    measurements, extra_columns = read_csv(args.input, model.inputs)
+
+    # Vstup, který model opravdu dostane: u zašuměného modelu okna z posledních řádků výboje.
+    model_input = measurements
     if args.noisy:
-        cols = dict(extra)
-        missing = [c for c in ("discharge", "time") if c not in cols]
-        if missing:
-            sys.exit(f"--noisy needs the columns discharge and time (each estimate uses the last {model.window} instants of the same discharge); missing in {args.input}: {', '.join(missing)}")
-        try:
-            times = np.array([float(v) for v in cols["time"]])
-        except ValueError:
-            times = np.array([np.nan])
-        if not np.isfinite(times).all():
-            sys.exit(f"{args.input}: column time must be a number in every row")
-        rows = model.stack(x, cols["discharge"], times)
-    t0 = time.perf_counter()
-    est = model.estimates_noisy(x, cols["discharge"], times) if args.noisy else model.estimates(x)
-    batch = time.perf_counter() - t0
-    singles = []
-    for i in range(min(len(rows), 500)):
-        t = time.perf_counter()
-        model.estimates(rows[i:i + 1])
-        singles.append(time.perf_counter() - t)
-    flag = (est[:, model.cls_col] > 0.5).astype(int)
-    names = [f"{t}_{u}" if u else t for t, u in zip(model.outputs, ["mm" if t.startswith(("R_", "Z_")) else "kA" if t == "plasma_current" else "" for t in model.outputs])]
-    header = [c for c, _ in extra] + names + ["is_limited_flag"]
-    cells = []
-    for r in range(len(x)):
-        row = [vals[r] for _, vals in extra]
-        for j, t in enumerate(model.outputs):
-            skip = not args.all and ((flag[r] and t in DIVERTOR_ONLY) or (not flag[r] and t in LIMITED_ONLY))
-            row.append("" if skip else f"{est[r, j]:.8g}")
-        cells.append(row + [str(flag[r])])
+        discharges, times = discharge_and_time_columns(extra_columns, model, args.input)
+        model_input = model.stack(measurements, discharges, times)
+
+    started = time.perf_counter()
+    estimates = model.estimates_noisy(measurements, discharges, times) if args.noisy else model.estimates(measurements)
+    whole_file_seconds = time.perf_counter() - started
+
+    single_row_seconds = []
+    for i in range(min(len(model_input), 500)):
+        started = time.perf_counter()
+        model.estimates(model_input[i:i + 1])
+        single_row_seconds.append(time.perf_counter() - started)
+
+    # Sestavení výstupních řádků: předané sloupce, 16 odhadů (prázdné tam, kde se nevztahují ke konfiguraci) a příznak.
+    is_limited_flag = (estimates[:, model.is_limited_column] > 0.5).astype(int)
+    header = [name for name, _ in extra_columns] + column_names_with_units(model) + ["is_limited_flag"]
+    output_rows = []
+    for r in range(len(measurements)):
+        row = [values[r] for _, values in extra_columns]
+        for j, output_name in enumerate(model.outputs):
+            not_in_this_configuration = ((is_limited_flag[r] and output_name in DIVERTOR_ONLY)
+                                         or (not is_limited_flag[r] and output_name in LIMITED_ONLY))
+            row.append("" if (not args.all and not_in_this_configuration) else f"{estimates[r, j]:.8g}")
+        output_rows.append(row + [str(is_limited_flag[r])])
+
     if args.out:
-        with open(args.out, "w", newline="") as fh:
-            w = csv.writer(fh)
-            w.writerow(header)
-            w.writerows(cells)
-        print(f"wrote {len(cells)} rows to {args.out}")
+        with open(args.out, "w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(header)
+            writer.writerows(output_rows)
+        print(f"wrote {len(output_rows)} rows to {args.out}")
     else:
         print(",".join(header))
-        for row in cells[:10]:
+        for row in output_rows[:10]:
             print(",".join(row))
-        if len(cells) > 10:
-            print(f"... ({len(cells) - 10} more rows; use --out to write them all)")
-    print(f"time per row: {1e6 * batch / len(x):.1f} us for the whole file at once, {1e6 * float(np.median(singles)):.1f} us as the median of single-row calls (one CPU core, numpy only"
-          f"{'; noise model: the network on one row of 5 stacked instants' if args.noisy else ''})", file=sys.stderr)
+        if len(output_rows) > 10:
+            print(f"... ({len(output_rows) - 10} more rows; use --out to write them all)")
+
+    noisy_note = "; noise model: the network on one row of 5 stacked instants" if args.noisy else ""
+    print(f"time per row: {1e6 * whole_file_seconds / len(measurements):.1f} us for the whole file at once, "
+          f"{1e6 * float(np.median(single_row_seconds)):.1f} us as the median of single-row calls (one CPU core, numpy only{noisy_note})",
+          file=sys.stderr)
 
 
 if __name__ == "__main__":

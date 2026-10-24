@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-"""Baseline for IPP task 1: ridge and a small masked multi-output network, split by discharge.
+"""Základní model úlohy IPP 1: ridge a malá vícevýstupová síť s maskou, data dělená podle výbojů.
 
-    HACKATHON_HOME=<hackathon folder> python -I analysis/ipp1_baseline.py [--epochs 60] [--folds 5]
+    HACKATHON_HOME=<složka hackathonu> python -I analysis/ipp1_baseline.py [--epochs 60] [--folds 5]
 
-Writes $HACKATHON_HOME/out/ipp1-baseline.json and .md.
+Zapíše $HACKATHON_HOME/out/ipp1-baseline.json a .md.
 """
 import argparse
 import json
@@ -14,55 +14,59 @@ from pathlib import Path
 import numpy as np
 import torch
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script folder
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I zahazuje složku skriptu
 from ipp1_common import OUT, TARGETS, fit_mlp, fit_ridge, group_folds, load, score
 
-ap = argparse.ArgumentParser()
-ap.add_argument("--epochs", type=int, default=60)
-ap.add_argument("--folds", type=int, default=5)
-args = ap.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("--epochs", type=int, default=60)
+parser.add_argument("--folds", type=int, default=5)
+args = parser.parse_args()
 torch.set_num_threads(4)
 np.random.seed(0)
 
-_, X, Y, G, M = load()
-results = {"ridge": [], "mlp": []}
+_, measurements, targets, discharges, exists = load()
+fold_scores = {"ridge": [], "mlp": []}
 latency = None
-t0 = time.time()
-for k, (tr, te) in enumerate(group_folds(X, Y, G, args.folds)):
-    results["ridge"].append(score(fit_ridge(X[tr], Y[tr], M[tr])(X[te]), Y[te], M[te]))
-    predict, net, (mu, sd) = fit_mlp(X[tr], Y[tr], M[tr], args.epochs, seed=k)
-    results["mlp"].append(score(predict(X[te]), Y[te], M[te]))
-    print(f"fold {k + 1}/{args.folds} done, {time.time() - t0:.0f} s", flush=True)
-    if latency is None:
-        one = torch.tensor((X[te][:1] - mu) / sd)
-        with torch.no_grad():
-            for _ in range(200):
-                net(one)
-            ts = []
-            for _ in range(2000):
-                a = time.perf_counter()
-                net(one)
-                ts.append(time.perf_counter() - a)
-            big = torch.tensor((X[te][:4096] - mu) / sd)
-            a = time.perf_counter()
-            net(big)
-            tb = time.perf_counter() - a
-        latency = {"single_sample_cpu_ms_median": float(np.median(ts) * 1000),
-                   "single_sample_cpu_ms_p99": float(np.percentile(ts, 99) * 1000),
-                   "batch_4096_cpu_ms": float(tb * 1000), "parameters": int(sum(p.numel() for p in net.parameters()))}
+started = time.time()
+for fold, (train, test) in enumerate(group_folds(measurements, targets, discharges, args.folds)):
+    ridge_predict = fit_ridge(measurements[train], targets[train], exists[train])
+    fold_scores["ridge"].append(score(ridge_predict(measurements[test]), targets[test], exists[test]))
+    predict, net, (input_mean, input_std) = fit_mlp(measurements[train], targets[train], exists[train], args.epochs, seed=fold)
+    fold_scores["mlp"].append(score(predict(measurements[test]), targets[test], exists[test]))
+    print(f"fold {fold + 1}/{args.folds} done, {time.time() - started:.0f} s", flush=True)
 
-avg = {m: {t: {key: (float(np.mean([f[t][key] for f in results[m]])) if key != "unit" else results[m][0][t]["unit"])
-               for key in results[m][0][t]} for t in TARGETS} for m in results}
+    if latency is None:  # latenci sítě stačí změřit jednou, na první sadě
+        one_row = torch.tensor((measurements[test][:1] - input_mean) / input_std)
+        with torch.no_grad():
+            for _ in range(200):  # zahřátí
+                net(one_row)
+            durations = []
+            for _ in range(2000):
+                call_started = time.perf_counter()
+                net(one_row)
+                durations.append(time.perf_counter() - call_started)
+            big_batch = torch.tensor((measurements[test][:4096] - input_mean) / input_std)
+            call_started = time.perf_counter()
+            net(big_batch)
+            batch_duration = time.perf_counter() - call_started
+        latency = {"single_sample_cpu_ms_median": float(np.median(durations) * 1000),
+                   "single_sample_cpu_ms_p99": float(np.percentile(durations, 99) * 1000),
+                   "batch_4096_cpu_ms": float(batch_duration * 1000), "parameters": int(sum(p.numel() for p in net.parameters()))}
+
+# Průměr každé metriky přes sady; jednotka se nepočítá, jen opíše.
+average = {model: {target: {metric: (float(np.mean([fold[target][metric] for fold in fold_scores[model]])) if metric != "unit"
+                                     else fold_scores[model][0][target]["unit"])
+                            for metric in fold_scores[model][0][target]} for target in TARGETS} for model in fold_scores}
 OUT.mkdir(exist_ok=True)
-json.dump({"folds": args.folds, "epochs": args.epochs, "average": avg, "latency": latency,
-           "seconds": time.time() - t0}, open(OUT / "ipp1-baseline.json", "w"), indent=1)
+json.dump({"folds": args.folds, "epochs": args.epochs, "average": average, "latency": latency,
+           "seconds": time.time() - started}, open(OUT / "ipp1-baseline.json", "w"), indent=1)
 
 lines = [f"# Baseline IPP 1: group split by discharge, {args.folds} folds, {args.epochs} epochs", "",
          "| target | unit | ridge MAE | MLP MAE | ridge R2 | MLP R2 | MLP nRMSE |", "|---|---|---|---|---|---|---|"]
-for t in TARGETS:
-    lines.append(f"| {t} | {avg['mlp'][t]['unit']} | {avg['ridge'][t]['mae']:.3g} | {avg['mlp'][t]['mae']:.3g} | "
-                 f"{avg['ridge'][t]['r2']:.3f} | {avg['mlp'][t]['r2']:.3f} | {avg['mlp'][t]['nrmse']:.3f} |")
-lines += ["", f"is_limited accuracy: ridge {avg['ridge']['is_limited']['accuracy']:.3f}, MLP {avg['mlp']['is_limited']['accuracy']:.3f}",
+for target in TARGETS:
+    lines.append(f"| {target} | {average['mlp'][target]['unit']} | {average['ridge'][target]['mae']:.3g} | {average['mlp'][target]['mae']:.3g} | "
+                 f"{average['ridge'][target]['r2']:.3f} | {average['mlp'][target]['r2']:.3f} | {average['mlp'][target]['nrmse']:.3f} |")
+lines += ["", f"is_limited accuracy: ridge {average['ridge']['is_limited']['accuracy']:.3f}, MLP {average['mlp']['is_limited']['accuracy']:.3f}",
           f"Latency (MLP, CPU, one sample): median {latency['single_sample_cpu_ms_median']:.3f} ms, "
           f"p99 {latency['single_sample_cpu_ms_p99']:.3f} ms; batch of 4096: {latency['batch_4096_cpu_ms']:.1f} ms; "
           f"{latency['parameters']:,} parameters"]

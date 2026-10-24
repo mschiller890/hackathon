@@ -1,8 +1,7 @@
-"""Shared code for the IPP task 1 experiments: data loading, the masked network, scoring.
+"""Společný kód pro úlohu IPP 1: načtení dat, základní neuronová síť, ridge regrese a hodnocení.
 
-Everything reads the data from $HACKATHON_HOME/data (by default the data/ folder of the repository) and
-writes to $HACKATHON_HOME/out. Rows of one discharge are near copies, so every split here
-is by whole discharges.
+Data se čtou ze složky data/ (nebo z $HACKATHON_HOME/data), výsledky se ukládají do out/.
+Řádky jednoho výboje jsou téměř kopie, proto se data vždy dělí po celých výbojích, nikdy po řádcích.
 """
 import os
 from pathlib import Path
@@ -14,114 +13,170 @@ import torch.nn as nn
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import GroupKFold
 
+# --- kde jsou data a kam se píše ---------------------------------------------------------------------------------
 REPO = Path(__file__).resolve().parents[1]
-ROOT = Path(os.environ.get("HACKATHON_HOME") or REPO)          # without HACKATHON_HOME the repository itself, where data/ is
+ROOT = Path(os.environ.get("HACKATHON_HOME") or REPO)  # bez HACKATHON_HOME je domovem samotný repozitář
 OUT = ROOT / "out"
-DATA = next((d for d in (ROOT / "data", ROOT / "data/raw/ipp1-magnetic/uloha_1-magneticka_data") if (d / "equil_data.csv").exists()), ROOT / "data")
+
+# Data hledáme v data/ a pro jistotu i v původní struktuře z archivu od organizátorů.
+_DATA_CANDIDATES = (ROOT / "data", ROOT / "data/raw/ipp1-magnetic/uloha_1-magneticka_data")
+DATA = next((folder for folder in _DATA_CANDIDATES if (folder / "equil_data.csv").exists()), ROOT / "data")
 if not DATA.exists():
-    raise SystemExit(f"Data folder not found: {DATA}\nPut equil_data.csv and equil_data_noisy.csv in data/ of the repository, or set HACKATHON_HOME to a folder that holds "
-                     "data/ (HACKATHON_HOME is "
-                     f"{'unset' if 'HACKATHON_HOME' not in os.environ else 'set to ' + os.environ['HACKATHON_HOME']}).")
+    hackathon_home = os.environ.get("HACKATHON_HOME")
+    raise SystemExit(
+        f"Složka s daty nenalezena: {DATA}\n"
+        "Dejte equil_data.csv a equil_data_noisy.csv do složky data/ v repozitáři, nebo nastavte HACKATHON_HOME "
+        f"na složku, která data/ obsahuje (HACKATHON_HOME je {'nenastaveno' if hackathon_home is None else hackathon_home})."
+    )
 OUT.mkdir(parents=True, exist_ok=True)
 
-# Targets that exist only in one configuration are NaN elsewhere: R_x_point.. and the strike
-# points in the divertor configuration, R_limiter and Z_limiter when the plasma is limited.
-TARGETS = ["plasma_current", "R_mag_axis", "Z_mag_axis", "elongation", "triangularity",
-           "triangularity_upper", "triangularity_lower", "R_x_point", "Z_x_point",
-           "R_strike_point_1", "Z_strike_point_1", "R_strike_point_2", "Z_strike_point_2",
-           "R_limiter", "Z_limiter", "is_limited"]
-# (factor, unit) that turns the raw value into the unit used in reports: metres to mm, A to kA.
-UNIT = {t: (1000.0, "mm") for t in TARGETS if t.startswith(("R_", "Z_"))}
-UNIT.update({"plasma_current": (1e-3, "kA"), "elongation": (1.0, ""), "triangularity": (1.0, ""),
-             "triangularity_upper": (1.0, ""), "triangularity_lower": (1.0, ""), "is_limited": (1.0, "")})
+# --- co se odhaduje ----------------------------------------------------------------------------------------------
+# Některé veličiny existují jen v jedné konfiguraci plazmatu a jinde jsou v datech prázdné (NaN):
+# bod X a dotykové body jen v divertorové, bod limiteru (R_limiter, Z_limiter) jen v limiterové.
+TARGETS = [
+    "plasma_current", "R_mag_axis", "Z_mag_axis", "elongation", "triangularity",
+    "triangularity_upper", "triangularity_lower", "R_x_point", "Z_x_point",
+    "R_strike_point_1", "Z_strike_point_1", "R_strike_point_2", "Z_strike_point_2",
+    "R_limiter", "Z_limiter", "is_limited",
+]
+
+# Pro každou veličinu (násobek, jednotka), který převede hodnotu z dat do jednotky v tabulkách:
+# polohy z metrů na milimetry, proud z ampér na kiloampéry, tvarová čísla beze změny.
+UNIT = {name: (1000.0, "mm") for name in TARGETS if name.startswith(("R_", "Z_"))}
+UNIT.update({
+    "plasma_current": (1e-3, "kA"),
+    "elongation": (1.0, ""), "triangularity": (1.0, ""),
+    "triangularity_upper": (1.0, ""), "triangularity_lower": (1.0, ""),
+    "is_limited": (1.0, ""),
+})
+
+EPSILON = 1e-9  # přičítá se ke směrodatné odchylce, aby se nikdy nedělilo nulou
+BATCH_SIZE = 512
 
 
 def load(noisy=False):
-    """Return (frame, X, Y, groups, mask). Y has NaN where a target does not exist; mask is ~isnan(Y)."""
-    df = pd.read_csv(DATA / ("equil_data_noisy.csv" if noisy else "equil_data.csv"))
-    df["is_limited"] = df["is_limited"].astype(float)
-    x_cols = [c for c in df.columns if c.startswith(("IPR", "FL"))]
-    X = df[x_cols].values.astype(np.float32)
-    Y = df[TARGETS].values.astype(np.float32)
-    return df, X, Y, df["discharge"].values, ~np.isnan(Y)
+    """Načte data a vrátí (tabulka, vstupy, cíle, čísla výbojů, maska).
+
+    Cíle mají NaN tam, kde veličina neexistuje. Maska je opak: True tam, kde cíl existuje.
+    """
+    csv_name = "equil_data_noisy.csv" if noisy else "equil_data.csv"
+    table = pd.read_csv(DATA / csv_name)
+    table["is_limited"] = table["is_limited"].astype(float)
+    input_columns = [name for name in table.columns if name.startswith(("IPR", "FL"))]  # 16 cívek + 8 smyček
+    inputs = table[input_columns].values.astype(np.float32)
+    targets = table[TARGETS].values.astype(np.float32)
+    return table, inputs, targets, table["discharge"].values, ~np.isnan(targets)
 
 
-def group_folds(X, Y, groups, n_splits=5):
-    return list(GroupKFold(n_splits=n_splits).split(X, Y, groups))
+def group_folds(inputs, targets, discharges, n_splits=5):
+    """Rozdělí řádky na n_splits dílů tak, aby žádný výboj nebyl zároveň v učení i v testu."""
+    return list(GroupKFold(n_splits=n_splits).split(inputs, targets, discharges))
 
 
 class Net(nn.Module):
-    def __init__(self, n_in, n_out, h=256):
+    """Základní síť: vstup -> 256 -> 256 -> 128 -> výstup, mezi vrstvami aktivace SiLU."""
+
+    def __init__(self, n_inputs, n_outputs, width=256):
         super().__init__()
-        self.f = nn.Sequential(nn.Linear(n_in, h), nn.SiLU(), nn.Linear(h, h), nn.SiLU(),
-                               nn.Linear(h, h // 2), nn.SiLU(), nn.Linear(h // 2, n_out))
+        self.layers = nn.Sequential(
+            nn.Linear(n_inputs, width), nn.SiLU(),
+            nn.Linear(width, width), nn.SiLU(),
+            nn.Linear(width, width // 2), nn.SiLU(),
+            nn.Linear(width // 2, n_outputs),
+        )
 
     def forward(self, x):
-        return self.f(x)
+        return self.layers(x)
 
 
-def fit_mlp(xtr, ytr, mtr, epochs=60, seed=0):
-    """Train on standardized inputs and targets with a loss masked to the targets that exist.
+def fit_mlp(x_train, y_train, exists_train, epochs=60, seed=0):
+    """Natrénuje základní síť na standardizovaných vstupech i cílech.
 
-    Returns (predict, net, (input_mean, input_std)); predict maps raw inputs to raw targets.
+    Chyba se počítá jen tam, kde cíl existuje (exists_train), chybějící hodnoty ji neovlivní.
+    Vrací (predict, síť, (střední hodnota vstupů, směrodatná odchylka vstupů)); predict převede
+    surové vstupy na surové cíle.
     """
     torch.manual_seed(seed)
-    mu, sd = xtr.mean(0), xtr.std(0) + 1e-9
-    ym, ys = np.nanmean(ytr, 0), np.nanstd(ytr, 0) + 1e-9
-    xt = torch.tensor((xtr - mu) / sd)
-    yt = torch.tensor(np.nan_to_num((ytr - ym) / ys))
-    mt = torch.tensor(mtr.astype(np.float32))
-    net = Net(xt.shape[1], yt.shape[1])
-    opt = torch.optim.AdamW(net.parameters(), lr=2e-3, weight_decay=1e-4)
-    steps = epochs * ((len(xt) + 511) // 512)
-    sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=3e-3, total_steps=steps)
+
+    # Standardizace: vstupy i cíle odečteme průměr a vydělíme směrodatnou odchylkou.
+    x_mean, x_std = x_train.mean(0), x_train.std(0) + EPSILON
+    y_mean, y_std = np.nanmean(y_train, 0), np.nanstd(y_train, 0) + EPSILON
+    x_tensor = torch.tensor((x_train - x_mean) / x_std)
+    y_tensor = torch.tensor(np.nan_to_num((y_train - y_mean) / y_std))  # chybějící cíle -> 0, maska je vyřadí
+    exists_tensor = torch.tensor(exists_train.astype(np.float32))
+
+    network = Net(x_tensor.shape[1], y_tensor.shape[1])
+    optimizer = torch.optim.AdamW(network.parameters(), lr=2e-3, weight_decay=1e-4)
+    steps = epochs * ((len(x_tensor) + BATCH_SIZE - 1) // BATCH_SIZE)
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=3e-3, total_steps=steps)
+
     for _ in range(epochs):
-        perm = torch.randperm(len(xt))
-        for i in range(0, len(xt), 512):
-            b = perm[i:i + 512]
-            loss = ((net(xt[b]) - yt[b]) ** 2 * mt[b]).sum() / mt[b].sum()
-            opt.zero_grad()
+        shuffled = torch.randperm(len(x_tensor))
+        for start in range(0, len(x_tensor), BATCH_SIZE):
+            batch = shuffled[start:start + BATCH_SIZE]
+            squared_error = (network(x_tensor[batch]) - y_tensor[batch]) ** 2
+            loss = (squared_error * exists_tensor[batch]).sum() / exists_tensor[batch].sum()
+            optimizer.zero_grad()
             loss.backward()
-            opt.step()
-            sched.step()
-    net.eval()
+            optimizer.step()
+            scheduler.step()
+    network.eval()
 
     def predict(x):
         with torch.no_grad():
-            return net(torch.tensor((x - mu) / sd)).numpy() * ys + ym
-    return predict, net, (mu, sd)
+            return network(torch.tensor((x - x_mean) / x_std)).numpy() * y_std + y_mean
+
+    return predict, network, (x_mean, x_std)
 
 
-def fit_ridge(xtr, ytr, mtr):
-    mu, sd = xtr.mean(0), xtr.std(0) + 1e-9
-    models = [Ridge(alpha=1.0).fit((xtr[mtr[:, j]] - mu) / sd, ytr[mtr[:, j], j]) for j in range(ytr.shape[1])]
-    return lambda x: np.column_stack([m.predict((x - mu) / sd) for m in models])
+def fit_ridge(x_train, y_train, exists_train):
+    """Pro každý cíl zvlášť lineární (ridge) regrese na standardizovaných vstupech. Vrací funkci predict."""
+    x_mean, x_std = x_train.mean(0), x_train.std(0) + EPSILON
+    models = []
+    for target in range(y_train.shape[1]):
+        rows = exists_train[:, target]
+        model = Ridge(alpha=1.0).fit((x_train[rows] - x_mean) / x_std, y_train[rows, target])
+        models.append(model)
+    return lambda x: np.column_stack([model.predict((x - x_mean) / x_std) for model in models])
 
 
-def score(pred, y, m):
-    """Per target: MAE in report units, R squared, RMSE relative to the spread; accuracy for is_limited."""
-    res = {}
-    for j, t in enumerate(TARGETS):
-        k = m[:, j]
-        e = pred[k, j] - y[k, j]
-        scale, unit = UNIT[t]
-        res[t] = {"mae": float(np.abs(e).mean() * scale), "unit": unit,
-                  "r2": float(1 - (e ** 2).sum() / ((y[k, j] - y[k, j].mean()) ** 2).sum()),
-                  "nrmse": float(np.sqrt((e ** 2).mean()) / y[k, j].std())}
-    res["is_limited"]["accuracy"] = float(((pred[m[:, -1], -1] > 0.5) == (y[m[:, -1], -1] > 0.5)).mean())
-    return res
+def score(prediction, targets, exists):
+    """Hodnocení po jednotlivých cílech: střední chyba v mm (kA), R², chyba vůči rozptylu a u is_limited přesnost."""
+    result = {}
+    for column, name in enumerate(TARGETS):
+        rows = exists[:, column]
+        error = prediction[rows, column] - targets[rows, column]
+        scale, unit = UNIT[name]
+        spread = targets[rows, column].std()
+        sum_of_squares = ((targets[rows, column] - targets[rows, column].mean()) ** 2).sum()
+        result[name] = {
+            "mae": float(np.abs(error).mean() * scale),
+            "unit": unit,
+            "r2": float(1 - (error ** 2).sum() / sum_of_squares),
+            "nrmse": float(np.sqrt((error ** 2).mean()) / spread),
+        }
+    limited = exists[:, -1]
+    result["is_limited"]["accuracy"] = float(((prediction[limited, -1] > 0.5) == (targets[limited, -1] > 0.5)).mean())
+    return result
 
 
-def score_extended(pred, y, m):
-    """Pooled metrics per target over all given rows (not averaged over folds): MAE, median, RMSE, p95, p99, max
-    of the absolute error in report units, plus nRMSE and R2 against the pooled spread."""
-    res = {}
-    for j, t in enumerate(TARGETS):
-        k = m[:, j]
-        e = pred[k, j].astype(np.float64) - y[k, j]
-        a = np.abs(e) * UNIT[t][0]
-        res[t] = {"mae": float(a.mean()), "median": float(np.median(a)), "rmse": float(np.sqrt((a ** 2).mean())),
-                  "p95": float(np.percentile(a, 95)), "p99": float(np.percentile(a, 99)), "max": float(a.max()),
-                  "unit": UNIT[t][1], "nrmse": float(np.sqrt((e ** 2).mean()) / y[k, j].std()),
-                  "r2": float(1 - (e ** 2).sum() / ((y[k, j] - y[k, j].mean()) ** 2).sum())}
-    return res
+def score_extended(prediction, targets, exists):
+    """Jako score, ale podrobněji: medián, RMSE, 95. a 99. percentil a nejhorší řádek (vše přes všechny dané řádky)."""
+    result = {}
+    for column, name in enumerate(TARGETS):
+        rows = exists[:, column]
+        error = prediction[rows, column].astype(np.float64) - targets[rows, column]
+        absolute = np.abs(error) * UNIT[name][0]
+        sum_of_squares = ((targets[rows, column] - targets[rows, column].mean()) ** 2).sum()
+        result[name] = {
+            "mae": float(absolute.mean()),
+            "median": float(np.median(absolute)),
+            "rmse": float(np.sqrt((absolute ** 2).mean())),
+            "p95": float(np.percentile(absolute, 95)),
+            "p99": float(np.percentile(absolute, 99)),
+            "max": float(absolute.max()),
+            "unit": UNIT[name][1],
+            "nrmse": float(np.sqrt((error ** 2).mean()) / targets[rows, column].std()),
+            "r2": float(1 - (error ** 2).sum() / sum_of_squares),
+        }
+    return result

@@ -91,7 +91,7 @@ Plně propojená síť 24 → 256 → 256 → 128 → 16 (aktivace SiLU), 107 15
 4. **Proud plazmatem** je přímo ridge, ne síť (lineární model je u proudu asi 40krát přesnější než síť: 0,035 kA proti 1,5 kA).
 5. **Ztráta:** Huberova s delta 0,2 na standardizovaných cílech.
 
-### Zašuměný model (`analysis/export_model.py`)
+### Zašuměný model (`analysis/noisy_model.py`)
 
 Základní síť, kterou vidí **posledních 5 okamžiků téhož výboje** naskládaných vedle sebe (120 vstupů). Učí se na čistých řádcích plus jedné kopii s přidaným šumem a driftem. Drift je lineární v čase, pro každý výboj a cívku jiný (`naměřeno(t) = správně(t) + šum + koeficient * t`). Průměrování přes okno zmenšuje šum.
 
@@ -121,7 +121,7 @@ Co `python run.py` udělá, krok za krokem:
 | 1. Balíčky | zkontroluje, že jsou nainstalované numpy, pandas, scikit-learn, torch a další |
 | 2. Data | najde CSV soubory |
 | 3. Živé demo | síť se učí epocha po epoše (graf ztráty a chyby osy, přesnost v procentech), pak odhaduje neviděný výboj okamžik po okamžiku a nakonec běží plnou rychlostí. Výpis ukazuje i řádky dat, **nenahrávat a neposílat** |
-| 4. Export | `export_model.py` natrénuje zašuměný model (`ipp1-noisy.npz`), `ipn_model.py --live` natrénuje nasazený čistý model (`ipp1-ipn.npz`) se živým grafem. Vše do `out/model/` |
+| 4. Export | `noisy_model.py` natrénuje zašuměný model (`ipp1-noisy.npz`), `ipn_model.py --live` natrénuje nasazený čistý model (`ipp1-ipn.npz`) se živým grafem. Vše do `out/model/` |
 | 5. První odhad | odhadne prvních 5 řádků jednoho vývojového výboje s exportovaným modelem |
 | 6. Šum | změří osu obou modelů na zašuměném souboru, 30 odložených výbojů |
 
@@ -161,12 +161,11 @@ python predict.py vstup.csv --out odhady.csv --all
 |---|---|
 | `run.py` | **jediný soubor, který spustí všechno** (kapitola 3) |
 | `predict.py` | použití modelu na vlastním CSV (kapitola 4) |
-| `analysis/` | skripty: `ipp1_common.py` (načtení dat, síť, skórování), `ipp1_final.py` (receptury a odložené výboje), `ipn_model.py` (nasazený model), `export_model.py` (zašuměný model), `mini_pipeline.py` (živé demo), `bench_mm.py`, `plot_accuracy.py`, `make_all.py`, analýzy (`ipp1_eda.py`, `ipp1_baseline.py`, `ipp1_oof*.py`, `ipp1_time.py`, `ipp1_inputs.py`, `ipp1_latency.py`, `ipp1_data_checks.py`) a syntetický test (`synth_equilibrium.py`, `synth_validation.py`) |
+| `analysis/` | skripty: `ipp1_common.py` (načtení dat, síť, skórování), `ipp1_final.py` (receptury a odložené výboje), `ipn_model.py` (nasazený model), `noisy_model.py` (zašuměný model), `mini_pipeline.py` (živé demo), `bench_mm.py`, `plot_accuracy.py`, `make_all.py`, analýzy (`ipp1_eda.py`, `ipp1_baseline.py`, `ipp1_oof*.py`, `ipp1_time.py`, `ipp1_inputs.py`, `ipp1_latency.py`, `ipp1_data_checks.py`) a syntetický test (`synth_equilibrium.py`, `synth_validation.py`) |
 | `notebooks/01 … 10` | **všechny závěry**, s uloženými výstupy (jdou číst bez spuštění): 01 data, 02 základní modely, 03 vstupy a důležitost, 04 stabilita v čase, 05 odezva, 06 kamera, 07 nerovnoměrné rozdělení a neobvyklé tvary, 08 šum, drift a množství dat, 09 nasazený model na odložených výbojích, 10 syntetický test se známou pravdou |
 | `data/` | **důvěrná data ÚFP** (`equil_data.csv`, `equil_data_noisy.csv`, 42 972 řádků každý). Repozitář je soukromý, kapitola 9 |
 | `results/` | agregované výsledky a grafy, které notebooky čtou (žádná surová data) |
 | `slides.pdf`, `slides.pptx` | prezentace |
-| `handout.pdf` | jednostránkové shrnutí pro porotu |
 | `requirements.txt` | balíčky a verze, se kterými čísla vznikla |
 
 Nejdůležitější soubory v `results/`: `bench-mm.md` (chyby v mm), `ipp1-ipn.md` (nasazený model, co se zkoušelo a nepomohlo), `ipp1-final.md` (výběr receptur na odložených výbojích), `ipp1-noise-window.md` (zašuměný model), `ipp1-accuracy-*.png` (grafy přesnosti).

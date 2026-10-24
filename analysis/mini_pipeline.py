@@ -1,35 +1,32 @@
 #!/usr/bin/env python
-"""The whole idea of the project, live in the terminal: 24 magnetic measurements in, plasma shape out.
+"""Celý nápad projektu živě v terminálu: 24 magnetických měření dovnitř, tvar plazmatu ven.
 
-    HACKATHON_HOME=<hackathon folder> python analysis/mini_pipeline.py [--epochs 150] [--models 1] [--seconds 10] [--dump-rows N] [--plain]
+    HACKATHON_HOME=<složka hackathonu> python analysis/mini_pipeline.py [--epochs 150] [--models 1] [--seconds 10] [--dump-rows N] [--plain]
 
-What it prints, in order (Czech, it is the demo for the jury):
-  0. a title banner: inputs, outputs, network, split, machine;
-  1. the network learning epoch by epoch: a live two-panel chart of the training loss and of the axis error on the
-     30 discharges it never sees (log scales), with elapsed time and epochs per second;
-  2. the error of all 16 outputs on those 30 discharges, as bars relative to each output's spread, and the share of
-     instants where the limited/diverted call agrees with the institute's reconstruction;
-  3. the share of those instants inside a tolerance: a chart of the share whose R and Z axis error is under each
-     tolerance from 0.01 to 10 mm (log scale), tiles at 0.1, 0.5, 1 and 2 mm, a bar of the limited/diverted
-     agreement and the R² of every output;
-  4. one unseen discharge instant by instant: every single-row estimate is timed first in one tight loop, then a live
-     chart replays the reference and the estimated R and Z axis position with the error and the time of each estimate,
-     then the distribution of those times (median, p99);
-  5. full speed: the 30 unseen discharges again and again in batches, a live gauge of estimates per second against
-     the target, then a summary box;
-  6. every estimate of one full-speed pass (--dump-rows 0 skips it).
+Co se vypisuje, popořadě (česky, je to ukázka pro porotu):
+  0. úvodní rámeček: vstupy, výstupy, síť, rozdělení dat, stroj;
+  1. učení sítě epocha po epoše: živý graf ztráty při učení a chyby osy na 30 výbojích, které síť nikdy neviděla
+     (logaritmické osy), s uplynulým časem a počtem epoch za sekundu;
+  2. chyba všech 16 veličin na těch 30 výbojích jako pruhy vůči rozptylu každé veličiny a podíl okamžiků, ve kterých
+     se určení limiterová / divertorová shoduje s rekonstrukcí ústavu;
+  3. podíl okamžiků v toleranci: graf podílu okamžiků, jejichž chyba osy R a Z je pod danou tolerancí od 0,01 do 10 mm
+     (logaritmicky), dlaždice pro 0,1; 0,5; 1 a 2 mm, pruh shody limiter / divertor a R² každé veličiny;
+  4. jeden neviděný výboj okamžik po okamžiku: každý jednořádkový odhad se nejdřív změří v těsné smyčce, potom živý graf
+     přehraje referenční a odhadnutou polohu osy R a Z s chybou a dobou každého odhadu, nakonec rozdělení těch dob
+     (medián, p99);
+  5. plná rychlost: 30 neviděných výbojů znovu a znovu po dávkách, živý ukazatel odhadů za sekundu proti cíli a souhrn;
+  6. každý odhad jednoho průchodu plnou rychlostí (--dump-rows 0 to vynechá).
 
---plain (automatic when stdout is not a terminal) prints the same without redrawing and without colour codes: the
-per-epoch, per-instant and per-second tables of the earlier version, then each chart once.
+--plain (automaticky, když stdout není terminál) vypisuje totéž bez překreslování a bez barev: tabulky po epochách,
+po okamžicích a po sekundách ze starší verze a každý graf jednou.
 
-Same data, network (ipp1_common.Net) and 119/30 split as the project (ipp1_final.locked_ids), one seed; the network is the
-recipe of analysis/ipn_model.py (measurements divided by the plasma current), trained here live, so its numbers are close to,
-not bit-identical with, results/ipp1-ipn.md and results/bench-mm.md.
-Writes nothing. The core of the project, for the reader of this file:
-    ipp1_common.py   data loading, the network, masked training, scoring
-    ipp1_final.py    the shipped model and the locked 30-discharge test
-    export_model.py  predict.py   the shipped model as one numpy-only file
-    make_all.py      runs the analysis steps in dependency order
+Stejná data, síť (ipp1_common.Net) a rozdělení 119/30 jako v projektu (ipp1_final.locked_ids), jedno semínko. Síť je recept
+z analysis/ipn_model.py (měření dělená proudem plazmatu), jen se tu učí živě, takže její čísla jsou blízká, ne totožná
+s results/ipp1-ipn.md a results/bench-mm.md. Nic nezapisuje. Jádro projektu pro čtenáře tohoto souboru:
+    ipp1_common.py   načtení dat, síť, učení s maskou, hodnocení
+    ipp1_final.py    nasazený model a odložený test na 30 výbojích
+    noisy_model.py  predict.py   nasazený model jako jediný soubor jen s numpy
+    make_all.py      pouští kroky analýzy ve správném pořadí
 """
 import argparse
 import math
@@ -48,16 +45,20 @@ import numpy as np
 import torch
 from sklearn.linear_model import Ridge
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script folder
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I zahazuje složku skriptu
 from ipp1_common import TARGETS, UNIT, Net, load, score
 from ipp1_final import locked_ids
 
-R, Z = TARGETS.index("R_mag_axis"), TARGETS.index("Z_mag_axis")
-AXIS_W = 10                       # characters left of every plot: an 8-character label, a space, the axis line
-SPARK = " ▁▂▃▄▅▆▇█"
-ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
+# Sloupce výstupů, které demo potřebuje.
+R_AXIS, Z_AXIS = TARGETS.index("R_mag_axis"), TARGETS.index("Z_mag_axis")
+CURRENT_COL, IS_LIMITED_COL = TARGETS.index("plasma_current"), TARGETS.index("is_limited")
+R_LIMITER_COL, Z_LIMITER_COL = TARGETS.index("R_limiter"), TARGETS.index("Z_limiter")
+
+PLOT_MARGIN = 10                  # znaků vlevo od každého grafu: osm znaků popisku, mezera, osa
+SPARK_LEVELS = " ▁▂▃▄▅▆▇█"
+ANSI_CODE = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 HIDE_CURSOR, SHOW_CURSOR = "\033[?25l", "\033[?25h"
-LABELS = {  # Czech names of the 16 outputs, for the jury
+LABELS = {  # české názvy 16 výstupů pro porotu
     "plasma_current": "proud plazmatem", "R_mag_axis": "magnetická osa R", "Z_mag_axis": "magnetická osa Z",
     "elongation": "protažení (elongace)", "triangularity": "trojúhelníkovost",
     "triangularity_upper": "trojúhelníkovost horní", "triangularity_lower": "trojúhelníkovost dolní",
@@ -67,12 +68,14 @@ LABELS = {  # Czech names of the 16 outputs, for the jury
 }
 
 
-# ----------------------------------------------------------------------------- terminal output
+# ===================================================================================================================
+# Výpis do terminálu
+# ===================================================================================================================
 class Style:
-    """ANSI colour codes; every code is an empty string in plain mode, so a log carries no escape codes."""
+    """Barvy v terminálu (ANSI kódy). V prostém režimu je každý kód prázdný řetězec, takže log neobsahuje escape sekvence."""
 
-    # One meaning per colour in every section: reference, estimate, axis R, axis Z; green / yellow / red only for
-    # good / acceptable / weak.
+    # V každé sekci má barva jeden význam: reference, odhad, osa R, osa Z; zelená / žlutá / červená jen pro
+    # dobré / ujde / slabé.
     CODES = {"bold": "1", "red": "31", "green": "32", "yellow": "33", "grey": "90",
              "ref": "97", "est": "96", "axis_r": "95", "axis_z": "94"}
 
@@ -82,45 +85,45 @@ class Style:
         self.end = "\033[0m" if on else ""
 
     def paint(self, colour, text):
-        """`text` in `colour`, reset afterwards (unchanged when colour is off)."""
+        """Text v dané barvě a potom reset (beze změny, když jsou barvy vypnuté)."""
         return f"{colour}{text}{self.end}" if colour else text
 
 
-ST = Style(False)   # replaced in main() once we know whether stdout is a terminal
+ST = Style(False)   # v main() se nahradí, až víme, jestli stdout je terminál
 
 
 def visible_len(text):
-    """Length of `text` as it appears on screen, colour codes not counted."""
-    return len(ANSI.sub("", text))
+    """Délka textu tak, jak je vidět na obrazovce, barevné kódy se nepočítají."""
+    return len(ANSI_CODE.sub("", text))
 
 
 def pad(text, width):
-    """`text` padded with spaces to `width` visible characters."""
+    """Text doplněný mezerami na `width` viditelných znaků."""
     return text + " " * max(0, width - visible_len(text))
 
 
 def fit(text, width):
-    """`text` cut to `width` visible characters without breaking a colour code (a wrapped line would break the redraw)."""
+    """Text oříznutý na `width` viditelných znaků, aniž by se rozbil barevný kód (zalomený řádek by pokazil překreslení)."""
     if visible_len(text) <= width:
         return text
-    out, used = [], 0
+    kept, used = [], 0
     for piece in re.split(r"(\x1b\[[0-9;?]*[A-Za-z])", text):
-        if ANSI.fullmatch(piece):
-            out.append(piece)
+        if ANSI_CODE.fullmatch(piece):
+            kept.append(piece)
             continue
         take = piece[:width - used]
-        out.append(take)
+        kept.append(take)
         used += len(take)
         if used >= width:
             break
-    return "".join(out) + ST.end
+    return "".join(kept) + ST.end
 
 
 class LiveBlock:
-    """A block of lines redrawn in place: the cursor goes back to the block's first line and rewrites every line.
+    """Blok řádků překreslovaný na místě: kurzor se vrátí na první řádek bloku a přepíše všechny řádky.
 
-    Lines are cut to the terminal width and the block to the terminal height, because a wrapped line or a block
-    taller than the screen would leave the cursor somewhere else than where the next redraw expects it.
+    Řádky se ořezávají na šířku terminálu a blok na jeho výšku, protože zalomený řádek nebo blok vyšší než obrazovka
+    by nechal kurzor jinde, než kde ho čeká další překreslení.
     """
 
     def __init__(self):
@@ -129,64 +132,67 @@ class LiveBlock:
     def draw(self, lines):
         size = shutil.get_terminal_size((100, 40))
         lines = [fit(line, size.columns - 1) for line in lines][:max(1, size.lines - 1)]
-        out = [f"\r\033[{self.height}A"] if self.height else []
-        out += [line + "\033[K\n" for line in lines]
-        out.append("\033[J")              # clears what is left of a taller previous frame
-        sys.stdout.write("".join(out))
+        output = [f"\r\033[{self.height}A"] if self.height else []
+        output += [line + "\033[K\n" for line in lines]
+        output.append("\033[J")              # smaže zbytek vyššího předchozího snímku
+        sys.stdout.write("".join(output))
         sys.stdout.flush()
         self.height = len(lines)
 
 
 def terminal_rows(live):
-    """Rows the live charts may use; plain mode draws at a fixed size."""
+    """Kolik řádků smějí zabrat živé grafy; prostý režim kreslí ve stálé velikosti."""
     return shutil.get_terminal_size((100, 40)).lines if live else 40
 
 
 def section(number, title, width):
-    """A numbered section heading on a full-width rule."""
-    head = f"━━ {number} · {title} "
-    print("\n\n" + ST.paint(ST.bold, head + "━" * max(0, width - len(head))) + "\n")
+    """Nadpis očíslované sekce na čáře přes celou šířku."""
+    heading = f"━━ {number} · {title} "
+    print("\n\n" + ST.paint(ST.bold, heading + "━" * max(0, width - len(heading))) + "\n")
 
 
 def box(title, rows, width, colour=""):
-    """A rounded box of `width` characters with a title in the top border; rows are cut to fit."""
-    inner = width - 4
+    """Zaoblený rámeček široký `width` znaků s nadpisem v horní hraně; řádky se ořezávají, aby se vešly."""
+    inner_width = width - 4
     top = f"╭─ {title} " if title else "╭"
     lines = [ST.paint(colour, top + "─" * (width - 1 - len(top)) + "╮")]
     for row in rows:
-        lines.append(ST.paint(colour, "│ ") + pad(fit(row, inner), inner) + ST.paint(colour, " │"))
+        lines.append(ST.paint(colour, "│ ") + pad(fit(row, inner_width), inner_width) + ST.paint(colour, " │"))
     lines.append(ST.paint(colour, "╰" + "─" * (width - 2) + "╯"))
     return lines
 
 
 def say(text, width):
-    """Print prose wrapped to `width` columns."""
+    """Vytiskne odstavec zalomený na `width` sloupců."""
     print(textwrap.fill(text, width))
 
 
-def fmt_int(n):
-    return f"{n:,}".replace(",", " ")
+def format_int(number):
+    """Celé číslo s mezerou jako oddělovačem tisíců."""
+    return f"{number:,}".replace(",", " ")
 
 
-def progress(fraction, width):
-    """A progress bar of `width` cells filled to `fraction`."""
+def progress_bar(fraction, width):
+    """Ukazatel průběhu široký `width` buněk, vyplněný do podílu `fraction`."""
     filled = int(round(min(max(fraction, 0), 1) * width))
     return "█" * filled + ST.paint(ST.grey, "░" * (width - filled))
 
 
-def bar(err_mm, width=40):
-    """Log scale from 0.1 mm (empty) to 10 mm (full); colour says the same as the number: red over 2 mm, green under 0.5."""
-    n = int(np.clip((np.log10(max(err_mm, 1e-6)) + 1) / 2 * width, 0, width))
-    colour = ST.red if err_mm > 2 else ST.yellow if err_mm > 0.5 else ST.green
-    return f"{colour}{err_mm:7.3f} mm {'█' * n:{width}}{ST.end}"
+def error_bar(error_mm, width=40):
+    """Logaritmická stupnice od 0,1 mm (prázdný) do 10 mm (plný); barva říká totéž co číslo: červená nad 2 mm, zelená pod 0,5."""
+    filled = int(np.clip((np.log10(max(error_mm, 1e-6)) + 1) / 2 * width, 0, width))
+    colour = ST.red if error_mm > 2 else ST.yellow if error_mm > 0.5 else ST.green
+    return f"{colour}{error_mm:7.3f} mm {'█' * filled:{width}}{ST.end}"
 
 
-# ----------------------------------------------------------------------------- charts
-BRAILLE_BIT = ((0x01, 0x08), (0x02, 0x10), (0x04, 0x20), (0x40, 0x80))   # [dot row][dot column] of one character
+# ===================================================================================================================
+# Grafy z braillových znaků
+# ===================================================================================================================
+BRAILLE_BIT = ((0x01, 0x08), (0x02, 0x10), (0x04, 0x20), (0x40, 0x80))   # [řádek bodu][sloupec bodu] v jednom znaku
 
 
 class Canvas:
-    """Braille canvas: every character cell holds 2 x 4 dots and remembers which series drew in it."""
+    """Braillovo plátno: každá buňka znaku má 2 x 4 body a pamatuje si, které řady se do ní kreslily."""
 
     def __init__(self, cols, rows):
         self.cols, self.rows = cols, rows
@@ -194,26 +200,26 @@ class Canvas:
         self.series = [[0] * cols for _ in range(rows)]
 
     def dot(self, x, y, series):
-        """Set the dot at (x, y), counted in dots from the top left; dots outside the canvas are dropped."""
+        """Rozsvítí bod (x, y), počítáno v bodech od levého horního rohu; body mimo plátno se zahodí."""
         if 0 <= x < 2 * self.cols and 0 <= y < 4 * self.rows:
             row, col = y // 4, x // 2
             self.bits[row][col] |= BRAILLE_BIT[y % 4][x % 2]
             self.series[row][col] |= 1 << series
 
     def line(self, x0, y0, x1, y1, series):
-        """A straight line between two dots, with enough steps that no dot in between is skipped."""
+        """Přímka mezi dvěma body, s tolika kroky, aby se žádný bod mezi nimi nevynechal."""
         steps = max(abs(x1 - x0), abs(y1 - y0), 1)
-        for k in range(steps + 1):
-            self.dot(round(x0 + (x1 - x0) * k / steps), round(y0 + (y1 - y0) * k / steps), series)
+        for step in range(steps + 1):
+            self.dot(round(x0 + (x1 - x0) * step / steps), round(y0 + (y1 - y0) * step / steps), series)
 
     def text_rows(self, colour_of):
-        """The canvas as text rows; colour_of(series bit mask) gives each cell's colour."""
-        rows = []
-        for r in range(self.rows):
+        """Plátno jako řádky textu; colour_of(maska řad) vrátí barvu každé buňky."""
+        text_rows = []
+        for row in range(self.rows):
             parts, run_colour, run = [], None, ""
-            for c in range(self.cols):
-                bits = self.bits[r][c]
-                colour = colour_of(self.series[r][c]) if bits else ""
+            for col in range(self.cols):
+                bits = self.bits[row][col]
+                colour = colour_of(self.series[row][col]) if bits else ""
                 char = chr(0x2800 + bits) if bits else " "
                 if colour != run_colour and run:
                     parts.append(ST.paint(run_colour, run))
@@ -221,343 +227,355 @@ class Canvas:
                 run_colour = colour
                 run += char
             parts.append(ST.paint(run_colour, run))
-            rows.append("".join(parts))
-        return rows
+            text_rows.append("".join(parts))
+        return text_rows
 
 
 def decade_range(values):
-    """Whole decades around positive values, for a log axis (e.g. 0.3 .. 8.6 gives 0.1 .. 10)."""
-    lo = 10 ** math.floor(math.log10(min(values)))
-    hi = 10 ** math.ceil(math.log10(max(values)))
-    return (lo, hi * 10) if hi <= lo else (lo, hi)
+    """Celé dekády kolem kladných hodnot pro logaritmickou osu (např. 0,3 .. 8,6 dá 0,1 .. 10)."""
+    low = 10 ** math.floor(math.log10(min(values)))
+    high = 10 ** math.ceil(math.log10(max(values)))
+    return (low, high * 10) if high <= low else (low, high)
 
 
 def padded_range(values, share=0.08):
-    """Min and max of `values` widened by `share` of the span on both sides, for a linear axis."""
-    lo, hi = float(np.min(values)), float(np.max(values))
-    margin = (hi - lo) * share or 1.0
-    return lo - margin, hi + margin
+    """Minimum a maximum hodnot rozšířené na obě strany o `share` rozpětí, pro lineární osu."""
+    low, high = float(np.min(values)), float(np.max(values))
+    margin = (high - low) * share or 1.0
+    return low - margin, high + margin
 
 
-def axis_ticks(lo, hi, log):
-    """Round tick values inside [lo, hi]: decades on a log axis (plus 2x and 5x when it spans one decade),
-    about three steps of 1, 2 or 5 x 10^k on a linear one."""
+def axis_ticks(low, high, log):
+    """Kulaté hodnoty značek uvnitř [low, high]: dekády na logaritmické ose (a 2x a 5x, když pokrývá jednu dekádu),
+    zhruba tři kroky po 1, 2 nebo 5 x 10^k na lineární."""
     if log:
-        decades = range(round(math.log10(lo)), round(math.log10(hi)) + 1)
-        mults = (1, 2, 5) if len(decades) <= 2 else (1,)
-        return [m * 10.0 ** d for d in decades for m in mults if lo <= m * 10.0 ** d <= hi]
-    raw = (hi - lo) / 3
-    mag = 10 ** math.floor(math.log10(raw))
-    step = next(m * mag for m in (1, 2, 5, 10) if m * mag >= raw)
-    first = math.ceil(lo / step) * step
-    return [first + k * step for k in range(int((hi - first) / step) + 1)]
+        decades = range(round(math.log10(low)), round(math.log10(high)) + 1)
+        multipliers = (1, 2, 5) if len(decades) <= 2 else (1,)
+        return [m * 10.0 ** d for d in decades for m in multipliers if low <= m * 10.0 ** d <= high]
+    raw_step = (high - low) / 3
+    magnitude = 10 ** math.floor(math.log10(raw_step))
+    step = next(m * magnitude for m in (1, 2, 5, 10) if m * magnitude >= raw_step)
+    first = math.ceil(low / step) * step
+    return [first + k * step for k in range(int((high - first) / step) + 1)]
 
 
-def fmt_tick(v):
-    """A tick value in at most 8 characters."""
-    return f"{v:.6g}" if abs(v) >= 1e-3 or v == 0 else f"{v:.0e}"
+def format_tick(value):
+    """Hodnota značky nejvýš na 8 znaků."""
+    return f"{value:.6g}" if abs(value) >= 1e-3 or value == 0 else f"{value:.0e}"
 
 
-def plot(series, x_lim, y_lim, cols, rows, log=False, unit="", both=None):
-    """A line chart on a braille canvas with a labelled y axis; returns `rows` text lines of AXIS_W + cols characters.
+def plot(series, x_limits, y_limits, cols, rows, log=False, unit="", both=None):
+    """Spojnicový graf na braillově plátně s popsanou osou y; vrací `rows` řádků textu o PLOT_MARGIN + cols znacích.
 
-    series: list of (xs, ys, colour). A cell where several series meet gets colour `both` (default: the last series').
-    Points outside y_lim are left out, so a line never pretends a value sits on the edge.
+    series: seznam (xs, ys, barva). Buňka, kde se potká víc řad, dostane barvu `both` (výchozí: barva poslední řady).
+    Body mimo y_limits se vynechají, takže čára nikdy netvrdí, že hodnota leží na okraji.
     """
-    f = (lambda v: math.log10(v)) if log else (lambda v: v)
-    y_lo, y_hi = f(y_lim[0]), f(y_lim[1])
+    transform = (lambda v: math.log10(v)) if log else (lambda v: v)
+    y_low, y_high = transform(y_limits[0]), transform(y_limits[1])
     canvas = Canvas(cols, rows)
-    for s, (xs, ys, _) in enumerate(series):
+    for index, (xs, ys, _) in enumerate(series):
         points = []
-        for xv, yv in zip(xs, ys):
-            if not np.isfinite(yv) or (log and yv <= 0) or not (y_lim[0] <= yv <= y_lim[1]):
+        for x_value, y_value in zip(xs, ys):
+            if not np.isfinite(y_value) or (log and y_value <= 0) or not (y_limits[0] <= y_value <= y_limits[1]):
                 continue
-            fx = (xv - x_lim[0]) / (x_lim[1] - x_lim[0])
-            fy = (f(yv) - y_lo) / (y_hi - y_lo)
-            points.append((round(fx * (2 * cols - 1)), round((1 - fy) * (4 * rows - 1))))
+            x_fraction = (x_value - x_limits[0]) / (x_limits[1] - x_limits[0])
+            y_fraction = (transform(y_value) - y_low) / (y_high - y_low)
+            points.append((round(x_fraction * (2 * cols - 1)), round((1 - y_fraction) * (4 * rows - 1))))
         if len(points) == 1:
-            canvas.dot(*points[0], s)
-        for p, q in zip(points, points[1:]):
-            canvas.line(*p, *q, s)
-    colours = [c for _, _, c in series]
+            canvas.dot(*points[0], index)
+        for start, end in zip(points, points[1:]):
+            canvas.line(*start, *end, index)
+    colours = [colour for _, _, colour in series]
 
     def colour_of(mask):
-        if mask & (mask - 1):                    # more than one series in this cell
+        if mask & (mask - 1):                    # v této buňce je víc řad
             return both if both is not None else colours[mask.bit_length() - 1]
         return colours[mask.bit_length() - 1]
 
     labels = {}
-    for t in axis_ticks(y_lim[0], y_lim[1], log):
-        row = min(rows - 1, int((y_hi - f(t)) / (y_hi - y_lo) * rows))
-        labels.setdefault(row, (fmt_tick(t) + (" " + unit if unit else ""))[:8])
-    return [ST.paint(ST.grey, f"{labels.get(r, ''):>8} {'┤' if r in labels else '│'}") + text
-            for r, text in enumerate(canvas.text_rows(colour_of))]
+    for tick in axis_ticks(y_limits[0], y_limits[1], log):
+        row = min(rows - 1, int((y_high - transform(tick)) / (y_high - y_low) * rows))
+        labels.setdefault(row, (format_tick(tick) + (" " + unit if unit else ""))[:8])
+    return [ST.paint(ST.grey, f"{labels.get(row, ''):>8} {'┤' if row in labels else '│'}") + text
+            for row, text in enumerate(canvas.text_rows(colour_of))]
 
 
 def x_axis(cols, ticks):
-    """Two lines under a plot: the axis with tick marks, and the tick labels. ticks: list of (fraction 0..1, label)."""
+    """Dva řádky pod grafem: osa se značkami a popisky značek. ticks: seznam (podíl 0..1, popisek)."""
     line, labels = ["─"] * cols, [" "] * cols
-    for frac, text in ticks:
-        c = min(cols - 1, round(frac * (cols - 1)))
-        line[c] = "┬"
-        start = min(max(c - len(text) // 2, 0), cols - len(text))
-        if all(ch == " " for ch in labels[max(0, start - 1):start + len(text) + 1]):
+    for fraction, text in ticks:
+        col = min(cols - 1, round(fraction * (cols - 1)))
+        line[col] = "┬"
+        start = min(max(col - len(text) // 2, 0), cols - len(text))
+        if all(char == " " for char in labels[max(0, start - 1):start + len(text) + 1]):
             labels[start:start + len(text)] = list(text)
-    return [ST.paint(ST.grey, " " * (AXIS_W - 1) + "└" + "".join(line)),
-            ST.paint(ST.grey, " " * AXIS_W + "".join(labels))]
+    return [ST.paint(ST.grey, " " * (PLOT_MARGIN - 1) + "└" + "".join(line)),
+            ST.paint(ST.grey, " " * PLOT_MARGIN + "".join(labels))]
 
 
 def column_spark(fractions, values, cols, top, colour):
-    """One text row aligned with a plot: in each column the largest value that falls there, in eighths of `top`.
+    """Jeden řádek textu zarovnaný s grafem: v každém sloupci největší hodnota, která tam spadá, v osminách `top`.
 
-    Any value above zero shows at least one eighth; values above `top` are drawn full and red.
+    Každá hodnota nad nulou je vidět aspoň jako jedna osmina; hodnoty nad `top` jsou plné a červené.
     """
-    best = [None] * cols
-    for frac, v in zip(fractions, values):
-        c = min(cols - 1, int(frac * cols))
-        best[c] = v if best[c] is None else max(best[c], v)
+    largest = [None] * cols
+    for fraction, value in zip(fractions, values):
+        col = min(cols - 1, int(fraction * cols))
+        largest[col] = value if largest[col] is None else max(largest[col], value)
     cells = []
-    for v in best:
-        if v is None:
+    for value in largest:
+        if value is None:
             cells.append(" ")
-        elif v > top:
-            cells.append(ST.paint(ST.red, SPARK[8]))
+        elif value > top:
+            cells.append(ST.paint(ST.red, SPARK_LEVELS[8]))
         else:
-            cells.append(ST.paint(colour, SPARK[min(8, max(1, math.ceil(v / top * 8)))]))
+            cells.append(ST.paint(colour, SPARK_LEVELS[min(8, max(1, math.ceil(value / top * 8)))]))
     return "".join(cells)
 
 
 def sparkline(values, top, colour):
-    """Values as a row of block characters, each in eighths of `top`."""
-    return ST.paint(colour, "".join(SPARK[min(8, max(1 if v > 0 else 0, math.ceil(v / top * 8)))] for v in values))
+    """Hodnoty jako řádek blokových znaků, každá v osminách `top`."""
+    return ST.paint(colour, "".join(SPARK_LEVELS[min(8, max(1 if v > 0 else 0, math.ceil(v / top * 8)))] for v in values))
 
 
-# ----------------------------------------------------------------------------- the network
-def axis_error(pred, y):
-    """Mean absolute error of the magnetic axis in mm (R, Z); the axis exists in every row."""
-    return [float(np.abs(pred[:, j] - y[:, j]).mean() * 1000) for j in (R, Z)]
+# ===================================================================================================================
+# Síť a celý model
+# ===================================================================================================================
+def axis_error(prediction, truth):
+    """Průměrná absolutní chyba magnetické osy v mm (R, Z); osa existuje v každém řádku."""
+    return [float(np.abs(prediction[:, column] - truth[:, column]).mean() * 1000) for column in (R_AXIS, Z_AXIS)]
 
 
-def overall_accuracy(pred, y):
-    """Overall accuracy in %: 100 x (1 - mean over the outputs of the RMSE relative to the spread of the reference), on the
-    rows where an output exists. 100 % would be an exact copy of the institute's reconstruction."""
-    rel = []
-    for j in range(y.shape[1]):
-        k = ~np.isnan(y[:, j])
-        if k.sum() > 1 and y[k, j].std() > 0:
-            rel.append(np.sqrt(np.mean((pred[k, j] - y[k, j]) ** 2)) / y[k, j].std())
-    return 100 * (1 - float(np.mean(rel)))
+def overall_accuracy(prediction, truth):
+    """Celková shoda v %: 100 x (1 - průměr přes výstupy z RMSE vůči rozptylu reference), na řádcích, kde výstup existuje.
+    100 % by byla přesná kopie rekonstrukce ústavu."""
+    relative_errors = []
+    for column in range(truth.shape[1]):
+        exists = ~np.isnan(truth[:, column])
+        if exists.sum() > 1 and truth[exists, column].std() > 0:
+            rmse = np.sqrt(np.mean((prediction[exists, column] - truth[exists, column]) ** 2))
+            relative_errors.append(rmse / truth[exists, column].std())
+    return 100 * (1 - float(np.mean(relative_errors)))
 
 
-IP, IL = TARGETS.index("plasma_current"), TARGETS.index("is_limited")
-RL, ZL = TARGETS.index("R_limiter"), TARGETS.index("Z_limiter")
-HUBER = 0.2                      # Huber delta of the loss on standardised targets (0.2 beat 0.5 and 1.0 in the 5-fold search)
+HUBER_DELTA = 0.2                # delta Huberovy ztráty na standardizovaných cílech (0,2 vyšlo lépe než 0,5 a 1,0 v 5násobném hledání)
+CURRENT_SCALE = 1e5              # ampéry: měření se dělí proudem / CURRENT_SCALE
+BATCH_ROWS = 512                 # řádků v jednom kroku učení
 
 
-def add_diffs(x):
-    """The 24 measurements, the differences of neighbouring coils (15) and loops (7) and their second differences (14 + 6): 66 inputs.
-    Linear in x, so the first layer absorbs it exactly (see Fit.folded)."""
-    return np.concatenate([x, np.diff(x[:, :16], axis=1), np.diff(x[:, 16:24], axis=1),
-                           np.diff(x[:, :16], 2, axis=1), np.diff(x[:, 16:24], 2, axis=1)], 1)
+def add_differences(measurements):
+    """24 měření, rozdíly sousedních cívek (15) a smyček (7) a jejich druhé rozdíly (14 + 6): 66 vstupů.
+    Je to lineární v měřeních, takže ji první vrstva pohltí přesně (viz Fit.folded)."""
+    return np.concatenate([measurements, np.diff(measurements[:, :16], axis=1), np.diff(measurements[:, 16:24], axis=1),
+                           np.diff(measurements[:, :16], 2, axis=1), np.diff(measurements[:, 16:24], 2, axis=1)], 1)
 
 
-DIFF_MAP = add_diffs(np.eye(24))     # 24 x 66: add_diffs(x) == x @ DIFF_MAP
-N_DIFF = DIFF_MAP.shape[1]
+DIFFERENCE_MAP = add_differences(np.eye(24))     # 24 x 66: add_differences(x) == x @ DIFFERENCE_MAP
+N_DIFFERENCE_FEATURES = DIFFERENCE_MAP.shape[1]
 
 
-def fit_current_ridge(x, y):
-    """Plasma current (A) as a linear function of the 24 measurements, a ridge on standardised inputs folded into raw
-    coefficients: (w, b) with current = x @ w + b. It is accurate to about 0.03 kA and is available from the inputs alone."""
-    k = ~np.isnan(y[:, IP])
-    mu, sd = x.mean(0), x.std(0) + 1e-9
-    m = Ridge(alpha=1.0).fit((x[k] - mu) / sd, y[k, IP])
-    w = (m.coef_ / sd).astype(np.float64)
-    return w, float(m.intercept_ - (mu * w).sum())
-
-
-I_SCALE = 1e5                    # amperes: the measurements are divided by the current / I_SCALE
+def fit_current_ridge(measurements, targets):
+    """Proud plazmatu (A) jako lineární funkce 24 měření: ridge na standardizovaných vstupech přepočtený na koeficienty
+    pro surová měření (w, b), proud = x @ w + b. Je přesný zhruba na 0,03 kA a dá se spočítat jen ze vstupů."""
+    exists = ~np.isnan(targets[:, CURRENT_COL])
+    mean, std = measurements.mean(0), measurements.std(0) + 1e-9
+    ridge = Ridge(alpha=1.0).fit((measurements[exists] - mean) / std, targets[exists, CURRENT_COL])
+    weights = (ridge.coef_ / std).astype(np.float64)
+    return weights, float(ridge.intercept_ - (mean * weights).sum())
 
 
 class Fit:
-    """One trained network with its scalers: raw 24 measurements in, physical units out.
+    """Jedna natrénovaná síť se svými škálami: surových 24 měření dovnitř, fyzikální jednotky ven.
 
-    The input is the 24 measurements divided by the plasma current estimated from them (the field is proportional to the
-    currents, so the shape depends on the ratios, not on the size), their neighbour differences, and the current itself."""
+    Vstupem je 24 měření dělených proudem plazmatu odhadnutým z nich samých (pole je úměrné proudům, takže tvar závisí
+    na poměrech, ne na velikosti), jejich rozdíly sousedů a samotný proud."""
 
-    def __init__(self, x, y, ip, epochs, seed, on_epoch=None, x_test=None, y_test=None):
-        """Masked Huber loss (a missing target contributes nothing), AdamW, one-cycle schedule, standardised inputs and
-        targets. on_epoch(epoch, loss, axis R mm, axis Z mm, seconds so far, overall accuracy %) is called after each epoch
-        with the network's own estimates on x_test, which is measured but never trained on."""
+    def __init__(self, measurements, targets, ridge, epochs, seed, on_epoch=None, test_measurements=None, test_targets=None):
+        """Huberova ztráta s maskou (chybějící cíl nepřispívá), AdamW, plán one-cycle, standardizované vstupy i cíle.
+        on_epoch(epocha, ztráta, chyba osy R mm, osy Z mm, sekundy od začátku, celková shoda %) se volá po každé epoše
+        s odhady sítě na test_measurements, které se měří, ale nikdy se na nich neučí."""
         torch.manual_seed(seed)
-        self.ip = ip
-        f = self.features(x)
-        self.mu, self.sd = f.mean(0), f.std(0) + 1e-9
+        self.ridge = ridge
+        features = self.features(measurements)
+        self.input_mean, self.input_std = features.mean(0), features.std(0) + 1e-9
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
-            self.ym, self.ys = np.nanmean(y, 0), np.nanstd(y, 0) + 1e-9    # scale each target so mm and kA weigh alike
-        self.ym, self.ys = np.nan_to_num(self.ym), np.where(np.isnan(self.ys), 1.0, self.ys)
-        xt = torch.tensor((f - self.mu) / self.sd)
-        yt = torch.tensor(np.nan_to_num((y - self.ym) / self.ys).astype(np.float32))
-        exists = torch.tensor((~np.isnan(y)).astype(np.float32))
-        self.net = Net(f.shape[1], y.shape[1])
-        opt = torch.optim.AdamW(self.net.parameters(), lr=2e-3, weight_decay=1e-4)
-        steps = epochs * ((len(xt) + 511) // 512)
-        sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=3e-3, total_steps=steps)
+            self.target_mean, self.target_std = np.nanmean(targets, 0), np.nanstd(targets, 0) + 1e-9    # každý cíl na stejnou škálu, ať mm a kA váží stejně
+        self.target_mean = np.nan_to_num(self.target_mean)
+        self.target_std = np.where(np.isnan(self.target_std), 1.0, self.target_std)
+        inputs = torch.tensor((features - self.input_mean) / self.input_std)
+        standardized_targets = torch.tensor(np.nan_to_num((targets - self.target_mean) / self.target_std).astype(np.float32))
+        exists = torch.tensor((~np.isnan(targets)).astype(np.float32))
+        self.net = Net(features.shape[1], targets.shape[1])
+        optimizer = torch.optim.AdamW(self.net.parameters(), lr=2e-3, weight_decay=1e-4)
+        total_steps = epochs * ((len(inputs) + BATCH_ROWS - 1) // BATCH_ROWS)
+        scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=3e-3, total_steps=total_steps)
         started = time.perf_counter()
         for epoch in range(1, epochs + 1):
-            order = torch.randperm(len(xt))
+            order = torch.randperm(len(inputs))
             losses = []
-            for i in range(0, len(xt), 512):
-                b = order[i:i + 512]
-                err = 2 * torch.nn.functional.huber_loss(self.net(xt[b]), yt[b], reduction="none", delta=HUBER)
-                loss = (err * exists[b]).sum() / exists[b].sum()
-                opt.zero_grad()
+            for start in range(0, len(inputs), BATCH_ROWS):
+                batch = order[start:start + BATCH_ROWS]
+                errors = 2 * torch.nn.functional.huber_loss(self.net(inputs[batch]), standardized_targets[batch],
+                                                            reduction="none", delta=HUBER_DELTA)
+                loss = (errors * exists[batch]).sum() / exists[batch].sum()
+                optimizer.zero_grad()
                 loss.backward()
-                opt.step()
-                sched.step()
+                optimizer.step()
+                scheduler.step()
                 losses.append(loss.item())
             if on_epoch:
-                pred = self.slow(x_test)
-                err_r, err_z = axis_error(pred, y_test)
-                on_epoch(epoch, float(np.mean(losses)), err_r, err_z, time.perf_counter() - started, overall_accuracy(pred, y_test))
+                prediction = self.slow(test_measurements)
+                error_r, error_z = axis_error(prediction, test_targets)
+                on_epoch(epoch, float(np.mean(losses)), error_r, error_z, time.perf_counter() - started,
+                         overall_accuracy(prediction, test_targets))
         self.net.eval()
 
-    def features(self, x):
-        cur = (x.astype(np.float64) @ self.ip[0] + self.ip[1])[:, None]
-        return np.concatenate([add_diffs(x * (I_SCALE / cur)), cur / I_SCALE], 1).astype(np.float32)
+    def features(self, measurements):
+        """Vstupy sítě: měření dělená proudem, jejich rozdíly a proud."""
+        current = (measurements.astype(np.float64) @ self.ridge[0] + self.ridge[1])[:, None]
+        return np.concatenate([add_differences(measurements * (CURRENT_SCALE / current)), current / CURRENT_SCALE], 1).astype(np.float32)
 
-    def slow(self, x):
-        """The network itself (torch, float32), the reference the fast path is checked against."""
+    def slow(self, measurements):
+        """Samotná síť (torch, float32), podle ní se kontroluje rychlá cesta."""
         with torch.no_grad():
             self.net.eval()
-            return self.net(torch.from_numpy((self.features(x) - self.mu) / self.sd)).numpy() * self.ys + self.ym
+            standardized = (self.features(measurements) - self.input_mean) / self.input_std
+            return self.net(torch.from_numpy(standardized)).numpy() * self.target_std + self.target_mean
 
     def folded(self):
-        """Weights for raw 24-column inputs and physical outputs. With cur = x @ w + b the first layer is
-        (x @ Wa) * (I_SCALE / cur) + cur * c1 + b0 (the difference map, the standardisation and the division all fold in
-        exactly because the measurements enter linearly before the division); the output scaling goes into the last layer."""
-        lin = [m for m in self.net.f if isinstance(m, torch.nn.Linear)]
+        """Váhy pro surových 24 sloupců vstupu a fyzikální výstupy. S current = x @ w + b je první vrstva
+        (x @ Wa) * (CURRENT_SCALE / current) + current * c1 + b0 (mapa rozdílů, standardizace i dělení se skládají
+        přesně, protože měření vstupují před dělením lineárně); škálování výstupů jde do poslední vrstvy."""
+        linear_layers = [layer for layer in self.net.layers if isinstance(layer, torch.nn.Linear)]
         with torch.no_grad():
-            w = [m.weight.T.double().clone() for m in lin]
-            b = [m.bias.double().clone() for m in lin]
-            sd, mu = torch.as_tensor(self.sd, dtype=torch.float64), torch.as_tensor(self.mu, dtype=torch.float64)
-            ys, ym = torch.as_tensor(self.ys, dtype=torch.float64), torch.as_tensor(self.ym, dtype=torch.float64)
-            w1 = w[0]                                                   # (N_DIFF + 1) x width: the scaled features, then the current
-            wa = torch.as_tensor(DIFF_MAP) @ (w1[:N_DIFF] / sd[:N_DIFF, None])
-            c1 = w1[N_DIFF] / sd[N_DIFF] / I_SCALE
-            b0 = b[0] - (mu[:N_DIFF] / sd[:N_DIFF]) @ w1[:N_DIFF] - (mu[N_DIFF] / sd[N_DIFF]) * w1[N_DIFF]
-            rest = [(w[k].float().contiguous(), b[k].float().contiguous()) for k in range(1, len(w) - 1)]
-            last = ((w[-1] * ys).float().contiguous(), (b[-1] * ys + ym).float().contiguous())
-        return (wa.float().contiguous(), c1.float().contiguous(), b0.float().contiguous()), rest + [last]
+            weights = [layer.weight.T.double().clone() for layer in linear_layers]
+            biases = [layer.bias.double().clone() for layer in linear_layers]
+            std = torch.as_tensor(self.input_std, dtype=torch.float64)
+            mean = torch.as_tensor(self.input_mean, dtype=torch.float64)
+            target_std = torch.as_tensor(self.target_std, dtype=torch.float64)
+            target_mean = torch.as_tensor(self.target_mean, dtype=torch.float64)
+            first_layer = weights[0]                      # (N_DIFFERENCE_FEATURES + 1) x šířka: standardizované vstupy, potom proud
+            n = N_DIFFERENCE_FEATURES
+            weights_a = torch.as_tensor(DIFFERENCE_MAP) @ (first_layer[:n] / std[:n, None])
+            current_weights = first_layer[n] / std[n] / CURRENT_SCALE
+            first_bias = biases[0] - (mean[:n] / std[:n]) @ first_layer[:n] - (mean[n] / std[n]) * first_layer[n]
+            middle = [(weights[k].float().contiguous(), biases[k].float().contiguous()) for k in range(1, len(weights) - 1)]
+            last = ((weights[-1] * target_std).float().contiguous(), (biases[-1] * target_std + target_mean).float().contiguous())
+        return (weights_a.float().contiguous(), current_weights.float().contiguous(), first_bias.float().contiguous()), middle + [last]
 
 
 class Model:
-    """The whole model: `members` networks averaged (all 16 outputs), the plasma current from a ridge, and a limiter
-    specialist that, on rows the main networks call limited, answers which side of the vessel (up or down) the contact point
-    is on and where it is on that side (the side is a jump of hundreds of mm that a plain regression smears over). The limiter
-    point is the mean of that answer and the main networks' own answer: on the development set the mean beats either one
-    alone (results/ipp1-ipn.md)."""
+    """Celý model: `members` sítí zprůměrovaných (všech 16 výstupů), proud plazmatu z ridge a specialista na limiter,
+    který na řádcích, jež hlavní sítě považují za limiterové, odpoví, na které straně nádoby (nahoře nebo dole) bod dotyku
+    leží a kde na ní (strana je skok o stovky mm, který obyčejná regrese rozmaže). Bod limiteru je průměr této odpovědi
+    a odpovědi hlavních sítí: na vývojové sadě je průměr lepší než kterákoli sama (results/ipp1-ipn.md)."""
 
-    def __init__(self, x_tr, y_tr, x_te, y_te, epochs, members, view):
+    def __init__(self, train_measurements, train_targets, test_measurements, test_targets, epochs, members, view):
         self.n_members, self.params = members, 0
-        self.ridge = fit_current_ridge(x_tr, y_tr)
-        self.fits = [Fit(x_tr, y_tr, self.ridge, epochs, 0, view, x_te, y_te)]
+        self.ridge = fit_current_ridge(train_measurements, train_targets)
+        self.fits = [Fit(train_measurements, train_targets, self.ridge, epochs, 0, view, test_measurements, test_targets)]
         view.finish()
-        self.after_view = (x_tr, y_tr, epochs)
+        self.training_data = (train_measurements, train_targets, epochs)
 
-    def finish_training(self, say):
-        x_tr, y_tr, epochs = self.after_view
-        for s in range(1, self.n_members):
-            say(f"učí se další síť {s + 1}/{self.n_members} (průměr sítí)")
-            self.fits.append(Fit(x_tr, y_tr, self.ridge, epochs, s))
-        say("učí se specialista na bod dotyku limiteru (strana a poloha)")
-        lim = y_tr[:, IL] > 0.5
-        up = y_tr[:, ZL] > 0
-        spec_y = np.full((len(y_tr), 5), np.nan, np.float32)
-        spec_y[:, 0] = np.where(up, 1.0, -1.0)
-        spec_y[np.ix_(up, [1, 2])] = y_tr[np.ix_(up, [RL, ZL])]
-        spec_y[np.ix_(~up, [3, 4])] = y_tr[np.ix_(~up, [RL, ZL])]
-        self.spec = Fit(x_tr[lim], spec_y[lim], self.ridge, epochs, 100)
-        self.params = sum(p.numel() for f in self.fits + [self.spec] for p in f.net.parameters())
+    def finish_training(self, announce):
+        """Dotrénuje zbylé sítě a specialistu na limiter; `announce(text)` ohlašuje jednotlivé kroky."""
+        train_measurements, train_targets, epochs = self.training_data
+        for seed in range(1, self.n_members):
+            announce(f"učí se další síť {seed + 1}/{self.n_members} (průměr sítí)")
+            self.fits.append(Fit(train_measurements, train_targets, self.ridge, epochs, seed))
+        announce("učí se specialista na bod dotyku limiteru (strana a poloha)")
+        is_limited = train_targets[:, IS_LIMITED_COL] > 0.5
+        is_up = train_targets[:, Z_LIMITER_COL] > 0
+        # Cíle specialisty: strana (+1 nahoře, -1 dole), R a Z nahoře, R a Z dole; co neplatí, zůstane NaN.
+        specialist_targets = np.full((len(train_targets), 5), np.nan, np.float32)
+        specialist_targets[:, 0] = np.where(is_up, 1.0, -1.0)
+        specialist_targets[np.ix_(is_up, [1, 2])] = train_targets[np.ix_(is_up, [R_LIMITER_COL, Z_LIMITER_COL])]
+        specialist_targets[np.ix_(~is_up, [3, 4])] = train_targets[np.ix_(~is_up, [R_LIMITER_COL, Z_LIMITER_COL])]
+        self.specialist = Fit(train_measurements[is_limited], specialist_targets[is_limited], self.ridge, epochs, 100)
+        self.params = sum(p.numel() for fit in self.fits + [self.specialist] for p in fit.net.parameters())
 
-    def current(self, x):
-        return x.astype(np.float64) @ self.ridge[0] + self.ridge[1]
+    def current(self, measurements):
+        """Proud plazmatu (A) z ridge."""
+        return measurements.astype(np.float64) @ self.ridge[0] + self.ridge[1]
 
-    def slow(self, x):
-        out = np.mean([f.slow(x) for f in self.fits], 0)
-        out[:, IP] = self.current(x)
-        g = out[:, IL] > 0.5
-        if g.any():
-            sp = self.spec.slow(x[g])
-            side = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
-            out[np.ix_(g, [RL, ZL])] = 0.5 * (side + out[np.ix_(g, [RL, ZL])])
-        return out
+    def slow(self, measurements):
+        """Odhad všech 16 výstupů samotnými torch sítěmi (referenční cesta)."""
+        output = np.mean([fit.slow(measurements) for fit in self.fits], 0)
+        output[:, CURRENT_COL] = self.current(measurements)
+        limited = output[:, IS_LIMITED_COL] > 0.5
+        if limited.any():
+            specialist = self.specialist.slow(measurements[limited])
+            chosen_side = np.where((specialist[:, 0] > 0)[:, None], specialist[:, 1:3], specialist[:, 3:5])
+            limiter_columns = np.ix_(limited, [R_LIMITER_COL, Z_LIMITER_COL])
+            output[limiter_columns] = 0.5 * (chosen_side + output[limiter_columns])
+        return output
 
     def predictor(self, chunk=2048):
-        """Fast pass: float32, torch.addmm into preallocated buffers, SiLU in place, `chunk` rows at a time, on all torch
-        threads. Weights plus buffers are a few MB per network, so a call stays inside the L3 cache."""
-        chains = [f.folded() for f in self.fits]
-        spec = self.spec.folded()
-        wip = torch.from_numpy(self.ridge[0].astype(np.float32))
-        bip = float(self.ridge[1])
+        """Rychlá cesta: float32, torch.addmm do předem vytvořených vyrovnávacích polí, SiLU na místě, `chunk` řádků
+        najednou, na všech vláknech torchu. Váhy i pole mají u jedné sítě pár MB, takže volání zůstane v cache L3."""
+        chains = [fit.folded() for fit in self.fits]
+        specialist_chain = self.specialist.folded()
+        current_weights = torch.from_numpy(self.ridge[0].astype(np.float32))
+        current_bias = float(self.ridge[1])
 
-        def make_bufs(chain):
+        def make_buffers(chain):
             first, rest = chain
-            return [torch.empty(chunk, first[0].shape[1])] + [torch.empty(chunk, w.shape[1]) for w, _ in rest]
-        bufs, sbufs = [make_bufs(c) for c in chains], make_bufs(spec)
+            return [torch.empty(chunk, first[0].shape[1])] + [torch.empty(chunk, weights.shape[1]) for weights, _ in rest]
+        buffers, specialist_buffers = [make_buffers(chain) for chain in chains], make_buffers(specialist_chain)
 
-        def run(chain, bs, h, cur):
-            (wa, c1, b0), rest = chain
-            m = len(h)
-            o = bs[0][:m]
-            torch.mm(h, wa, out=o)
-            o.mul_((I_SCALE / cur)[:, None])
-            o.addcmul_(cur[:, None], c1[None, :])
-            o.add_(b0)
-            torch.nn.functional.silu(o, inplace=True)
-            h = o
-            for k, (w, b) in enumerate(rest):
-                o = bs[k + 1][:m]
-                torch.addmm(b, h, w, out=o)
+        def run_chain(chain, chain_buffers, rows, current):
+            (weights_a, current_weights_in, first_bias), rest = chain
+            count = len(rows)
+            hidden = chain_buffers[0][:count]
+            torch.mm(rows, weights_a, out=hidden)
+            hidden.mul_((CURRENT_SCALE / current)[:, None])
+            hidden.addcmul_(current[:, None], current_weights_in[None, :])
+            hidden.add_(first_bias)
+            torch.nn.functional.silu(hidden, inplace=True)
+            for k, (weights, bias) in enumerate(rest):
+                next_hidden = chain_buffers[k + 1][:count]
+                torch.addmm(bias, hidden, weights, out=next_hidden)
                 if k < len(rest) - 1:
-                    torch.nn.functional.silu(o, inplace=True)
-                h = o
-            return h
+                    torch.nn.functional.silu(next_hidden, inplace=True)
+                hidden = next_hidden
+            return hidden
 
-        def predict(rows):
-            rows = np.ascontiguousarray(rows, dtype=np.float32)
-            out = np.empty((len(rows), len(TARGETS)), np.float32)
+        def predict(measurements):
+            measurements = np.ascontiguousarray(measurements, dtype=np.float32)
+            result = np.empty((len(measurements), len(TARGETS)), np.float32)
             with torch.inference_mode():
-                for s in range(0, len(rows), chunk):
-                    t = torch.from_numpy(rows[s:s + chunk])
-                    cur = torch.mv(t, wip) + bip
-                    acc = run(chains[0], bufs[0], t, cur).clone() if len(chains) > 1 else run(chains[0], bufs[0], t, cur)
-                    for c, bs in zip(chains[1:], bufs[1:]):
-                        acc += run(c, bs, t, cur)
-                    o = (acc / len(chains)).numpy().copy()
-                    o[:, IP] = cur.numpy()
-                    g = o[:, IL] > 0.5
-                    if g.any():
-                        gt = torch.from_numpy(g)
-                        sp = run(spec, sbufs, t[gt], cur[gt]).numpy()
-                        side = np.where((sp[:, 0] > 0)[:, None], sp[:, 1:3], sp[:, 3:5])
-                        o[np.ix_(g, [RL, ZL])] = 0.5 * (side + o[np.ix_(g, [RL, ZL])])
-                    out[s:s + chunk] = o
-            return out
+                for start in range(0, len(measurements), chunk):
+                    rows = torch.from_numpy(measurements[start:start + chunk])
+                    current = torch.mv(rows, current_weights) + current_bias
+                    total = run_chain(chains[0], buffers[0], rows, current).clone() if len(chains) > 1 \
+                        else run_chain(chains[0], buffers[0], rows, current)
+                    for chain, chain_buffers in zip(chains[1:], buffers[1:]):
+                        total += run_chain(chain, chain_buffers, rows, current)
+                    output = (total / len(chains)).numpy().copy()
+                    output[:, CURRENT_COL] = current.numpy()
+                    limited = output[:, IS_LIMITED_COL] > 0.5
+                    if limited.any():
+                        limited_tensor = torch.from_numpy(limited)
+                        specialist = run_chain(specialist_chain, specialist_buffers, rows[limited_tensor], current[limited_tensor]).numpy()
+                        chosen_side = np.where((specialist[:, 0] > 0)[:, None], specialist[:, 1:3], specialist[:, 3:5])
+                        limiter_columns = np.ix_(limited, [R_LIMITER_COL, Z_LIMITER_COL])
+                        output[limiter_columns] = 0.5 * (chosen_side + output[limiter_columns])
+                    result[start:start + chunk] = output
+            return result
         return predict
 
 
-# ----------------------------------------------------------------------------- the machine
 def cpu_name():
-    """Processor name as the operating system reports it, or the machine type when it does not say."""
+    """Název procesoru, jak ho hlásí systém, nebo typ stroje, když ho systém neřekne."""
     try:
         if sys.platform == "darwin":
-            out = subprocess.run(["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True, timeout=2)
-            if out.stdout.strip():
-                return out.stdout.strip()
+            result = subprocess.run(["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True, timeout=2)
+            if result.stdout.strip():
+                return result.stdout.strip()
         elif sys.platform.startswith("linux"):
-            with open("/proc/cpuinfo") as f:
-                for line in f:
+            with open("/proc/cpuinfo") as cpuinfo:
+                for line in cpuinfo:
                     if line.lower().startswith("model name"):
                         return line.split(":", 1)[1].strip()
     except (OSError, subprocess.SubprocessError):
@@ -565,20 +583,23 @@ def cpu_name():
     return platform.processor() or platform.machine() or "neznámý"
 
 
-# ----------------------------------------------------------------------------- 0. banner
-def banner(width, n_in, layer_sizes, params, dev_ids, dev_rows, lock, lock_rows, cpu):
-    """The title box: what goes in, what comes out, the network, the split, the machine, the colours."""
+# ===================================================================================================================
+# 0. Úvodní rámeček
+# ===================================================================================================================
+def banner(width, n_inputs, layer_sizes, params, n_development_discharges, n_development_rows, n_locked_discharges,
+           n_locked_rows, cpu):
+    """Titulní rámeček: co jde dovnitř, co ven, síť, rozdělení dat, stroj a význam barev."""
     def key(text):
         return ST.paint(ST.bold, f"{text:<8}")
 
     rows = [
         ST.paint(ST.bold, "TVAR PLAZMATU Z MAGNETICKÝCH MĚŘENÍ") + ST.paint(ST.grey, "   COMPASS · úloha IPP 1 · živě v terminálu"),
         "",
-        f"{key('vstup')}{n_in} čísel z magnetických měření v jednom okamžiku",
+        f"{key('vstup')}{n_inputs} čísel z magnetických měření v jednom okamžiku",
         f"{key('výstup')}{len(TARGETS)} čísel o plazmatu: proud, poloha, tvar, bod X, dotykové body, limiter",
-        f"{key('síť')}malá neuronová síť {' → '.join(str(n) for n in layer_sizes)}, {fmt_int(params)} vah, pevný seed 0",
-        f"{key('data')}učí se na {dev_ids} výbojích ({fmt_int(dev_rows)} okamžiků); na {lock} odložených "
-        f"({fmt_int(lock_rows)} okamžiků) se neučí",
+        f"{key('síť')}malá neuronová síť {' → '.join(str(n) for n in layer_sizes)}, {format_int(params)} vah, pevný seed 0",
+        f"{key('data')}učí se na {n_development_discharges} výbojích ({format_int(n_development_rows)} okamžiků); na {n_locked_discharges} odložených "
+        f"({format_int(n_locked_rows)} okamžiků) se neučí",
         f"{key('chyba')}rozdíl od rekonstrukce ústavu (shoda s ní, ne s plazmatem samotným)",
         f"{key('stroj')}{cpu}",
         f"{key('barvy')}{ST.paint(ST.ref, 'bílá')} = rekonstrukce ústavu, {ST.paint(ST.est, 'tyrkysová')} = odhad sítě",
@@ -589,536 +610,552 @@ def banner(width, n_in, layer_sizes, params, dev_ids, dev_rows, lock, lock_rows,
         print(line)
 
 
-# ----------------------------------------------------------------------------- 1. learning
+# ===================================================================================================================
+# 1. Učení
+# ===================================================================================================================
 class LearningView:
-    """The learning on screen: a live two-panel chart redrawn every epoch, or in plain mode a table line per epoch
-    and the chart once at the end."""
+    """Učení na obrazovce: živý graf o dvou panelech překreslovaný každou epochu, v prostém režimu řádek tabulky
+    za epochu a graf jednou na konci."""
 
     def __init__(self, epochs, live, width):
         self.epochs, self.live, self.width = epochs, live, width
         self.block = LiveBlock() if live else None
-        self.loss, self.err_r, self.err_z, self.acc, self.elapsed = [], [], [], [], 0.0
+        self.losses, self.errors_r, self.errors_z, self.accuracies, self.elapsed = [], [], [], [], 0.0
         if not live:
             print(f"{'epocha':^6} | {'ztráta učení':^12} | {'chyba osy R na neviděných výbojích':<51} | {'osa Z':^9} | {'shoda':>8} | {'čas':>7}")
 
-    def __call__(self, epoch, loss, err_r, err_z, elapsed, acc):
-        self.loss.append(loss)
-        self.err_r.append(err_r)
-        self.err_z.append(err_z)
-        self.acc.append(acc)
+    def __call__(self, epoch, loss, error_r, error_z, elapsed, accuracy):
+        self.losses.append(loss)
+        self.errors_r.append(error_r)
+        self.errors_z.append(error_z)
+        self.accuracies.append(accuracy)
         self.elapsed = elapsed
         if self.live:
             self.block.draw(self.frame())
         else:
-            print(f"{epoch:^6d} | {loss:^12.4f} | {bar(err_r)} | {err_z:6.3f} mm | {acc:6.2f} % | {elapsed:5.1f} s")
+            print(f"{epoch:^6d} | {loss:^12.4f} | {error_bar(error_r)} | {error_z:6.3f} mm | {accuracy:6.2f} % | {elapsed:5.1f} s")
 
     def finish(self):
-        """Plain mode: the chart once, after the table."""
+        """Prostý režim: graf jednou, po tabulce."""
         if not self.live:
             print()
             for line in self.frame():
                 print(line)
 
     def frame(self):
-        """Title, legend, the two charts and two status lines for the epochs so far."""
-        cols = (self.width - 3) // 2 - AXIS_W
+        """Nadpis, legenda, dva grafy a dva stavové řádky pro dosavadní epochy."""
+        cols = (self.width - 3) // 2 - PLOT_MARGIN
         rows = min(10, max(4, terminal_rows(self.live) - 1 - 10))
-        n = len(self.loss)
-        xs = list(range(1, n + 1))
-        x_lim = (1, max(2, self.epochs))
-        left = plot([(xs, self.loss, ST.bold)], x_lim, decade_range(self.loss), cols, rows, log=True)
-        right = plot([(xs, self.err_r, ST.axis_r), (xs, self.err_z, ST.axis_z)], x_lim,
-                     decade_range(self.err_r + self.err_z), cols, rows, log=True, unit="mm")
+        n_epochs_done = len(self.losses)
+        epochs_so_far = list(range(1, n_epochs_done + 1))
+        x_limits = (1, max(2, self.epochs))
+        left = plot([(epochs_so_far, self.losses, ST.bold)], x_limits, decade_range(self.losses), cols, rows, log=True)
+        right = plot([(epochs_so_far, self.errors_r, ST.axis_r), (epochs_so_far, self.errors_z, ST.axis_z)], x_limits,
+                     decade_range(self.errors_r + self.errors_z), cols, rows, log=True, unit="mm")
         ticks = [(0, "1"), (0.5, str(round(1 + (self.epochs - 1) / 2))), (1, f"{self.epochs}")]
-        panel_w, gap = AXIS_W + cols, "   "
+        panel_width, gap = PLOT_MARGIN + cols, "   "
         lines = [
             ST.paint(ST.bold, "Jak se síť učí: vlevo ztráta při učení, vpravo chyba polohy osy na 30 odložených výbojích"),
             ST.paint(ST.grey, "U obou grafů nižší je lepší. Svisle logaritmická škála, vodorovně epocha (průchod daty)."),
             "",
-            pad(ST.paint(ST.grey, "ztráta (bez jednotky)  ") + ST.paint(ST.bold, "━━ ztráta"), panel_w) + gap
+            pad(ST.paint(ST.grey, "ztráta (bez jednotky)  ") + ST.paint(ST.bold, "━━ ztráta"), panel_width) + gap
             + ST.paint(ST.grey, "chyba (mm)  ") + ST.paint(ST.axis_r, "━━ osa R purpurová") + "  "
             + ST.paint(ST.axis_z, "━━ osa Z modrá"),
         ]
         lines += [a + gap + b for a, b in zip(left, right)]
         lines += [a + gap + b for a, b in zip(x_axis(cols, ticks), x_axis(cols, ticks))]
-        rate = n / self.elapsed if self.elapsed > 0 else 0
+        epochs_per_second = n_epochs_done / self.elapsed if self.elapsed > 0 else 0
         lines += [
             "",
-            f"epocha {ST.paint(ST.bold, f'{n:>3}/{self.epochs}')}     chyba osy R {ST.paint(ST.bold, f'{self.err_r[-1]:.3f} mm')}"
-            f"     osa Z {ST.paint(ST.bold, f'{self.err_z[-1]:.3f} mm')}"
-            f"     celková shoda {ST.paint(ST.bold, f'{self.acc[-1]:.2f} %')}",
-            progress(n / self.epochs, 30) + ST.paint(ST.grey, f"  ztráta {self.loss[-1]:.4f} · {self.elapsed:.1f} s · "
-                                                              f"{rate:.1f} epoch za sekundu"),
+            f"epocha {ST.paint(ST.bold, f'{n_epochs_done:>3}/{self.epochs}')}     chyba osy R {ST.paint(ST.bold, f'{self.errors_r[-1]:.3f} mm')}"
+            f"     osa Z {ST.paint(ST.bold, f'{self.errors_z[-1]:.3f} mm')}"
+            f"     celková shoda {ST.paint(ST.bold, f'{self.accuracies[-1]:.2f} %')}",
+            progress_bar(n_epochs_done / self.epochs, 30) + ST.paint(ST.grey, f"  ztráta {self.losses[-1]:.4f} · {self.elapsed:.1f} s · "
+                                                                              f"{epochs_per_second:.1f} epoch za sekundu"),
         ]
         return lines
 
 
-# ----------------------------------------------------------------------------- 2. all outputs
-def held_out_scores(pred, y):
-    """Per output on the set-aside rows where it exists: (name, rows, mean absolute error, std of the reference), in
-    report units (mm, kA, none)."""
+# ===================================================================================================================
+# 2. Všechny výstupy
+# ===================================================================================================================
+def held_out_scores(prediction, truth):
+    """Po výstupech na odložených řádcích, kde existují: (název, řádků, průměrná absolutní chyba, směrodatná odchylka
+    reference), v jednotkách hlášení (mm, kA, bez jednotky)."""
     scores = []
-    for j, name in enumerate(TARGETS):
-        exists = ~np.isnan(y[:, j])
-        scale = UNIT[name][0]
+    for column, name in enumerate(TARGETS):
+        exists = ~np.isnan(truth[:, column])
+        unit_scale = UNIT[name][0]
         if not exists.any():
             scores.append((name, 0, float("nan"), float("nan")))
             continue
-        mae = float(np.abs(pred[exists, j] - y[exists, j]).mean() * scale)
-        spread = float(y[exists, j].std() * scale)
-        scores.append((name, int(exists.sum()), mae, spread))
+        mean_error = float(np.abs(prediction[exists, column] - truth[exists, column]).mean() * unit_scale)
+        spread = float(truth[exists, column].std() * unit_scale)
+        scores.append((name, int(exists.sum()), mean_error, spread))
     return scores
 
 
-def scores_table(pred, y, agree, width):
-    """Bars of the error of all 16 outputs on the 30 set-aside discharges, each relative to its own spread
-    (log scale, 0.01 % .. 100 %), and the limited/diverted agreement (a share 0..1)."""
-    bar_w, bar_at = 36, 42
-    scores = held_out_scores(pred, y)
+def scores_table(prediction, truth, agreement, width):
+    """Pruhy chyby všech 16 výstupů na 30 odložených výbojích, každý vůči vlastnímu rozptylu (logaritmicky,
+    0,01 % .. 100 %), a shoda limiter / divertor (podíl 0..1)."""
+    bar_width, bar_start = 36, 42
+    scores = held_out_scores(prediction, truth)
     lines = [ST.paint(ST.bold, f"Chyba všech {len(TARGETS)} veličin na 30 odložených výbojích (nižší je lepší)"),
              ST.paint(ST.grey, "Pruh = chyba vůči rozptylu veličiny, logaritmicky: zelená pod 2 %, žlutá pod 10 %, "
                                "červená nad."),
              "",
-             ST.paint(ST.grey, f"{'veličina':<24} {'průměrná chyba':>14}   {'chyba vůči rozptylu veličiny':<{bar_w}}")]
-    for name, n, mae, spread in scores:
+             ST.paint(ST.grey, f"{'veličina':<24} {'průměrná chyba':>14}   {'chyba vůči rozptylu veličiny':<{bar_width}}")]
+    for name, n_rows, mean_error, spread in scores:
         unit = UNIT[name][1]
-        if n == 0:
+        if n_rows == 0:
             lines.append(f"{LABELS[name]:<24} {'—':>10}")
             continue
-        pct = 100 * mae / spread
-        filled = int(np.clip((math.log10(max(pct, 1e-9)) + 2) / 4 * bar_w, 0, bar_w))
-        colour = ST.green if pct < 2 else ST.yellow if pct < 10 else ST.red
-        head = f"{LABELS[name]:<24} {mae:>10.3g} {unit:<3}"
-        if name in ("R_mag_axis", "Z_mag_axis"):         # the headline numbers of the project
+        percent = 100 * mean_error / spread
+        filled = int(np.clip((math.log10(max(percent, 1e-9)) + 2) / 4 * bar_width, 0, bar_width))
+        colour = ST.green if percent < 2 else ST.yellow if percent < 10 else ST.red
+        head = f"{LABELS[name]:<24} {mean_error:>10.3g} {unit:<3}"
+        if name in ("R_mag_axis", "Z_mag_axis"):         # hlavní čísla projektu
             head = ST.paint(ST.bold, head)
-        lines.append(f"{head}   {ST.paint(colour, '█' * filled)}{ST.paint(ST.grey, '·' * (bar_w - filled))}"
-                     + ST.paint(ST.grey, f" {pct:6.2f} %"))
-    scale = [" "] * (bar_w + 6)
-    for k, text in enumerate(("0.01", "0.1", "1", "10", "100 %")):       # each label starts at its tick
-        pos = round(k * bar_w / 4)
-        scale[pos:pos + len(text)] = list(text)
-    lines.append(ST.paint(ST.grey, " " * bar_at + "".join(scale)))
-    rows_of = {name: n for name, n, _, _ in scores}
+        lines.append(f"{head}   {ST.paint(colour, '█' * filled)}{ST.paint(ST.grey, '·' * (bar_width - filled))}"
+                     + ST.paint(ST.grey, f" {percent:6.2f} %"))
+    scale = [" "] * (bar_width + 6)
+    for k, text in enumerate(("0.01", "0.1", "1", "10", "100 %")):       # každý popisek začíná u své značky
+        position = round(k * bar_width / 4)
+        scale[position:position + len(text)] = list(text)
+    lines.append(ST.paint(ST.grey, " " * bar_start + "".join(scale)))
+    rows_per_output = {name: n_rows for name, n_rows, _, _ in scores}
     lines += ["", f"Limiterová nebo divertorová konfigurace: shoda s rekonstrukcí ústavu v "
-                  f"{ST.paint(ST.bold, f'{100 * agree:.2f} %')} okamžiků."]
+                  f"{ST.paint(ST.bold, f'{100 * agreement:.2f} %')} okamžiků."]
     note = (f"Průměrná chyba = průměrný rozdíl odhadu od rekonstrukce ústavu. Rozptyl veličiny = její směrodatná "
             f"odchylka na týchž okamžicích. Bod X a dotykové body existují jen v divertorové konfiguraci "
-            f"({fmt_int(rows_of['R_x_point'])} okamžiků), bod u limiteru jen v limiterové "
-            f"({fmt_int(rows_of['R_limiter'])}). Model se učí tady v ukázce (síť s rozdíly cívek, ridge pro proud, specialista na limiter); odeslaný "
+            f"({format_int(rows_per_output['R_x_point'])} okamžiků), bod u limiteru jen v limiterové "
+            f"({format_int(rows_per_output['R_limiter'])}). Model se učí tady v ukázce (síť s rozdíly cívek, ridge pro proud, specialista na limiter); odeslaný "
             f"model je stejný recept, jeho výsledky jsou v results/ipp1-ipn.md.")
     lines += [ST.paint(ST.grey, row) for row in textwrap.wrap(note, width)]
     return [fit(line, width) for line in lines]
 
 
-# ----------------------------------------------------------------------------- 3. share inside a tolerance
-TILE_MM = (0.1, 0.5, 1, 2)          # the tolerances of the tiles; 1 mm is the headline one
-SUCCESS_S = 2.5                     # seconds each part of the success section takes to animate in the live demo
+# ===================================================================================================================
+# 3. Podíl okamžiků v toleranci
+# ===================================================================================================================
+TILE_TOLERANCES_MM = (0.1, 0.5, 1, 2)   # tolerance dlaždic; 1 mm je hlavní
+SUCCESS_SECONDS = 2.5                   # jak dlouho se v živém demu animuje každá část sekce úspěšnosti
 
 
-def share_under(err_mm, tol_mm):
-    """Percent of instants whose error is below each tolerance (err_mm: one error per instant, tol_mm: array)."""
-    return (np.asarray(err_mm)[:, None] < np.asarray(tol_mm, dtype=float)[None, :]).mean(0) * 100
+def share_under(errors_mm, tolerances_mm):
+    """Procento okamžiků, jejichž chyba je pod každou tolerancí (errors_mm: chyba každého okamžiku, tolerances_mm: pole)."""
+    return (np.asarray(errors_mm)[:, None] < np.asarray(tolerances_mm, dtype=float)[None, :]).mean(0) * 100
 
 
-def phase(t, start, end):
-    """Progress 0..1 of an animation step that runs from `start` to `end` of the overall time t, eased out."""
-    f = min(max((t - start) / (end - start), 0.0), 1.0)
-    return 1 - (1 - f) ** 3
+def ease_out(time_now, start, end):
+    """Postup 0..1 kroku animace, který běží od `start` do `end` celkového času, se zpomalením na konci."""
+    fraction = min(max((time_now - start) / (end - start), 0.0), 1.0)
+    return 1 - (1 - fraction) ** 3
 
 
-def success_lines(pred, y, scores, live, width, reveal=1.0, part="all"):
-    """The share of set-aside instants whose axis error is under a tolerance: a chart over 0.01 .. 10 mm (log),
-    tiles at TILE_MM, a bar of the limited/diverted agreement, and the R² of every output; scores from ipp1_common.score.
+def success_lines(prediction, truth, scores, live, width, reveal=1.0, part="all"):
+    """Podíl odložených okamžiků, jejichž chyba osy je pod tolerancí: graf přes 0,01 .. 10 mm (logaritmicky),
+    dlaždice pro TILE_TOLERANCES_MM, pruh shody limiter / divertor a R² každého výstupu; scores z ipp1_common.score.
 
-    part "top" is the chart and the tiles, "bottom" the agreement bar and the R² bars, "all" both. reveal 0..1 is the
-    animation time of that part: the curves sweep in from the left, then the tiles, the agreement bar and the R² bars
-    count up to their values; 1 is the finished picture (plain mode prints only that one).
-    """
-    curve_t, tile_t = phase(reveal, 0, 0.6), phase(reveal, 0.45, 1)
-    rest_t = phase(reveal, 0, 1) if part == "bottom" else 1.0
-    err = {"R": np.abs(pred[:, R] - y[:, R]) * 1000, "Z": np.abs(pred[:, Z] - y[:, Z]) * 1000}
+    part "top" je graf s dlaždicemi, "bottom" pruh shody a pruhy R², "all" obojí. reveal 0..1 je čas animace té části:
+    křivky se rozjedou zleva, pak dlaždice, pruh shody a pruhy R² dopočítají své hodnoty; 1 je hotový obraz
+    (prostý režim tiskne jen ten)."""
+    curve_progress, tile_progress = ease_out(reveal, 0, 0.6), ease_out(reveal, 0.45, 1)
+    bottom_progress = ease_out(reveal, 0, 1) if part == "bottom" else 1.0
+    errors_mm = {"R": np.abs(prediction[:, R_AXIS] - truth[:, R_AXIS]) * 1000,
+                 "Z": np.abs(prediction[:, Z_AXIS] - truth[:, Z_AXIS]) * 1000}
     colour = {"R": ST.axis_r, "Z": ST.axis_z}
-    cols = width - AXIS_W
+    cols = width - PLOT_MARGIN
     rows = min(10, max(5, terminal_rows(live) - 20))
-    log_tol = np.linspace(-2, 1, 2 * cols)           # one tolerance per braille dot column
-    log_tol = log_tol[:max(1, int(round(curve_t * len(log_tol))))]
+    log_tolerances = np.linspace(-2, 1, 2 * cols)           # jedna tolerance na sloupec braillových bodů
+    log_tolerances = log_tolerances[:max(1, int(round(curve_progress * len(log_tolerances))))]
     lines = [ST.paint(ST.bold, "Kolik okamžiků 30 odložených výbojů má chybu polohy osy pod danou tolerancí "
                                "(vyšší je lepší)"),
              ST.paint(ST.grey, "podíl okamžiků (%)  ") + ST.paint(ST.axis_r, "━━ osa R purpurová") + "  "
              + ST.paint(ST.axis_z, "━━ osa Z modrá"),
              ""]
-    lines += plot([(log_tol, share_under(err[a], 10 ** log_tol), colour[a]) for a in ("R", "Z")],
+    lines += plot([(log_tolerances, share_under(errors_mm[axis], 10 ** log_tolerances), colour[axis]) for axis in ("R", "Z")],
                   (-2, 1), (0, 100), cols, rows, unit="%")
     lines += x_axis(cols, [(0, "0.01"), (1 / 3, "0.1"), (2 / 3, "1"), (1, "10 mm")])
     lines += [ST.paint(ST.grey, f"{'':>10}vodorovně tolerance chyby osy, logaritmicky; svisle podíl okamžiků "
                                 f"s menší chybou"), ""]
 
-    tile_w = (width - 3) // 4
-    bar_w = max(3, tile_w - 4 - 10)
+    tile_width = (width - 3) // 4
+    tile_bar_width = max(3, tile_width - 4 - 10)
     tiles = []
-    for tol in TILE_MM:
-        strong = ST.bold if tol == 1 else ""
+    for tolerance in TILE_TOLERANCES_MM:
+        emphasis = ST.bold if tolerance == 1 else ""
         body = []
-        for a in ("R", "Z"):
-            pct = float(share_under(err[a], [tol])[0]) * tile_t
-            body.append(ST.paint(colour[a], a + " " + progress(pct / 100, bar_w)) + " "
-                        + ST.paint(strong, f"{pct:5.1f} %"))
-        tiles.append(box(f"pod {tol:g} mm", body, tile_w, strong or ST.grey))
+        for axis in ("R", "Z"):
+            percent = float(share_under(errors_mm[axis], [tolerance])[0]) * tile_progress
+            body.append(ST.paint(colour[axis], axis + " " + progress_bar(percent / 100, tile_bar_width)) + " "
+                        + ST.paint(emphasis, f"{percent:5.1f} %"))
+        tiles.append(box(f"pod {tolerance:g} mm", body, tile_width, emphasis or ST.grey))
     lines += [" ".join(parts) for parts in zip(*tiles)]
-    top, lines = lines, []
+    top_lines, lines = lines, []
 
-    agree = scores["is_limited"]["accuracy"]
-    known = int((~np.isnan(y[:, -1])).sum())
-    gauge_w = width - 30
+    agreement = scores["is_limited"]["accuracy"]
+    known_rows = int((~np.isnan(truth[:, -1])).sum())
+    gauge_width = width - 30
     lines += [
               ST.paint(ST.bold, "Limiterová nebo divertorová konfigurace: shoda s rekonstrukcí ústavu"),
-              f"{'shoda':<20}{progress(agree * rest_t, gauge_w)} " + ST.paint(ST.bold, f"{100 * agree * rest_t:.2f} %"),
-              ST.paint(ST.grey, f"{'':<20}0 %{'100 %':>{gauge_w - 3}}"),
-              ST.paint(ST.grey, f"{'':<20}jinak určená konfigurace v {fmt_int(round((1 - agree) * known))} "
-                                f"z {fmt_int(known)} okamžiků"),
+              f"{'shoda':<20}{progress_bar(agreement * bottom_progress, gauge_width)} " + ST.paint(ST.bold, f"{100 * agreement * bottom_progress:.2f} %"),
+              ST.paint(ST.grey, f"{'':<20}0 %{'100 %':>{gauge_width - 3}}"),
+              ST.paint(ST.grey, f"{'':<20}jinak určená konfigurace v {format_int(round((1 - agreement) * known_rows))} "
+                                f"z {format_int(known_rows)} okamžiků"),
               "",
               ST.paint(ST.bold, "Koeficient determinace R² každé veličiny (1 = odhad vysvětlí celý rozptyl veličiny)"),
               ST.paint(ST.grey, "Pruh od 0 do 1: zelená od 0.99, žlutá od 0.9, červená pod."), ""]
-    col_w = (width - 3) // 2
-    r2_bar = max(4, col_w - 32)
+    column_width = (width - 3) // 2
+    r2_bar_width = max(4, column_width - 32)
     cells = []
     for name in TARGETS:
         final_r2 = scores[name]["r2"]
-        r2 = final_r2 * rest_t
+        r2 = final_r2 * bottom_progress
         if not np.isfinite(r2):
-            cells.append(f"{LABELS[name]:<24} {'—':>{r2_bar + 7}}")
+            cells.append(f"{LABELS[name]:<24} {'—':>{r2_bar_width + 7}}")
             continue
         tint = ST.green if final_r2 >= 0.99 else ST.yellow if final_r2 >= 0.9 else ST.red
-        filled = int(round(min(max(r2, 0), 1) * r2_bar))
-        cells.append(f"{LABELS[name]:<24} {ST.paint(tint, '█' * filled)}{ST.paint(ST.grey, '·' * (r2_bar - filled))} "
+        filled = int(round(min(max(r2, 0), 1) * r2_bar_width))
+        cells.append(f"{LABELS[name]:<24} {ST.paint(tint, '█' * filled)}{ST.paint(ST.grey, '·' * (r2_bar_width - filled))} "
                      f"{r2:6.4f}")
     half = (len(cells) + 1) // 2
-    lines += [pad(left, col_w) + "   " + right for left, right in zip(cells[:half], cells[half:] + [""])]
+    lines += [pad(left, column_width) + "   " + right for left, right in zip(cells[:half], cells[half:] + [""])]
     note = ("Chyba = rozdíl odhadu od rekonstrukce ústavu, tedy shoda s ní, ne s plazmatem samotným. Model je ten z "
             "této ukázky; odeslaný model je stejný recept, jeho výsledky jsou v results/ipp1-ipn.md.")
     lines += [""] + [ST.paint(ST.grey, row) for row in textwrap.wrap(note, width)]
-    chosen = {"top": top, "bottom": lines, "all": top + [""] + lines}[part]
+    chosen = {"top": top_lines, "bottom": lines, "all": top_lines + [""] + lines}[part]
     return [fit(line, width) for line in chosen]
 
 
-def show_success(pred, y, scores, live, width):
-    """Section 3 on screen: live, the chart and tiles, then the agreement and R² bars, each animated in place for
-    SUCCESS_S seconds (a part taller than the terminal is printed at once); plain, the finished picture once."""
+def show_success(prediction, truth, scores, live, width):
+    """Sekce 3 na obrazovce: živě nejdřív graf s dlaždicemi, potom pruhy shody a R², každá část se animuje na místě
+    SUCCESS_SECONDS sekund (část vyšší než terminál se vytiskne rovnou); v prostém režimu hotový obraz jednou."""
     for part in ("top", "bottom"):
-        final = success_lines(pred, y, scores, live, width, part=part)
-        if live and len(final) < shutil.get_terminal_size((100, 40)).lines - 1:   # the redraw needs the whole part on screen
+        final_lines = success_lines(prediction, truth, scores, live, width, part=part)
+        if live and len(final_lines) < shutil.get_terminal_size((100, 40)).lines - 1:   # překreslení potřebuje celou část na obrazovce
             block = LiveBlock()
             started = time.perf_counter()
-            while (t := (time.perf_counter() - started) / SUCCESS_S) < 1:
-                block.draw(success_lines(pred, y, scores, live, width, reveal=t, part=part))
+            while (reveal := (time.perf_counter() - started) / SUCCESS_SECONDS) < 1:
+                block.draw(success_lines(prediction, truth, scores, live, width, reveal=reveal, part=part))
                 time.sleep(1 / 30)
-            block.draw(final)
+            block.draw(final_lines)
         else:
-            for line in final:
+            for line in final_lines:
                 print(line)
         if part == "top":
             print()
 
 
-# ----------------------------------------------------------------------------- 4. one unseen discharge
+# ===================================================================================================================
+# 4. Jeden neviděný výboj
+# ===================================================================================================================
 class DischargeView:
-    """One unseen discharge instant by instant: a live chart of reference and estimate for the R and Z axis,
-    the error and the time of each estimate under it; in plain mode a table line per instant and the chart once."""
+    """Jeden neviděný výboj okamžik po okamžiku: živý graf reference a odhadu osy R a Z, pod ním chyba a doba každého
+    odhadu; v prostém režimu řádek tabulky za okamžik a graf jednou."""
 
-    def __init__(self, disc, times, ref_r, ref_z, live, width):
-        self.disc, self.times, self.live, self.width = disc, times, live, width
-        self.ref_r, self.ref_z = ref_r, ref_z
-        self.lim_r, self.lim_z = padded_range(ref_r), padded_range(ref_z)
-        self.t_lim = (float(times.min()), float(times.max()) if times.max() > times.min() else float(times.min()) + 1)
-        self.est_r, self.est_z, self.ms = [], [], []
+    def __init__(self, discharge, times, reference_r, reference_z, live, width):
+        self.discharge, self.times, self.live, self.width = discharge, times, live, width
+        self.reference_r, self.reference_z = reference_r, reference_z
+        self.limits_r, self.limits_z = padded_range(reference_r), padded_range(reference_z)
+        self.time_limits = (float(times.min()), float(times.max()) if times.max() > times.min() else float(times.min()) + 1)
+        self.estimates_r, self.estimates_z, self.durations_ms = [], [], []
         self.block = LiveBlock() if live else None
         if not live:
             print("čas   | osa R ústav     odhad   chyba | osa Z ústav     odhad   chyba | doba odhadu")
 
-    def add(self, est_r, est_z, ms):
-        """Record one estimate (mm, mm, ms) and show it."""
-        self.est_r.append(est_r)
-        self.est_z.append(est_z)
-        self.ms.append(ms)
-        k = len(self.ms) - 1
+    def add(self, estimate_r, estimate_z, duration_ms):
+        """Zaznamená jeden odhad (mm, mm, ms) a ukáže ho."""
+        self.estimates_r.append(estimate_r)
+        self.estimates_z.append(estimate_z)
+        self.durations_ms.append(duration_ms)
+        index = len(self.durations_ms) - 1
         if self.live:
             self.block.draw(self.frame())
         else:
-            tr_r, tr_z = self.ref_r[k], self.ref_z[k]
-            print(f"{self.times[k]:.3f} | {tr_r:9.2f} mm {est_r:8.2f} {abs(est_r - tr_r):5.2f} | "
-                  f"{tr_z:8.2f} mm {est_z:8.2f} {abs(est_z - tr_z):5.2f} | {ms:6.3f} ms")
+            true_r, true_z = self.reference_r[index], self.reference_z[index]
+            print(f"{self.times[index]:.3f} | {true_r:9.2f} mm {estimate_r:8.2f} {abs(estimate_r - true_r):5.2f} | "
+                  f"{true_z:8.2f} mm {estimate_z:8.2f} {abs(estimate_z - true_z):5.2f} | {duration_ms:6.3f} ms")
 
     def finish(self):
-        """Plain mode: the chart once, after the table."""
+        """Prostý režim: graf jednou, po tabulce."""
         if not self.live:
             print()
             for line in self.frame():
                 print(line)
 
     def frame(self):
-        """Title, legend, the R and Z charts, error and time rows, status line for the instants so far."""
-        n = len(self.ms)
-        cols = self.width - AXIS_W
+        """Nadpis, legenda, grafy R a Z, řádky chyby a doby a stavový řádek pro dosavadní okamžiky."""
+        n_done = len(self.durations_ms)
+        cols = self.width - PLOT_MARGIN
         height = min(7, max(3, (terminal_rows(self.live) - 1 - 17) // 2))
-        t = self.times[:n]
-        frac = (t - self.t_lim[0]) / (self.t_lim[1] - self.t_lim[0])
-        err_r = np.abs(np.array(self.est_r) - self.ref_r[:n])
-        err_z = np.abs(np.array(self.est_z) - self.ref_z[:n])
-        ms_top = float(np.percentile(self.ms, 99))
+        times = self.times[:n_done]
+        time_fraction = (times - self.time_limits[0]) / (self.time_limits[1] - self.time_limits[0])
+        errors_r = np.abs(np.array(self.estimates_r) - self.reference_r[:n_done])
+        errors_z = np.abs(np.array(self.estimates_z) - self.reference_z[:n_done])
+        duration_top = float(np.percentile(self.durations_ms, 99))
         lines = [
-            ST.paint(ST.bold, f"Výboj {self.disc}, okamžik po okamžiku: poloha magnetické osy, odhad sítě proti "
+            ST.paint(ST.bold, f"Výboj {self.discharge}, okamžik po okamžiku: poloha magnetické osy, odhad sítě proti "
                               f"rekonstrukci ústavu"),
             ST.paint(ST.ref, "━━ bílá = rekonstrukce ústavu") + "   " + ST.paint(ST.est, "━━ tyrkysová = odhad sítě")
             + ST.paint(ST.grey, "   (kreslí se navrch a bílou zakryje)"),
             "",
             ST.paint(ST.grey, f"{'':>8}  osa R (mm)"),
         ]
-        lines += plot([(t, self.ref_r[:n], ST.ref), (t, self.est_r, ST.est)], self.t_lim, self.lim_r, cols, height,
-                      both=ST.est)
+        lines += plot([(times, self.reference_r[:n_done], ST.ref), (times, self.estimates_r, ST.est)], self.time_limits,
+                      self.limits_r, cols, height, both=ST.est)
         lines.append(ST.paint(ST.grey, f"{'':>8}  osa Z (mm)"))
-        lines += plot([(t, self.ref_z[:n], ST.ref), (t, self.est_z, ST.est)], self.t_lim, self.lim_z, cols, height,
-                      both=ST.est)
+        lines += plot([(times, self.reference_z[:n_done], ST.ref), (times, self.estimates_z, ST.est)], self.time_limits,
+                      self.limits_z, cols, height, both=ST.est)
         lines += [
-            ST.paint(ST.grey, f"{'chyba R':>8} │") + column_spark(frac, err_r, cols, 1.0, ST.axis_r),
-            ST.paint(ST.grey, f"{'chyba Z':>8} │") + column_spark(frac, err_z, cols, 1.0, ST.axis_z),
-            ST.paint(ST.grey, f"{'doba':>8} │") + column_spark(frac, self.ms, cols, ms_top, ""),
+            ST.paint(ST.grey, f"{'chyba R':>8} │") + column_spark(time_fraction, errors_r, cols, 1.0, ST.axis_r),
+            ST.paint(ST.grey, f"{'chyba Z':>8} │") + column_spark(time_fraction, errors_z, cols, 1.0, ST.axis_z),
+            ST.paint(ST.grey, f"{'doba':>8} │") + column_spark(time_fraction, self.durations_ms, cols, duration_top, ""),
         ]
         lines += x_axis(cols, [(0, "0"), (0.25, "0.25"), (0.5, "0.5"), (0.75, "0.75"), (1, "1")])
         lines += [
             ST.paint(ST.grey, f"{'':>10}vodorovně normovaný čas výboje: 0 = začátek, 1 = konec"),
             ST.paint(ST.grey, "chyba R, Z = rozdíl odhadu od ústavu (plná výška 1 mm, nižší je lepší); doba = čas "
                               "jednoho odhadu"),
-            ST.paint(ST.grey, f"(plná výška {ms_top:.4f} ms = p99, tj. 99 % odhadů je rychlejších; delší červeně)"),
+            ST.paint(ST.grey, f"(plná výška {duration_top:.4f} ms = p99, tj. 99 % odhadů je rychlejších; delší červeně)"),
             "",
-            f"okamžik {n:>3}/{len(self.times)}     chyba osy R {ST.paint(ST.bold, f'{err_r[-1]:5.2f} mm')}"
-            f"     osa Z {ST.paint(ST.bold, f'{err_z[-1]:5.2f} mm')}     tento odhad {ST.paint(ST.bold, f'{self.ms[-1]:.4f} ms')}",
-            ST.paint(ST.grey, f"ústav R {self.ref_r[n - 1]:.2f} mm, síť {self.est_r[-1]:.2f} mm · "
-                              f"ústav Z {self.ref_z[n - 1]:.2f} mm, síť {self.est_z[-1]:.2f} mm"),
+            f"okamžik {n_done:>3}/{len(self.times)}     chyba osy R {ST.paint(ST.bold, f'{errors_r[-1]:5.2f} mm')}"
+            f"     osa Z {ST.paint(ST.bold, f'{errors_z[-1]:5.2f} mm')}     tento odhad {ST.paint(ST.bold, f'{self.durations_ms[-1]:.4f} ms')}",
+            ST.paint(ST.grey, f"ústav R {self.reference_r[n_done - 1]:.2f} mm, síť {self.estimates_r[-1]:.2f} mm · "
+                              f"ústav Z {self.reference_z[n_done - 1]:.2f} mm, síť {self.estimates_z[-1]:.2f} mm"),
         ]
         return lines
 
 
-def latency_lines(ms, width):
-    """Distribution of the single-estimate times: a histogram from the fastest to p99, then median, p99, max."""
-    lo, p99 = float(np.min(ms)), float(np.percentile(ms, 99))
-    bins = max(10, min(60, width - 30))
-    counts = np.histogram(np.clip(ms, lo, p99), bins=bins, range=(lo, p99 if p99 > lo else lo + 1e-6))[0]
+def latency_lines(durations_ms, width):
+    """Rozdělení dob jednoho odhadu: histogram od nejrychlejšího po p99, potom medián, p99, maximum."""
+    fastest, p99 = float(np.min(durations_ms)), float(np.percentile(durations_ms, 99))
+    n_bins = max(10, min(60, width - 30))
+    counts = np.histogram(np.clip(durations_ms, fastest, p99), bins=n_bins, range=(fastest, p99 if p99 > fastest else fastest + 1e-6))[0]
     return [ST.paint(ST.bold, "Jak dlouho trvá jeden odhad (kratší je lepší)"),
-            f"{lo:.4f} ms ▕{sparkline(counts, counts.max(), '')}▏ {p99:.4f} ms",
+            f"{fastest:.4f} ms ▕{sparkline(counts, counts.max(), '')}▏ {p99:.4f} ms",
             ST.paint(ST.grey, "svisle počet odhadů, vodorovně doba od nejkratší po p99 (delší jsou v posledním sloupci)"),
-            f"medián {ST.paint(ST.bold, f'{np.median(ms):.4f} ms')}     p99 {ST.paint(ST.bold, f'{p99:.4f} ms')}"
+            f"medián {ST.paint(ST.bold, f'{np.median(durations_ms):.4f} ms')}     p99 {ST.paint(ST.bold, f'{p99:.4f} ms')}"
             + ST.paint(ST.grey, "  (p99: 99 % odhadů je rychlejších)"),
-            ST.paint(ST.grey, f"nejdelší {np.max(ms):.4f} ms · {len(ms)} odhadů po jednom řádku, včetně Pythonu kolem sítě, "
+            ST.paint(ST.grey, f"nejdelší {np.max(durations_ms):.4f} ms · {len(durations_ms)} odhadů po jednom řádku, včetně Pythonu kolem sítě, "
                               f"tento procesor")]
 
 
-# ----------------------------------------------------------------------------- 5. full speed
+# ===================================================================================================================
+# 5. Plná rychlost
+# ===================================================================================================================
 def gauge(value, target, top, width):
-    """A bar from 0 to `top` with the target marked ┃; green once the value reaches the target, yellow below."""
+    """Pruh od 0 do `top` s cílem označeným ┃; zelený, když hodnota cíl dosáhne, jinak žlutý."""
     filled = int(round(min(value, top) / top * width))
-    mark = min(width - 1, int(round(target / top * width)))
+    target_cell = min(width - 1, int(round(target / top * width)))
     colour = ST.green if value >= target else ST.yellow
     cells = []
-    for c in range(width):
-        if c == mark:
+    for cell in range(width):
+        if cell == target_cell:
             cells.append(ST.paint(ST.bold, "┃"))
-        elif c < filled:
+        elif cell < filled:
             cells.append(ST.paint(colour, "█"))
         else:
             cells.append(ST.paint(ST.grey, "░"))
-    return "".join(cells), mark
+    return "".join(cells), target_cell
 
 
 class ThroughputView:
-    """The full-speed run as a gauge of estimates per second against the target, with the per-second history."""
+    """Běh plnou rychlostí jako ukazatel odhadů za sekundu proti cíli, s historií po sekundách."""
 
     def __init__(self, target, seconds, width):
         self.target, self.seconds, self.width = target, seconds, width
         self.block = LiveBlock()
 
     def frame(self, elapsed, total, windows, rate=None):
-        """windows: (estimates, seconds) of every finished window of about one second; rate: current speed, if known."""
+        """windows: (odhadů, sekund) každého dokončeného okna zhruba po sekundě; rate: aktuální rychlost, je-li známa."""
         if rate is not None:
             pass
         elif windows:
             rate = windows[-1][0] / windows[-1][1]
         else:
             rate = total / elapsed if elapsed > 0 else 0
-        rates = [count / secs for count, secs in windows]
-        top = max([1.5 * self.target, rate * 1.1] + [r * 1.1 for r in rates])
-        gauge_w = self.width - 36
-        bar_text, mark = gauge(rate, self.target, top, gauge_w)
-        scale = [" "] * gauge_w
-        target_text = f"cíl {fmt_int(self.target)}"
-        start = min(max(mark - len(target_text) // 2, 2), gauge_w - len(target_text))
+        window_rates = [count / seconds for count, seconds in windows]
+        top = max([1.5 * self.target, rate * 1.1] + [r * 1.1 for r in window_rates])
+        gauge_width = self.width - 36
+        bar_text, target_cell = gauge(rate, self.target, top, gauge_width)
+        scale = [" "] * gauge_width
+        target_text = f"cíl {format_int(self.target)}"
+        start = min(max(target_cell - len(target_text) // 2, 2), gauge_width - len(target_text))
         scale[0] = "0"
         scale[start:start + len(target_text)] = list(target_text)
-        history = "".join(ST.paint(ST.green if r >= self.target else ST.yellow, SPARK[min(8, max(1, math.ceil(r / top * 8)))])
-                          for r in rates)
+        history = "".join(ST.paint(ST.green if r >= self.target else ST.yellow, SPARK_LEVELS[min(8, max(1, math.ceil(r / top * 8)))])
+                          for r in window_rates)
         return [
             ST.paint(ST.bold, "Plná rychlost: kolik odhadů za sekundu zvládne tento procesor (vyšší je lepší)"),
-            ST.paint(ST.grey, f"Svislá čára ┃ = cíl {fmt_int(self.target)}. Zelená = cíl splněn, žlutá = pod cílem."),
+            ST.paint(ST.grey, f"Svislá čára ┃ = cíl {format_int(self.target)}. Zelená = cíl splněn, žlutá = pod cílem."),
             "",
-            f"{'odhadů za sekundu':<20}{bar_text} {ST.paint(ST.bold, f'{fmt_int(int(rate)):>11}')}",
+            f"{'odhadů za sekundu':<20}{bar_text} {ST.paint(ST.bold, f'{format_int(int(rate)):>11}')}",
             ST.paint(ST.grey, f"{'':<20}{''.join(scale)}"),
-            f"{'každá sekunda':<20}{history}" + ST.paint(ST.grey, f"  {len(rates)} oken po 1 s"),
+            f"{'každá sekunda':<20}{history}" + ST.paint(ST.grey, f"  {len(window_rates)} oken po 1 s"),
             "",
-            ST.paint(ST.grey, f"{'průběh':<20}") + progress(elapsed / self.seconds, 30)
-            + ST.paint(ST.grey, f"  {elapsed:4.1f} / {self.seconds:.0f} s · odhadů celkem {fmt_int(total)}"),
+            ST.paint(ST.grey, f"{'průběh':<20}") + progress_bar(elapsed / self.seconds, 30)
+            + ST.paint(ST.grey, f"  {elapsed:4.1f} / {self.seconds:.0f} s · odhadů celkem {format_int(total)}"),
         ]
 
     def draw(self, elapsed, total, windows, rate=None):
         self.block.draw(self.frame(elapsed, total, windows, rate))
 
 
-# ----------------------------------------------------------------------------- the demo
+# ===================================================================================================================
+# Celé demo
+# ===================================================================================================================
 def run_demo(args, live, width):
-    """All sections in order; `width` is the number of characters every line may use."""
+    """Všechny sekce popořadě; `width` je počet znaků, které smí využít každý řádek."""
     demo_started = time.perf_counter()
-    df, x, y, groups, _ = load()
-    lock = locked_ids(groups)
-    test = np.isin(groups, lock)
-    x_tr, y_tr, x_te, y_te = x[~test], y[~test], x[test], y[test]
-    shape_net = Net(len(add_diffs(x[:1])[0]) + 1, y.shape[1])      # only for the banner
-    linears = [m for m in shape_net.f if isinstance(m, torch.nn.Linear)]
-    layer_sizes = [linears[0].in_features] + [m.out_features for m in linears]   # 67: the 24 measurements divided by the current, their differences, the current
-    params = sum(p.numel() for p in shape_net.parameters()) * args.models
+    table, measurements, targets, discharges, _ = load()
+    locked = locked_ids(discharges)
+    is_locked = np.isin(discharges, locked)
+    train_measurements, train_targets = measurements[~is_locked], targets[~is_locked]
+    test_measurements, test_targets = measurements[is_locked], targets[is_locked]
+    n_development_discharges = len(np.unique(discharges[~is_locked]))
+    banner_net = Net(len(add_differences(measurements[:1])[0]) + 1, targets.shape[1])      # jen kvůli úvodnímu rámečku
+    linear_layers = [layer for layer in banner_net.layers if isinstance(layer, torch.nn.Linear)]
+    layer_sizes = [linear_layers[0].in_features] + [layer.out_features for layer in linear_layers]   # 67: 24 měření dělených proudem, jejich rozdíly, proud
+    params = sum(p.numel() for p in banner_net.parameters()) * args.models
     cpu = cpu_name()
 
     print()
-    banner(width, x.shape[1], layer_sizes, params, len(np.unique(groups[~test])), len(x_tr), len(lock), len(x_te), cpu)
+    banner(width, measurements.shape[1], layer_sizes, params, n_development_discharges, len(train_measurements),
+           len(locked), len(test_measurements), cpu)
 
-    # 1. Learning.
+    # 1. Učení.
     section(1, "Síť se učí", width)
-    say(f"Učení: {len(np.unique(groups[~test]))} výbojů ({fmt_int(len(x_tr))} okamžiků). "
-        f"Kontrola: {len(lock)} odložených výbojů, na kterých se síť neučí.", width)
+    say(f"Učení: {n_development_discharges} výbojů ({format_int(len(train_measurements))} okamžiků). "
+        f"Kontrola: {len(locked)} odložených výbojů, na kterých se síť neučí.", width)
     print()
     started = time.perf_counter()
     view = LearningView(args.epochs, live, width)
-    model = Model(x_tr, y_tr, x_te, y_te, args.epochs, args.models, view)
+    model = Model(train_measurements, train_targets, test_measurements, test_targets, args.epochs, args.models, view)
     model.finish_training(lambda text: print(ST.paint(ST.grey, text)))
     params = model.params
-    train_s = time.perf_counter() - started
-    print(f"\nNaučeno za {train_s:.0f} s." + ST.paint(ST.grey, f" ({args.epochs / train_s:.1f} epoch za sekundu, "
-                                                             f"včetně výpisu na obrazovku)"))
+    training_seconds = time.perf_counter() - started
+    print(f"\nNaučeno za {training_seconds:.0f} s." + ST.paint(ST.grey, f" ({args.epochs / training_seconds:.1f} epoch za sekundu, "
+                                                                       f"včetně výpisu na obrazovku)"))
 
-    # 2. All outputs on the set-aside discharges.
-    section(2, f"Všech {len(TARGETS)} veličin na {len(lock)} odložených výbojích", width)
+    # 2. Všechny výstupy na odložených výbojích.
+    section(2, f"Všech {len(TARGETS)} veličin na {len(locked)} odložených výbojích", width)
     predict = model.predictor()
-    torch_pred = model.slow(x_te)
-    overall = overall_accuracy(torch_pred, y_te)
-    scores = score(torch_pred, y_te, ~np.isnan(y_te))      # R² of every output and the configuration agreement
-    agree = scores["is_limited"]["accuracy"]
-    for line in scores_table(torch_pred, y_te, agree, width):
+    torch_prediction = model.slow(test_measurements)
+    overall = overall_accuracy(torch_prediction, test_targets)
+    scores = score(torch_prediction, test_targets, ~np.isnan(test_targets))      # R² každého výstupu a shoda konfigurace
+    agreement = scores["is_limited"]["accuracy"]
+    for line in scores_table(torch_prediction, test_targets, agreement, width):
         print(line)
     print()
+    fast_path_difference_mm = np.abs(predict(test_measurements) - torch_prediction)[:, [R_AXIS, Z_AXIS]].max() * 1000
     print(ST.paint(ST.grey, textwrap.fill(
-        f"Kontrola rychlé cesty (složené váhy, float32): na všech {fmt_int(len(x_te))} neviděných okamžicích se od sítě "
-        f"liší nejvýš o {np.abs(predict(x_te) - torch_pred)[:, [R, Z]].max() * 1000:.6f} mm.", width)))
+        f"Kontrola rychlé cesty (složené váhy, float32): na všech {format_int(len(test_measurements))} neviděných okamžicích se od sítě "
+        f"liší nejvýš o {fast_path_difference_mm:.6f} mm.", width)))
 
-    # 3. Share of the set-aside instants inside a tolerance.
+    # 3. Podíl odložených okamžiků v toleranci.
     section(3, "Úspěšnost: kolik okamžiků je v toleranci", width)
-    say(f"Pro každou toleranci podíl okamžiků {len(lock)} odložených výbojů, ve kterých se poloha osy od "
+    say(f"Pro každou toleranci podíl okamžiků {len(locked)} odložených výbojů, ve kterých se poloha osy od "
         f"rekonstrukce ústavu liší méně. Čím dřív křivka dojde ke 100 %, tím lépe.", width)
     print()
-    show_success(torch_pred, y_te, scores, live, width)
-    under_1mm = [float(share_under(np.abs(torch_pred[:, j] - y_te[:, j]) * 1000, [1])[0]) for j in (R, Z)]
+    show_success(torch_prediction, test_targets, scores, live, width)
+    under_1mm = [float(share_under(np.abs(torch_prediction[:, column] - test_targets[:, column]) * 1000, [1])[0])
+                 for column in (R_AXIS, Z_AXIS)]
 
-    # 4. One unseen discharge, instant by instant, each estimate timed as a single-row call.
-    disc = int(lock[0])
-    rows = np.where(groups == disc)[0]
-    section(4, f"Výboj {disc}, na kterém se síť neučila, okamžik po okamžiku", width)
-    say(f"Síť dostane výboj {disc}, na kterém se neučila: {len(rows)} okamžiků, každý jako samostatný odhad z jednoho "
+    # 4. Jeden neviděný výboj okamžik po okamžiku, každý odhad změřený jako jednořádkové volání.
+    discharge = int(locked[0])
+    rows = np.where(discharges == discharge)[0]
+    section(4, f"Výboj {discharge}, na kterém se síť neučila, okamžik po okamžiku", width)
+    say(f"Síť dostane výboj {discharge}, na kterém se neučila: {len(rows)} okamžiků, každý jako samostatný odhad z jednoho "
         f"řádku měření. Časy se nejdřív změří v jedné těsné smyčce (kreslení by je zkreslilo), pak se odhady ukážou "
         f"okamžik po okamžiku.", width)
     print()
-    single_ms, estimates = [], []
-    for i in rows:
-        t0 = time.perf_counter()
-        p = predict(x[i:i + 1])[0]
-        single_ms.append((time.perf_counter() - t0) * 1000)
-        estimates.append(p)
-    times = df["time"].values[rows]
-    dview = DischargeView(disc, times, y[rows, R] * 1000, y[rows, Z] * 1000, live, width)
-    errs_r, errs_z = [], []
-    for i, p, ms in zip(rows, estimates, single_ms):
-        errs_r.append(abs(p[R] * 1000 - y[i, R] * 1000))
-        errs_z.append(abs(p[Z] * 1000 - y[i, Z] * 1000))
-        dview.add(p[R] * 1000, p[Z] * 1000, ms)
+    single_row_ms, single_row_estimates = [], []
+    for row in rows:
+        call_started = time.perf_counter()
+        estimate = predict(measurements[row:row + 1])[0]
+        single_row_ms.append((time.perf_counter() - call_started) * 1000)
+        single_row_estimates.append(estimate)
+    times = table["time"].values[rows]
+    discharge_view = DischargeView(discharge, times, targets[rows, R_AXIS] * 1000, targets[rows, Z_AXIS] * 1000, live, width)
+    discharge_errors_r, discharge_errors_z = [], []
+    for row, estimate, duration_ms in zip(rows, single_row_estimates, single_row_ms):
+        discharge_errors_r.append(abs(estimate[R_AXIS] * 1000 - targets[row, R_AXIS] * 1000))
+        discharge_errors_z.append(abs(estimate[Z_AXIS] * 1000 - targets[row, Z_AXIS] * 1000))
+        discharge_view.add(estimate[R_AXIS] * 1000, estimate[Z_AXIS] * 1000, duration_ms)
         if live and args.pace > 0:
-            time.sleep(args.pace / 1000)      # only so the room can watch the replay
-    dview.finish()
+            time.sleep(args.pace / 1000)      # jen aby místnost stihla přehrávání sledovat
+    discharge_view.finish()
     print()
-    for line in latency_lines(single_ms, width):
+    for line in latency_lines(single_row_ms, width):
         print(fit(line, width))
     print()
-    print(f"Výboj {disc}: průměrná chyba osy R {ST.paint(ST.bold, f'{np.mean(errs_r):.2f} mm')}, "
-          f"osy Z {ST.paint(ST.bold, f'{np.mean(errs_z):.2f} mm')}.")
-    print(ST.paint(ST.grey, f"Medián doby jednoho odhadu {np.median(single_ms):.3f} ms."))
+    print(f"Výboj {discharge}: průměrná chyba osy R {ST.paint(ST.bold, f'{np.mean(discharge_errors_r):.2f} mm')}, "
+          f"osy Z {ST.paint(ST.bold, f'{np.mean(discharge_errors_z):.2f} mm')}.")
+    print(ST.paint(ST.grey, f"Medián doby jednoho odhadu {np.median(single_row_ms):.3f} ms."))
 
-    # 5. Full speed: the unseen rows again and again in batches.
+    # 5. Plná rychlost: neviděné řádky znovu a znovu po dávkách.
     section(5, "Plná rychlost", width)
-    say(f"Všech {len(lock)} odložených výbojů ({fmt_int(len(x_te))} okamžiků) se odhaduje znovu a znovu, po dávkách "
-        f"{args.batch} okamžiků, po dobu {args.seconds:.0f} s. Cíl je {fmt_int(args.target)} odhadů za sekundu.", width)
+    say(f"Všech {len(locked)} odložených výbojů ({format_int(len(test_measurements))} okamžiků) se odhaduje znovu a znovu, po dávkách "
+        f"{args.batch} okamžiků, po dobu {args.seconds:.0f} s. Cíl je {format_int(args.target)} odhadů za sekundu.", width)
     print()
-    batches = [x_te[i:i + args.batch] for i in range(0, len(x_te), args.batch)]
-    err_r, err_z = axis_error(predict(x_te), y_te)
-    tview = ThroughputView(args.target, args.seconds, width)
+    batches = [test_measurements[i:i + args.batch] for i in range(0, len(test_measurements), args.batch)]
+    axis_error_r, axis_error_z = axis_error(predict(test_measurements), test_targets)
+    throughput_view = ThroughputView(args.target, args.seconds, width)
     if not live:
         print("     čas | odhadů celkem | odhadů za poslední sekundu | chyba osy R")
-    total = 0
-    compute = 0.0                       # seconds inside predict() only; drawing and printing are not counted
-    batch_times, windows = [], []
-    win_rows, win_secs = 0, 0.0
+    total_estimates = 0
+    compute_seconds = 0.0                       # sekundy jen uvnitř predict(); kreslení a tisk se nepočítají
+    batch_ms, windows = [], []
+    window_rows, window_seconds = 0, 0.0
     last_draw = time.perf_counter()
-    while compute < args.seconds:
-        for b in batches:
-            t0 = time.perf_counter()
-            predict(b)
-            dt = time.perf_counter() - t0
-            batch_times.append(dt * 1000)
-            compute += dt
-            total += len(b)
-            win_rows += len(b)
-            win_secs += dt
-            if win_secs >= 1:
-                windows.append((win_rows, win_secs))
+    while compute_seconds < args.seconds:
+        for batch in batches:
+            batch_started = time.perf_counter()
+            predict(batch)
+            batch_seconds = time.perf_counter() - batch_started
+            batch_ms.append(batch_seconds * 1000)
+            compute_seconds += batch_seconds
+            total_estimates += len(batch)
+            window_rows += len(batch)
+            window_seconds += batch_seconds
+            if window_seconds >= 1:
+                windows.append((window_rows, window_seconds))
                 if not live:
-                    print(f"{compute:6.1f} s | {fmt_int(total):>13} | {fmt_int(int(win_rows / win_secs)):>22}     | {err_r:6.3f} mm")
-                win_rows, win_secs = 0, 0.0
-        if live and time.perf_counter() - last_draw >= 1:   # outside the timed loop
-            tview.draw(compute, total, windows)
+                    print(f"{compute_seconds:6.1f} s | {format_int(total_estimates):>13} | {format_int(int(window_rows / window_seconds)):>22}     | {axis_error_r:6.3f} mm")
+                window_rows, window_seconds = 0, 0.0
+        if live and time.perf_counter() - last_draw >= 1:   # mimo měřenou smyčku
+            throughput_view.draw(compute_seconds, total_estimates, windows)
             last_draw = time.perf_counter()
-    elapsed = compute
-    rate = total / elapsed
+    rate = total_estimates / compute_seconds
     if live:
-        tview.draw(elapsed, total, windows)
+        throughput_view.draw(compute_seconds, total_estimates, windows)
     else:
         print()
-        for line in tview.frame(elapsed, total, windows):
+        for line in throughput_view.frame(compute_seconds, total_estimates, windows):
             print(line)
     print()
-    print(textwrap.fill(f"Celkem {fmt_int(int(rate))} odhadů za sekundu ({rate / args.target:.2f}x cíl "
-                        f"{fmt_int(args.target)}) se stejnou vyškolenou sítí; jedna dávka {args.batch} okamžiků trvá "
-                        f"asi {np.median(batch_times):.1f} ms.", width))
+    print(textwrap.fill(f"Celkem {format_int(int(rate))} odhadů za sekundu ({rate / args.target:.2f}x cíl "
+                        f"{format_int(args.target)}) se stejnou vyškolenou sítí; jedna dávka {args.batch} okamžiků trvá "
+                        f"asi {np.median(batch_ms):.1f} ms.", width))
     print()
-    median_batch = float(np.median(batch_times))
+    median_batch_ms = float(np.median(batch_ms))
     summary = [
-        f"{'rychlost':<14}" + ST.paint(ST.bold, f"{fmt_int(int(rate))} odhadů za sekundu")
-        + f" = {rate / args.target:.2f}x cíl {fmt_int(args.target)}",
-        f"{'jeden odhad':<14}medián " + ST.paint(ST.bold, f"{np.median(single_ms):.4f} ms")
-        + f", p99 {np.percentile(single_ms, 99):.4f} ms (99 % odhadů je rychlejších)",
-        f"{'chyba osy':<14}R " + ST.paint(ST.bold, f"{err_r:.3f} mm") + ", Z " + ST.paint(ST.bold, f"{err_z:.3f} mm")
-        + f" vůči rekonstrukci ústavu, {len(lock)} odložených výbojů",
+        f"{'rychlost':<14}" + ST.paint(ST.bold, f"{format_int(int(rate))} odhadů za sekundu")
+        + f" = {rate / args.target:.2f}x cíl {format_int(args.target)}",
+        f"{'jeden odhad':<14}medián " + ST.paint(ST.bold, f"{np.median(single_row_ms):.4f} ms")
+        + f", p99 {np.percentile(single_row_ms, 99):.4f} ms (99 % odhadů je rychlejších)",
+        f"{'chyba osy':<14}R " + ST.paint(ST.bold, f"{axis_error_r:.3f} mm") + ", Z " + ST.paint(ST.bold, f"{axis_error_z:.3f} mm")
+        + f" vůči rekonstrukci ústavu, {len(locked)} odložených výbojů",
         f"{'shoda celkem':<14}" + ST.paint(ST.bold, f"{overall:.2f} %") + " celkem: 100 % minus průměrná relativní chyba všech 16 veličin",
         f"{'pod 1 mm':<14}R " + ST.paint(ST.bold, f"{under_1mm[0]:.1f} %") + ", Z "
         + ST.paint(ST.bold, f"{under_1mm[1]:.1f} %") + " okamžiků má chybu osy pod 1 mm",
         f"{'konfigurace':<14}limiterová nebo divertorová: shoda s rekonstrukcí ústavu v "
-        + ST.paint(ST.bold, f"{100 * agree:.2f} %") + " okamžiků",
+        + ST.paint(ST.bold, f"{100 * agreement:.2f} %") + " okamžiků",
         "",
-        ST.paint(ST.grey, f"{'dávka':<14}{args.batch} okamžiků za {median_batch:.1f} ms (medián) = "
-                          f"{median_batch / args.batch * 1000:.2f} µs na odhad; {fmt_int(total)} odhadů za {elapsed:.1f} s"),
-        ST.paint(ST.grey, f"{'učení':<14}{args.epochs} epoch za {train_s:.1f} s, {fmt_int(params)} vah, seed 0, "
+        ST.paint(ST.grey, f"{'dávka':<14}{args.batch} okamžiků za {median_batch_ms:.1f} ms (medián) = "
+                          f"{median_batch_ms / args.batch * 1000:.2f} µs na odhad; {format_int(total_estimates)} odhadů za {compute_seconds:.1f} s"),
+        ST.paint(ST.grey, f"{'učení':<14}{args.epochs} epoch za {training_seconds:.1f} s, {format_int(params)} vah, seed 0, "
                           f"hlavní síť + síť pro limiter"),
         ST.paint(ST.grey, f"{'stroj':<14}{cpu} ({platform.machine()}); torch {args.threads} vláken"),
         ST.paint(ST.grey, f"{'software':<14}Python {platform.python_version()}, torch {torch.__version__}, "
@@ -1127,52 +1164,54 @@ def run_demo(args, live, width):
     for line in box("Souhrn", summary, width, ST.grey):
         print(line)
 
-    # 6. Every estimate of one full-speed pass, measured first and listed afterwards.
+    # 6. Každý odhad jednoho průchodu plnou rychlostí, nejdřív změřený a potom vypsaný.
     if args.dump_rows != 0:
         section(6, "Výpis odhadů jednoho průchodu", width)
-        dump_rows(df, y, groups, test, predict, batches, args)
+        dump_rows(table, targets, discharges, is_locked, predict, batches, args)
     print(ST.paint(ST.grey, f"\nCelé demo trvalo {time.perf_counter() - demo_started:.0f} s. Nic se neukládá na disk."))
 
 
-def dump_rows(df, y, groups, test, predict, batches, args):
-    """Every estimate of one full-speed pass, timed first and printed afterwards."""
-    t0 = time.perf_counter()
-    preds, per_row_us = [], []
-    for b in batches:
-        tb = time.perf_counter()
-        preds.append(predict(b))
-        per_row_us.append((time.perf_counter() - tb) * 1e6 / len(b))
-    pass_ms = (time.perf_counter() - t0) * 1000
-    pred = np.concatenate(preds)
-    n_rows = sum(len(b) for b in batches)
-    say(f"Každý odhad jednoho průchodu plnou rychlostí: {fmt_int(n_rows)} odhadů za {pass_ms:.2f} ms "
-        f"({fmt_int(int(n_rows / pass_ms * 1000))} za sekundu). Vypisují se až po změření; "
+def dump_rows(table, targets, discharges, is_locked, predict, batches, args):
+    """Každý odhad jednoho průchodu plnou rychlostí: nejdřív se změří, potom se vypíše."""
+    pass_started = time.perf_counter()
+    predictions, microseconds_per_row = [], []
+    for batch in batches:
+        batch_started = time.perf_counter()
+        predictions.append(predict(batch))
+        microseconds_per_row.append((time.perf_counter() - batch_started) * 1e6 / len(batch))
+    pass_ms = (time.perf_counter() - pass_started) * 1000
+    prediction = np.concatenate(predictions)
+    n_rows = sum(len(batch) for batch in batches)
+    say(f"Každý odhad jednoho průchodu plnou rychlostí: {format_int(n_rows)} odhadů za {pass_ms:.2f} ms "
+        f"({format_int(int(n_rows / pass_ms * 1000))} za sekundu). Vypisují se až po změření; "
         f"µs = mikrosekundy na jeden odhad v dávce.", 99)
     print("  odhad | výboj   čas  | osa R ústav     odhad   chyba | osa Z ústav     odhad   chyba | dávka   µs")
-    idx = np.where(test)[0]
-    n = len(idx) if args.dump_rows < 0 else min(args.dump_rows, len(idx))
-    for k in range(n):
-        i, p = idx[k], pred[k]
-        tr_r, tr_z, p_r, p_z = y[i, R] * 1000, y[i, Z] * 1000, p[R] * 1000, p[Z] * 1000
-        print(f"{k + 1:7d} | {groups[i]:5d}  {df['time'].iloc[i]:.3f} | {tr_r:9.2f} mm {p_r:8.2f} {abs(p_r - tr_r):5.2f} | "
-              f"{tr_z:8.2f} mm {p_z:8.2f} {abs(p_z - tr_z):5.2f} | {k // args.batch + 1:4d}   {per_row_us[k // args.batch]:8.3f}")
-    print(f"\n{fmt_int(n)} odhadů vypsáno. Průměrná chyba osy R {axis_error(pred, y[test])[0]:.3f} mm.")
+    locked_rows = np.where(is_locked)[0]
+    n_listed = len(locked_rows) if args.dump_rows < 0 else min(args.dump_rows, len(locked_rows))
+    for k in range(n_listed):
+        row, estimate = locked_rows[k], prediction[k]
+        true_r, true_z = targets[row, R_AXIS] * 1000, targets[row, Z_AXIS] * 1000
+        estimate_r, estimate_z = estimate[R_AXIS] * 1000, estimate[Z_AXIS] * 1000
+        batch_number = k // args.batch
+        print(f"{k + 1:7d} | {discharges[row]:5d}  {table['time'].iloc[row]:.3f} | {true_r:9.2f} mm {estimate_r:8.2f} {abs(estimate_r - true_r):5.2f} | "
+              f"{true_z:8.2f} mm {estimate_z:8.2f} {abs(estimate_z - true_z):5.2f} | {batch_number + 1:4d}   {microseconds_per_row[batch_number]:8.3f}")
+    print(f"\n{format_int(n_listed)} odhadů vypsáno. Průměrná chyba osy R {axis_error(prediction, targets[is_locked])[0]:.3f} mm.")
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--epochs", type=int, default=150)
-    ap.add_argument("--models", type=int, default=1, help="networks averaged (slower: each costs one more pass per estimate)")
-    ap.add_argument("--seconds", type=float, default=10, help="length of the full-speed run")
-    ap.add_argument("--batch", type=int, default=2048, help="rows per estimate call in the full-speed run")
-    ap.add_argument("--target", type=int, default=800_000, help="estimates per second the full-speed run is compared with")
-    ap.add_argument("--dump-rows", type=int, default=-1, help="rows of the final listing (default all, 0 none)")
-    ap.add_argument("--threads", type=int, default=min(6, os.cpu_count() or 1))
-    ap.add_argument("--plain", action="store_true",
-                    help="no redraw and no colour codes, for logs (automatic when stdout is not a terminal)")
-    ap.add_argument("--pace", type=float, default=15,
-                    help="ms between instants when the live view replays the unseen discharge (the estimates are timed before)")
-    args = ap.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--epochs", type=int, default=150)
+    parser.add_argument("--models", type=int, default=1, help="networks averaged (slower: each costs one more pass per estimate)")
+    parser.add_argument("--seconds", type=float, default=10, help="length of the full-speed run")
+    parser.add_argument("--batch", type=int, default=2048, help="rows per estimate call in the full-speed run")
+    parser.add_argument("--target", type=int, default=800_000, help="estimates per second the full-speed run is compared with")
+    parser.add_argument("--dump-rows", type=int, default=-1, help="rows of the final listing (default all, 0 none)")
+    parser.add_argument("--threads", type=int, default=min(6, os.cpu_count() or 1))
+    parser.add_argument("--plain", action="store_true",
+                        help="no redraw and no colour codes, for logs (automatic when stdout is not a terminal)")
+    parser.add_argument("--pace", type=float, default=15,
+                        help="ms between instants when the live view replays the unseen discharge (the estimates are timed before)")
+    args = parser.parse_args()
     torch.set_num_threads(args.threads)
 
     global ST
