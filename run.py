@@ -124,7 +124,7 @@ def main():
         run([py, "-u", "analysis/mini_pipeline.py", "--dump-rows", "0"], env, True)
     step("4. Train the shipped models and export them (out/model/ipp1-ipn.npz for clean inputs, out/model/ipp1-noisy.npz for noisy inputs)")
     run([py, "analysis/export_model.py", "--no-axis-net"], env, True)
-    run([py, "analysis/ipn_model.py"], env, True)
+    run([py, "-u", "analysis/ipn_model.py", "--live"], env, True)   # the shipped model learns with the same live chart as the demo
     step("5. First estimate with the exported model (reference reconstruction against our estimate)")
     # the paths go through argv, not into the source, so a quote in a folder name cannot break the code
     code = (

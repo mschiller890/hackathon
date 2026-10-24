@@ -54,8 +54,10 @@ def features(x, w, b, mode):
     return np.concatenate([base_features(xs, mode), (cur / I_SCALE)[:, None]], axis=1).astype(np.float32)
 
 
-def fit_net(x, y, ridge, mode, seed, epochs, delta=0.2, widths=(256, 256, 128)):
-    """Returns (net, mu, sd, ym, ys). y may contain NaN for targets that do not exist; those rows contribute nothing to the loss."""
+def fit_net(x, y, ridge, mode, seed, epochs, delta=0.2, widths=(256, 256, 128), on_epoch=None):
+    """Returns (net, mu, sd, ym, ys). y may contain NaN for targets that do not exist; those rows contribute nothing to the loss.
+    on_epoch(epoch, mean loss, net, mu, sd, ym, ys), if given, is called after every epoch only to show the learning; it draws no random
+    numbers and changes no weight, so the trained net is the same with or without it."""
     torch.manual_seed(seed)
     f = features(x, *ridge, mode)
     mu, sd = f.mean(0), f.std(0) + 1e-9
@@ -67,8 +69,9 @@ def fit_net(x, y, ridge, mode, seed, epochs, delta=0.2, widths=(256, 256, 128)):
     net = F.MLP(xt.shape[1], yt.shape[1], widths)
     opt = torch.optim.AdamW(net.parameters(), lr=2e-3, weight_decay=1e-4)
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=3e-3, total_steps=epochs * ((len(xt) + 511) // 512))
-    for _ in range(epochs):
+    for epoch in range(1, epochs + 1):
         perm = torch.randperm(len(xt))
+        losses = []
         for i in range(0, len(xt), 512):
             b = perm[i:i + 512]
             e = 2 * Fn.huber_loss(net(xt[b]), yt[b], reduction="none", delta=delta)
@@ -77,6 +80,9 @@ def fit_net(x, y, ridge, mode, seed, epochs, delta=0.2, widths=(256, 256, 128)):
             loss.backward()
             opt.step()
             sched.step()
+            losses.append(float(loss))
+        if on_epoch:
+            on_epoch(epoch, float(np.mean(losses)), net, mu, sd, ym, ys)
     net.eval()
     return net, mu.astype(np.float32), sd.astype(np.float32), ym.astype(np.float32), ys.astype(np.float32)
 
@@ -98,10 +104,13 @@ def limiter_targets(y):
     return t
 
 
-def train(x, y, mode="diff2", epochs=150, seed=0):
-    """The whole model trained on the rows given: a dict of arrays in the format of predict.py."""
+def train(x, y, mode="diff2", epochs=150, seed=0, on_epoch=None, on_spec=None):
+    """The whole model trained on the rows given: a dict of arrays in the format of predict.py. on_epoch: see fit_net (general network);
+    on_spec() is called before the limiter network is trained."""
     ridge = ridge_current(x, y)
-    gen = fit_net(x, y, ridge, mode, seed, epochs)
+    gen = fit_net(x, y, ridge, mode, seed, epochs, on_epoch=on_epoch and (lambda *a: on_epoch(*a, ridge=ridge)))
+    if on_spec:
+        on_spec()
     lim = y[:, IL] > 0.5
     spec = fit_net(x[lim], limiter_targets(y[lim]), ridge, mode, seed, epochs)
     arrays = {"ridge_w": ridge[0], "ridge_b": np.float64(ridge[1])}
@@ -114,6 +123,29 @@ def train(x, y, mode="diff2", epochs=150, seed=0):
     return arrays
 
 
+def live_view(x_show, y_show, mode, epochs, started):
+    """The learning chart of analysis/mini_pipeline.py for the shipped model: after each epoch the general network estimates the set-aside
+    rows (only measured, never trained on) and the chart shows the loss, the axis error in mm and the overall agreement."""
+    import shutil
+    import mini_pipeline as MP
+    live = sys.stdout.isatty()
+    MP.ST = MP.Style(live)
+    width = min(100, shutil.get_terminal_size((100, 40)).columns) - 1 if live else 99
+    view = MP.LearningView(epochs, live, width)
+    jr, jz = J["R_mag_axis"], J["Z_mag_axis"]
+
+    def on_epoch(epoch, loss, net, mu, sd, ym, ys, ridge):
+        with torch.no_grad():
+            pred = net(torch.tensor((features(x_show, *ridge, mode) - mu) / sd)).numpy() * ys + ym
+        err = [float(np.nanmean(np.abs(pred[:, j] - y_show[:, j]))) * 1000 for j in (jr, jz)]
+        view(epoch, loss, err[0], err[1], time.time() - started, MP.overall_accuracy(pred, y_show))
+
+    def on_spec():
+        print(MP.ST.paint(MP.ST.grey, "učí se specialista na bod u limiteru (strana a poloha)"), flush=True)
+
+    return on_epoch, on_spec, view
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--feat", default="diff2", choices=["diff", "diff2"])
@@ -121,13 +153,20 @@ def main():
     ap.add_argument("--all", action="store_true", help="train on all 149 discharges instead of the 119 development ones")
     ap.add_argument("--threads", type=int, default=4)
     ap.add_argument("--out", default="ipp1-ipn")
+    ap.add_argument("--live", action="store_true", help="show the learning as the live chart of the demo: loss, and the axis error on the 30 set-aside "
+                    "discharges after every epoch (measured only, never trained on)")
     args = ap.parse_args()
     torch.set_num_threads(args.threads)
     started = time.time()
     (df, X, Y, G, M), _ = F.aligned_data()
     _, dev_idx, lock_idx = F.split(G)
     tr = np.arange(len(X)) if args.all else dev_idx
-    arrays = train(X[tr], Y[tr], args.feat, args.epochs)
+    on_epoch = on_spec = view = None
+    if args.live:
+        on_epoch, on_spec, view = live_view(X[lock_idx], Y[lock_idx], args.feat, args.epochs, started)
+    arrays = train(X[tr], Y[tr], args.feat, args.epochs, on_epoch=on_epoch, on_spec=on_spec)
+    if view:
+        view.finish()
     inputs = [c for c in df.columns if c.startswith(("IPR", "FL"))]
     scales = np.array([F.UNIT[t][0] for t in TARGETS], dtype=np.float64)
     meta = {"input_names": inputs, "output_names": list(TARGETS), "output_units": [F.UNIT[t][1] for t in TARGETS],
