@@ -164,7 +164,7 @@ python predict.py vstup.csv --out odhady.csv --all
 | `analysis/` | skripty: `common.py` (načtení dat, síť, skórování), `final_evaluation.py` (receptury a odložené výboje), `clean_model.py` (nasazený model), `noisy_model.py` (zašuměný model), `live_demo.py` (živé demo), `error_in_mm.py`, `plot_accuracy.py`, `run_analyses.py`, analýzy (`explore_data.py`, `baseline_models.py`, `out_of_fold*.py`, `stability_over_time.py`, `input_importance.py`, `latency.py`, `data_checks.py`) a syntetický test (`synth_equilibrium.py`, `synth_validation.py`) |
 | `notebooks/01 … 10` | **všechny závěry**, s uloženými výstupy (jdou číst bez spuštění): 01 data, 02 základní modely, 03 vstupy a důležitost, 04 stabilita v čase, 05 odezva, 06 kamera, 07 nerovnoměrné rozdělení a neobvyklé tvary, 08 šum, drift a množství dat, 09 nasazený model na odložených výbojích, 10 syntetický test se známou pravdou |
 | `data/` | **důvěrná data ÚFP** (`equil_data.csv`, `equil_data_noisy.csv`, 42 972 řádků každý). Repozitář je soukromý, kapitola 9 |
-| `results/` | agregované výsledky a grafy, které notebooky čtou (žádná surová data) |
+| `results/` | agregované výsledky a grafy, které notebooky čtou (žádná surová data); přehled podle témat v `results/README.md` |
 | `slides.pdf`, `slides.pptx` | prezentace |
 | `requirements.txt` | balíčky a verze, se kterými čísla vznikla |
 
