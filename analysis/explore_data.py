@@ -16,11 +16,18 @@ import matplotlib.pyplot as plt
 
 ROOT = Path(os.environ.get("HACKATHON_HOME") or Path(__file__).resolve().parents[1])
 DATA_FOLDERS = (ROOT / "data", ROOT / "data/raw/ipp1-magnetic/uloha_1-magneticka_data")
-DATA = next((folder for folder in DATA_FOLDERS if (folder / "equil_data.csv").exists()), ROOT / "data")
+
+
+def data_file(folder, stem):
+    """Soubor s daty ve složce: `stem`.csv, nebo `stem`.zip (pandas čte CSV rovnou ze zipu)."""
+    return folder / f"{stem}.csv" if (folder / f"{stem}.csv").exists() else folder / f"{stem}.zip"
+
+
+DATA = next((folder for folder in DATA_FOLDERS if data_file(folder, "equil_data").exists()), ROOT / "data")
 OUT = ROOT / "out"
 OUT.mkdir(exist_ok=True)
-clean = pd.read_csv(DATA / "equil_data.csv")
-noisy = pd.read_csv(DATA / "equil_data_noisy.csv")
+clean = pd.read_csv(data_file(DATA, "equil_data"))
+noisy = pd.read_csv(data_file(DATA, "equil_data_noisy"))
 INPUTS = [name for name in clean.columns if name.startswith(("IPR", "FL"))]
 ROW_KEYS = ["time", "discharge"]
 TARGET_COLUMNS = [name for name in clean.columns if name not in INPUTS + ROW_KEYS]

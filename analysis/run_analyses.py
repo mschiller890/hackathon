@@ -73,9 +73,10 @@ def main():
 
     home = Path(os.environ.get("HACKATHON_HOME") or REPO).expanduser().resolve()      # výchozí je repozitář, kde je data/
     data_folders = (home / "data", home / "data/raw/ipp1-magnetic/uloha_1-magneticka_data")
-    data = next((folder / "equil_data.csv" for folder in data_folders if (folder / "equil_data.csv").exists()), home / "data/equil_data.csv")
+    data_names = ("equil_data.zip", "equil_data.csv")
+    data = next((folder / name for folder in data_folders for name in data_names if (folder / name).exists()), home / "data/equil_data.zip")
     if not data.exists():
-        sys.exit(f"missing {data}: put equil_data.csv and equil_data_noisy.csv in data/ of the repository, or set HACKATHON_HOME to a folder that holds data/")
+        sys.exit(f"missing {data}: put equil_data.zip and equil_data_noisy.zip (or the .csv files) in data/ of the repository, or set HACKATHON_HOME to a folder that holds data/")
     out = home / "out"
     out.mkdir(exist_ok=True)  # input_importance.py a latency.py do ní zapisují a sami ji nevytvoří
     env = {**os.environ, "HACKATHON_HOME": str(home)}

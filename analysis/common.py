@@ -20,12 +20,20 @@ OUT = ROOT / "out"
 
 # Data hledáme v data/ a pro jistotu i v původní struktuře z archivu od organizátorů.
 _DATA_CANDIDATES = (ROOT / "data", ROOT / "data/raw/ipp1-magnetic/uloha_1-magneticka_data")
-DATA = next((folder for folder in _DATA_CANDIDATES if (folder / "equil_data.csv").exists()), ROOT / "data")
+
+
+def data_file(folder, stem):
+    """Soubor s daty ve složce: `stem`.csv (původní z archivu), nebo `stem`.zip (v repozitáři; pandas čte CSV rovnou ze zipu)."""
+    csv_file = Path(folder) / f"{stem}.csv"
+    return csv_file if csv_file.exists() else Path(folder) / f"{stem}.zip"
+
+
+DATA = next((folder for folder in _DATA_CANDIDATES if data_file(folder, "equil_data").exists()), ROOT / "data")
 if not DATA.exists():
     hackathon_home = os.environ.get("HACKATHON_HOME")
     raise SystemExit(
         f"Složka s daty nenalezena: {DATA}\n"
-        "Dejte equil_data.csv a equil_data_noisy.csv do složky data/ v repozitáři, nebo nastavte HACKATHON_HOME "
+        "Dejte equil_data.zip (nebo .csv) a equil_data_noisy.zip (nebo .csv) do složky data/ v repozitáři, nebo nastavte HACKATHON_HOME "
         f"na složku, která data/ obsahuje (HACKATHON_HOME je {'nenastaveno' if hackathon_home is None else hackathon_home})."
     )
 OUT.mkdir(parents=True, exist_ok=True)
@@ -59,8 +67,7 @@ def load(noisy=False):
 
     Cíle mají NaN tam, kde veličina neexistuje. Maska je opak: True tam, kde cíl existuje.
     """
-    csv_name = "equil_data_noisy.csv" if noisy else "equil_data.csv"
-    table = pd.read_csv(DATA / csv_name)
+    table = pd.read_csv(data_file(DATA, "equil_data_noisy" if noisy else "equil_data"))
     table["is_limited"] = table["is_limited"].astype(float)
     input_columns = [name for name in table.columns if name.startswith(("IPR", "FL"))]  # 16 cívek + 8 smyček
     inputs = table[input_columns].values.astype(np.float32)

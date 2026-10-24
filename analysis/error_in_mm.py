@@ -3,7 +3,7 @@
 
     python analysis/error_in_mm.py [--model out/model/clean-model.npz] [--set locked|dev|all] [--noisy] [--csv SOUBOR] [--json VÝSTUP]
 
-Data: ve výchozím stavu equil_data.csv (s --noisy equil_data_noisy.csv) ze složky data/ repozitáře nebo z $HACKATHON_HOME.
+Data: ve výchozím stavu equil_data.zip (s --noisy equil_data_noisy.zip; funguje i původní .csv) ze složky data/ repozitáře nebo z $HACKATHON_HOME.
 --csv vezme libovolný soubor s 24 vstupy IPR01..IPR16 a FL01..FL08, sloupcem `discharge`, volitelně `time` a libovolnými
 cílovými sloupci; veličiny, jejichž sloupec chybí, se přeskočí.
 Sady: `locked` = 30 výbojů ze souboru results/locked-test-ids.txt (tatáž sada jako v results/final-evaluation.md),
@@ -63,13 +63,14 @@ def default_model():
 
 def ipp_file(noisy):
     """Soubor s daty ústavu: data/ (soubory jsou v repozitáři) nebo původní struktura z archivu."""
-    name = "equil_data_noisy.csv" if noisy else "equil_data.csv"
+    stem = "equil_data_noisy" if noisy else "equil_data"
     homes = [Path(os.environ["HACKATHON_HOME"])] if os.environ.get("HACKATHON_HOME") else []
     for home in homes + [REPO, Path.cwd()]:
         for subfolder in (Path("data"), NESTED_DATA):
-            if (home / subfolder / name).exists():
-                return home / subfolder / name
-    fail(f"data nenalezena: {name} není v {NESTED_DATA} pod HACKATHON_HOME "
+            for name in (f"{stem}.zip", f"{stem}.csv"):
+                if (home / subfolder / name).exists():
+                    return home / subfolder / name
+    fail(f"data nenalezena: {stem}.zip ani {stem}.csv není v {NESTED_DATA} pod HACKATHON_HOME "
          f"({os.environ.get('HACKATHON_HOME', 'nenastaveno')}) ani pod {REPO}. Nastavte HACKATHON_HOME nebo použijte --csv.")
 
 
@@ -298,7 +299,7 @@ def main():
     parser.add_argument("--model", help="exportovaný model .npz (výchozí: out/model/clean-model.npz v $HACKATHON_HOME nebo v repozitáři)")
     parser.add_argument("--set", choices=("locked", "dev", "all"),
                         help="které výboje (výchozí: locked pro data ústavu, all pro --csv)")
-    parser.add_argument("--noisy", action="store_true", help="zašuměný soubor equil_data_noisy.csv místo equil_data.csv")
+    parser.add_argument("--noisy", action="store_true", help="zašuměný soubor equil_data_noisy místo equil_data")
     parser.add_argument("--csv", help="libovolné CSV s 24 vstupy, `discharge`, volitelně `time`, a cílovými sloupci")
     parser.add_argument("--json", help="uloží všechna čísla i do tohoto souboru JSON")
     args = parser.parse_args()

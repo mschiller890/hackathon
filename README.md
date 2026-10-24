@@ -112,7 +112,7 @@ python run.py --full     # asi 10 minut: všechny analýzy a všech deset notebo
 python run.py --check    # jen zkontroluje balíčky a data
 ```
 
-**Data** jsou přímo v repozitáři ve složce `data/` (`equil_data.csv` a `equil_data_noisy.csv`), takže se nic nenastavuje: `run.py` i všechny skripty a notebooky je najdou samy a vše nové (modely, mezivýsledky) ukládají do složky `out/` v repozitáři (je v `.gitignore`). Proměnná **`HACKATHON_HOME`** je volitelná: ukazuje-li na jinou složku, která má `data/` s těmito dvěma soubory (nebo původní strukturu `data/raw/ipp1-magnetic/uloha_1-magneticka_data/`), použije se ta. **Repozitář musí zůstat soukromý** (kapitola 9).
+**Data** jsou přímo v repozitáři ve složce `data/` (`equil_data.zip` a `equil_data_noisy.zip`, uvnitř jsou CSV; pandas je čte rovnou ze zipu), takže se nic nenastavuje: `run.py` i všechny skripty a notebooky je najdou samy a vše nové (modely, mezivýsledky) ukládají do složky `out/` v repozitáři (je v `.gitignore`). Proměnná **`HACKATHON_HOME`** je volitelná: ukazuje-li na jinou složku, která má `data/` s těmito dvěma soubory (nebo původní strukturu `data/raw/ipp1-magnetic/uloha_1-magneticka_data/`), použije se ta. **Repozitář musí zůstat soukromý** (kapitola 9).
 
 Co `python run.py` udělá, krok za krokem:
 
@@ -163,7 +163,7 @@ python predict.py vstup.csv --out odhady.csv --all
 | `predict.py` | použití modelu na vlastním CSV (kapitola 4) |
 | `analysis/` | skripty: `common.py` (načtení dat, síť, skórování), `final_evaluation.py` (receptury a odložené výboje), `clean_model.py` (nasazený model), `noisy_model.py` (zašuměný model), `live_demo.py` (živé demo), `error_in_mm.py`, `plot_accuracy.py`, `run_analyses.py`, analýzy (`explore_data.py`, `baseline_models.py`, `out_of_fold*.py`, `stability_over_time.py`, `input_importance.py`, `latency.py`, `data_checks.py`) a syntetický test (`synth_equilibrium.py`, `synth_validation.py`) |
 | `notebooks/01 … 10` | **všechny závěry**, s uloženými výstupy (jdou číst bez spuštění): 01 data, 02 základní modely, 03 vstupy a důležitost, 04 stabilita v čase, 05 odezva, 06 kamera, 07 nerovnoměrné rozdělení a neobvyklé tvary, 08 šum, drift a množství dat, 09 nasazený model na odložených výbojích, 10 syntetický test se známou pravdou |
-| `data/` | **důvěrná data ÚFP** (`equil_data.csv`, `equil_data_noisy.csv`, 42 972 řádků každý). Repozitář je soukromý, kapitola 9 |
+| `data/` | **důvěrná data ÚFP** (`equil_data.zip`, `equil_data_noisy.zip`, v každém CSV 42 972 řádků). Repozitář je soukromý, kapitola 9 |
 | `results/` | agregované výsledky a grafy, které notebooky čtou (žádná surová data); přehled podle témat v `results/README.md` |
 | `slides.pdf`, `slides.pptx` | prezentace |
 | `requirements.txt` | balíčky a verze, se kterými čísla vznikla |
@@ -240,6 +240,6 @@ Co jsme zkoušeli a nezlepšilo to výsledek (podrobně `results/clean-model.md`
 
 Data poskytl ÚFP AV ČR jen pro účely tohoto hackathonu a **není dovoleno je zveřejnit ani zpřístupnit nikomu mimo účastníky hackatonu**.
 
-* Obě datová CSV (`data/equil_data.csv`, `data/equil_data_noisy.csv`, dohromady asi 87 MB) **jsou v tomto repozitáři**, aby šlo všechno spustit hned po naklonování. Proto musí zůstat **soukromý** a přístup mají mít **jen účastníci hackathonu** (teď dva přispěvatelé). **Nikdy ho nezveřejňujte, nevytvářejte z něj veřejný fork ani balíček a nekopírujte `data/` jinam.** Soubory zůstávají navždy v historii gitu, i kdyby se později smazaly.
+* Oba datové soubory (`data/equil_data.zip`, `data/equil_data_noisy.zip`, dohromady asi 37 MB; rozbalená CSV mají 87 MB) **jsou v tomto repozitáři**, aby šlo všechno spustit hned po naklonování. Proto musí zůstat **soukromý** a přístup mají mít **jen účastníci hackathonu** (teď dva přispěvatelé). **Nikdy ho nezveřejňujte, nevytvářejte z něj veřejný fork ani balíček a nekopírujte `data/` jinam.** Soubory zůstávají navždy v historii gitu, i kdyby se později smazaly.
 * Natrénované váhy modelů jsou z dat odvozené, proto se do gitu nedávají (`out/` a `model/` jsou v `.gitignore`) a organizátorům se předávají zvlášť.
 * Živé demo vypisuje do terminálu řádky dat: ukazujte ho v místnosti, ale **nenahrávejte ho a nepřeposílejte**.

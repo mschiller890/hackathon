@@ -6,7 +6,7 @@
     python run.py --check    jen zkontroluje balíčky a data
 
 Data od ÚFP jsou důvěrná: repozitář je soukromý a smějí k němu mít přístup jen účastníci hackathonu. Soubory jsou ve složce
-data/; jiná složka se dá zadat proměnnou HACKATHON_HOME (musí mít data/ se dvěma CSV). Živé demo vypisuje do terminálu řádky
+data/; jiná složka se dá zadat proměnnou HACKATHON_HOME (musí mít data/ se dvěma datovými soubory). Živé demo vypisuje do terminálu řádky
 dat: ukazujte ho v místnosti, ale nenahrávejte ho a nepřeposílejte.
 """
 import argparse
@@ -23,16 +23,21 @@ HERE = Path(__file__).resolve().parent
 # Kde jsou data: nová plochá složka data/ (soubory jsou v repozitáři), nebo původní struktura z archivu od organizátorů.
 FLAT_DATA = Path("data")
 NESTED_DATA = Path("data/raw/ipp1-magnetic/uloha_1-magneticka_data")
-CLEAN_CSV, NOISY_CSV = "equil_data.csv", "equil_data_noisy.csv"
+CLEAN_NAME, NOISY_NAME = "equil_data", "equil_data_noisy"   # soubory .zip (v repozitáři) nebo .csv (původní z archivu)
 
 # Barvy ve výpisu terminálu.
 BOLD, GREEN, RED, DIM, RESET = "\033[1m", "\033[32m", "\033[31m", "\033[2m", "\033[0m"
 
 
+def data_file(folder, name):
+    """Soubor `name`.zip, nebo `name`.csv ve složce (pandas čte CSV rovnou ze zipu); None, když není ani jeden."""
+    return next((folder / f"{name}{suffix}" for suffix in (".zip", ".csv") if (folder / f"{name}{suffix}").exists()), None)
+
+
 def data_folder(home):
-    """Složka pod `home`, která má obě CSV (data/ nebo původní vnořená struktura), nebo None."""
+    """Složka pod `home`, která má obě datové soubory (data/ nebo původní vnořená struktura), nebo None."""
     for folder in (FLAT_DATA, NESTED_DATA):
-        if all((home / folder / name).exists() for name in (CLEAN_CSV, NOISY_CSV)):
+        if all(data_file(home / folder, name) for name in (CLEAN_NAME, NOISY_NAME)):
             return home / folder
     return None
 
@@ -72,11 +77,11 @@ def find_home():
         if folder:
             print(f"{GREEN}data found{RESET} in {folder}")
             return home
-        if any((home / where / name).exists() for where in (FLAT_DATA, NESTED_DATA) for name in (CLEAN_CSV, NOISY_CSV)):
+        if any(data_file(home / where, name) for where in (FLAT_DATA, NESTED_DATA) for name in (CLEAN_NAME, NOISY_NAME)):
             sys.exit(f"{RED}Only one of the two data files is there{RESET} in {home / FLAT_DATA}: "
-                     f"both {CLEAN_CSV} and {NOISY_CSV} are needed.")
+                     f"both {CLEAN_NAME} and {NOISY_NAME} (.zip or .csv) are needed.")
     sys.exit(f"{RED}The data were not found.{RESET}\n"
-             f"They belong in {HERE / FLAT_DATA} ({CLEAN_CSV} and {NOISY_CSV}; the repository has them)\n"
+             f"They belong in {HERE / FLAT_DATA} ({CLEAN_NAME}.zip and {NOISY_NAME}.zip; the repository has them)\n"
              "or set HACKATHON_HOME to a folder that holds data/ with these two files.")
 
 
@@ -108,7 +113,7 @@ def first_estimate(home, model_path):
     import predict
 
     started = time.time()
-    table = pd.read_csv(data_folder(home) / CLEAN_CSV)
+    table = pd.read_csv(data_file(data_folder(home), CLEAN_NAME))
     model = predict.Model(model_path)
     development = table[~np.isin(table["discharge"].values, locked_discharge_ids())]
     discharge = development["discharge"].iloc[0]
@@ -133,7 +138,7 @@ def compare_models_on_noisy_inputs(home):
     sys.path.insert(0, str(HERE))
     import predict
 
-    table = pd.read_csv(data_folder(home) / NOISY_CSV)
+    table = pd.read_csv(data_file(data_folder(home), NOISY_NAME))
     table = table[table["discharge"].isin(locked_discharge_ids())]
     clean_model = predict.Model(home / "out" / "model" / "clean-model.npz")
     noise_model = predict.Model(home / "out" / "model" / "noisy-model.npz")
